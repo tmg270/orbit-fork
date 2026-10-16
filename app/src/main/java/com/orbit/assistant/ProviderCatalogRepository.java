@@ -330,7 +330,14 @@ public final class ProviderCatalogRepository {
                     models = parseAnthropic(get(ANTHROPIC_URL, "x-api-key", key, true));
                 } else if (Prefs.PROVIDER_XAI.equals(provider)) {
                     String key = SecureStore.loadXaiKey(app);
-                    if (key.isEmpty()) throw new CatalogException("Add an xAI API key first.");
+                    if (key.isEmpty()) {
+                        try {
+                            key = SuperGrokAuth.validAccessToken(app, false);
+                        } catch (SuperGrokAuth.AuthException e) {
+                            throw new CatalogException(e.getMessage());
+                        }
+                    }
+                    if (key.isEmpty()) throw new CatalogException("Add an xAI API key or sign in with SuperGrok first.");
                     models = parseXai(get(XAI_URL, "Authorization", "Bearer " + key, false));
                 } else if (Prefs.PROVIDER_OPENROUTER.equals(provider)) {
                     String key = SecureStore.loadOpenRouterKey(app);
@@ -372,7 +379,7 @@ public final class ProviderCatalogRepository {
     public static void refreshIfStale(Context c, String provider, Callback callback) {
         boolean configured = Prefs.PROVIDER_ANTHROPIC.equals(provider)
                 ? SecureStore.hasAnthropicKey(c)
-                : Prefs.PROVIDER_XAI.equals(provider) ? SecureStore.hasXaiKey(c)
+                : Prefs.PROVIDER_XAI.equals(provider) ? SecureStore.hasXaiCredential(c)
                 : Prefs.PROVIDER_OPENROUTER.equals(provider) && SecureStore.hasOpenRouterKey(c);
         if (!configured) return;
         long refreshedAt = Prefs.PROVIDER_OPENROUTER.equals(provider)
