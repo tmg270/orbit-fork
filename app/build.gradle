@@ -45,7 +45,7 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId 'com.orbit.assistant'
+        applicationId 'com.tmg270.orbit'
         minSdk 29
         targetSdk 36
         versionCode 818
