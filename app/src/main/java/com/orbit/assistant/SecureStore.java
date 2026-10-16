@@ -36,6 +36,10 @@ public final class SecureStore {
     private static final String XAI_ALIAS = "orbit_xai_key_v1";
     private static final String XAI_ENC = "xai_key_enc";
     private static final String XAI_IV = "xai_key_iv";
+    // SuperGrok OAuth session (fork patch). Keystore-only, no plaintext fallback.
+    private static final String SUPERGROK_ALIAS = "orbit_supergrok_oauth_v1";
+    private static final String SUPERGROK_ENC = "supergrok_oauth_enc";
+    private static final String SUPERGROK_IV = "supergrok_oauth_iv";
 
     private SecureStore() {}
 
@@ -166,6 +170,47 @@ public final class SecureStore {
     public static void clearXaiKey(Context c) {
         Prefs.get(c).edit().remove(XAI_ENC).remove(XAI_IV).apply();
         AutoPermissions.revokeOnCredentialRemoval(c, Prefs.PROVIDER_XAI);
+    }
+
+    /** Stores the SuperGrok OAuth session encrypted with its own Keystore key. False if it could not. */
+    public static boolean saveSuperGrokSession(Context c, String access, String refresh, long expiresAtMs) {
+        if (access == null || access.isEmpty()) return false;
+        try {
+            JSONObject o = new JSONObject();
+            o.put("access_token", access);
+            o.put("refresh_token", refresh == null ? "" : refresh);
+            o.put("expires_at_ms", expiresAtMs);
+            o.put("saved_at", System.currentTimeMillis());
+            return encrypt(c, SUPERGROK_ALIAS, SUPERGROK_ENC, SUPERGROK_IV, o.toString());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static SuperGrokSession loadSuperGrokSession(Context c) {
+        try {
+            String raw = decrypt(c, SUPERGROK_ALIAS, SUPERGROK_ENC, SUPERGROK_IV);
+            if (raw.isEmpty()) return null;
+            JSONObject o = new JSONObject(raw);
+            String access = o.optString("access_token", "");
+            if (access.isEmpty()) return null;
+            return new SuperGrokSession(access, o.optString("refresh_token", ""),
+                    o.optLong("expires_at_ms", 0L));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static boolean hasSuperGrokSession(Context c) { return loadSuperGrokSession(c) != null; }
+
+    public static void clearSuperGrokSession(Context c) {
+        Prefs.get(c).edit().remove(SUPERGROK_ENC).remove(SUPERGROK_IV).commit();
+        if (!hasXaiKey(c)) AutoPermissions.revokeOnCredentialRemoval(c, Prefs.PROVIDER_XAI);
+    }
+
+    /** True when xAI can be reached with either a developer key or a SuperGrok session. */
+    public static boolean hasXaiCredential(Context c) {
+        return hasXaiKey(c) || hasSuperGrokSession(c);
     }
 
     private static boolean saveApiKey(Context c, String alias, String enc, String iv, String value) {
@@ -332,5 +377,15 @@ public final class SecureStore {
             this.intervalSeconds = intervalSeconds;
             this.expiresAtMs = expiresAtMs;
         }
+    }
+
+    public static final class SuperGrokSession {
+        public final String accessToken;
+        public final String refreshToken;
+        public final long expiresAtMs;
+        SuperGrokSession(String access, String refresh, long expiresAt) {
+            accessToken = access; refreshToken = refresh; expiresAtMs = expiresAt;
+        }
+        @Override public String toString() { return "SuperGrokSession{expiresAtMs=" + expiresAtMs + "}"; }
     }
 }
