@@ -1,0 +1,61 @@
+# Place at .github/workflows/fork-release.yml in tmg270/Orbit-Assistant (fork).
+# Secrets: ORBIT_RELEASE_KEYSTORE_B64, ORBIT_RELEASE_STORE_PASSWORD,
+#          ORBIT_RELEASE_KEY_PASSWORD, ORBIT_RELEASE_KEY_ALIAS
+name: Fork signed APK
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*-fork*']
+permissions:
+  contents: write
+concurrency:
+  group: fork-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+        with: { packages: '' }
+      - run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check secrets present
+        env:
+          KS: ${{ secrets.ORBIT_RELEASE_KEYSTORE_B64 }}
+          SP: ${{ secrets.ORBIT_RELEASE_STORE_PASSWORD }}
+          KP: ${{ secrets.ORBIT_RELEASE_KEY_PASSWORD }}
+          KA: ${{ secrets.ORBIT_RELEASE_KEY_ALIAS }}
+        run: |
+          for v in KS SP KP KA; do [ -n "${!v}" ] || { echo "::error::missing secret ($v)"; exit 1; }; done
+      - name: Decode keystore
+        env: { KS: '${{ secrets.ORBIT_RELEASE_KEYSTORE_B64 }}' }
+        run: |
+          printf '%s' "$KS" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ORBIT_RELEASE_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+      - name: Build release APK (app module only; :local is upstream-signature-bound)
+        env:
+          ORBIT_RELEASE_STORE_PASSWORD: ${{ secrets.ORBIT_RELEASE_STORE_PASSWORD }}
+          ORBIT_RELEASE_KEY_PASSWORD: ${{ secrets.ORBIT_RELEASE_KEY_PASSWORD }}
+          ORBIT_RELEASE_KEY_ALIAS: ${{ secrets.ORBIT_RELEASE_KEY_ALIAS }}
+        run: ./gradlew --no-daemon :app:assembleRelease
+      - name: Verify package + signature
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          BT=$ANDROID_HOME/build-tools/35.0.0
+          $BT/aapt2 dump badging "$APK" | grep "package: name='com.tmg270.orbit'"
+          $BT/apksigner verify --print-certs "$APK"
+          VER=$(sed -nE 's/^[[:space:]]*versionName[[:space:]]+"([^"]+)".*/\1/p' app/build.gradle | head -n1)
+          cp "$APK" "Orbit-Fork-v${VER}-${GITHUB_SHA::7}.apk"
+          sha256sum Orbit-Fork-*.apk
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
+      - uses: actions/upload-artifact@v4
+        with: { name: orbit-fork-release, path: 'Orbit-Fork-*.apk', if-no-files-found: error }
+      - if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with: { files: 'Orbit-Fork-*.apk' }
