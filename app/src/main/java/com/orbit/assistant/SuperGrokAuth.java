@@ -32,6 +32,11 @@ final class SuperGrokAuth {
     static final String CLIENT_ID = "b1a00492-073a-47ea-816f-4c329264a828";
     static final String DEVICE_CODE_URL = "https://auth.x.ai/oauth2/device/code";
     static final String TOKEN_URL = "https://auth.x.ai/oauth2/token";
+    /**
+     * RFC 7009 revocation. Listed as "revocation_endpoint" in
+     * https://auth.x.ai/.well-known/openid-configuration (fetched 2026-10-16).
+     */
+    static final String REVOCATION_URL = "https://auth.x.ai/oauth2/revoke";
     static final String SCOPE = "openid profile email offline_access grok-cli:access api:access";
     private static final String DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
     private static final long REFRESH_SKEW_MS = 120_000L;
@@ -129,9 +134,32 @@ final class SuperGrokAuth {
 
     static void cancel() { activeAttempt = 0; }
 
+    /**
+     * Local sign-out always happens first and synchronously. Revocation at xAI is best-effort on a
+     * background thread: its result is ignored, so an offline phone still signs out.
+     */
     static void signOut(Context context) {
         cancel();
+        SecureStore.SuperGrokSession session = SecureStore.loadSuperGrokSession(context);
         SecureStore.clearSuperGrokSession(context);
+        if (session == null) return;
+        final String refresh = session.refreshToken;
+        final String access = session.accessToken;
+        EXEC.execute(() -> {
+            // Revoking the refresh token ends the grant; the access token is revoked too in case
+            // the server does not cascade. Failures are deliberately ignored.
+            if (!refresh.isEmpty()) revokeQuietly(refresh, "refresh_token");
+            if (!access.isEmpty()) revokeQuietly(access, "access_token");
+        });
+    }
+
+    private static void revokeQuietly(String token, String hint) {
+        try {
+            post(REVOCATION_URL, "token=" + enc(token) + "&token_type_hint=" + enc(hint)
+                    + "&client_id=" + enc(CLIENT_ID));
+        } catch (Exception ignored) {
+            // Best effort only.
+        }
     }
 
     // ---- tokens --------------------------------------------------------------------------------

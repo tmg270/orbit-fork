@@ -5,7 +5,7 @@ import android.content.Context;
 /** Grok through xAI's official OpenAI-compatible inference API and account model catalog. */
 final class XaiProvider implements AiProvider {
     private static final AiCapabilities CAPABILITIES = AiCapabilities.builder()
-            .streaming(true).deviceActions(false).images(true).multipleImages(true)
+            .streaming(true).deviceActions(true).images(true).multipleImages(true)
             .offline(false).needsCredentials(true).reasoningLevels(true)
             .hostedWebSearch(false).routinePlanning(true).reasoningSummaries(false).build();
 
@@ -25,15 +25,15 @@ final class XaiProvider implements AiProvider {
 
     @Override public void send(Context context, AiRequest request, AssistantClient.Callback callback) {
         withCredential(context, callback::onError,
-                key -> ApiKeyProviderClient.send(context, id(), key, request, callback));
+                (key, on401) -> ApiKeyProviderClient.send(context, id(), key, request, callback, on401));
     }
 
     @Override public void plan(Context context, String prompt, AiSelection selection,
                                AssistantClient.PlanCallback callback) {
         withCredential(context, callback::onError,
-                key -> ApiKeyProviderClient.complete(context, id(), key, AiSelections.resolve(selection),
+                (key, on401) -> ApiKeyProviderClient.complete(context, id(), key, AiSelections.resolve(selection),
                         "Return only the requested valid JSON. Do not add Markdown fences.", prompt,
-                        callback));
+                        callback, on401));
     }
 
     @Override public boolean supportsCompletion(Context context) { return SecureStore.hasXaiCredential(context); }
@@ -42,8 +42,8 @@ final class XaiProvider implements AiProvider {
                                    AssistantClient.PlanCallback callback) {
         AiSelection selection = ModelLibraryStore.providerDefault(context, id());
         withCredential(context, callback::onError,
-                key -> ApiKeyProviderClient.complete(context, id(), key, AiSelections.resolve(selection),
-                        instructions, prompt, callback));
+                (key, on401) -> ApiKeyProviderClient.complete(context, id(), key, AiSelections.resolve(selection),
+                        instructions, prompt, callback, on401));
     }
 
     private static final java.util.concurrent.ExecutorService CREDENTIALS =
@@ -54,9 +54,10 @@ final class XaiProvider implements AiProvider {
      * used as the Bearer credential, refreshed off the main thread first when near expiry.
      */
     private static void withCredential(Context context, java.util.function.Consumer<String> onError,
-                                       java.util.function.Consumer<String> use) {
+                                       java.util.function.BiConsumer<String, java.util.function.Supplier<String>> use) {
         String key = SecureStore.loadXaiKey(context);
-        if (!key.isEmpty()) { use.accept(key); return; }
+        // A saved API key is never refreshed or retried: a 401 there means the key itself is bad.
+        if (!key.isEmpty()) { use.accept(key, null); return; }
         if (!SecureStore.hasSuperGrokSession(context)) {
             onError.accept("Add an xAI API key or sign in with SuperGrok in Settings > AI Providers first.");
             return;
@@ -65,12 +66,21 @@ final class XaiProvider implements AiProvider {
             try {
                 String token = SuperGrokAuth.validAccessToken(context, false);
                 if (token.isEmpty()) onError.accept("Sign in with SuperGrok again.");
-                else use.accept(token);
+                else use.accept(token, () -> forcedRefresh(context));
             } catch (SuperGrokAuth.AuthException e) {
                 onError.accept(e.getMessage());
             } catch (Exception e) {
                 onError.accept("Could not reach xAI. Check the connection and try again.");
             }
         });
+    }
+
+    /** One forced SuperGrok refresh after a 401; "" (no retry) when it fails or the session ended. */
+    private static String forcedRefresh(Context context) {
+        try {
+            return SuperGrokAuth.validAccessToken(context, true);
+        } catch (Exception e) {
+            return "";
+        }
     }
 }
