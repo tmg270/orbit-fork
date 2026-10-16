@@ -42,10 +42,15 @@ final class ProviderRequestMapper {
         root.put("model", request.selection.model);
         root.put("stream", stream);
         JSONArray messages = new JSONArray();
-        messages.put(new JSONObject().put("role", "system").put("content", system(request)));
+        // Fork patch: xAI gets Orbit's device-action contract and JSON mode
+        // (https://docs.x.ai/developers/model-capabilities/text/structured-outputs: response_format
+        // accepts {"type":"json_object"}). ApiKeyProviderClient parses the envelope.
+        messages.put(new JSONObject().put("role", "system").put("content",
+                system(DeviceActionContract.SYSTEM + DeviceActionContract.API_PROVIDER_ADDENDUM, request)));
         JSONArray mapped = messages(c, request, false);
         for (int i = 0; i < mapped.length(); i++) messages.put(mapped.get(i));
         root.put("messages", messages);
+        root.put("response_format", new JSONObject().put("type", "json_object"));
         if (request.selection.strength != null) {
             root.put("reasoning_effort", request.selection.effortId());
         }
@@ -138,7 +143,11 @@ final class ProviderRequestMapper {
     }
 
     private static String system(AiRequest request) {
-        StringBuilder out = new StringBuilder(SYSTEM);
+        return system(SYSTEM, request);
+    }
+
+    private static String system(String base, AiRequest request) {
+        StringBuilder out = new StringBuilder(base);
         out.append(" Current local time: ").append(OffsetDateTime.now())
                 .append("; timezone: ").append(TimeZone.getDefault().getID()).append('.');
         if (!safe(request.memoryContext).trim().isEmpty()) out.append("\n\n").append(request.memoryContext.trim());

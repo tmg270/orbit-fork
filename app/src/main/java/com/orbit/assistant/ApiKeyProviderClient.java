@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.function.Supplier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
@@ -41,12 +42,36 @@ final class ApiKeyProviderClient {
 
     static void send(Context c, String provider, String key, AiRequest request,
                      AssistantClient.Callback callback) {
-        EXEC.execute(() -> doSend(c, provider, key, request, callback));
+        send(c, provider, key, request, callback, null);
+    }
+
+    /**
+     * Fork patch: {@code refreshOn401}, when non-null, is asked once (on this client's worker
+     * thread) for a fresh credential after an HTTP 401, and the request is retried once with it.
+     * Used only for the SuperGrok OAuth token, never for a saved API key.
+     */
+    static void send(Context c, String provider, String key, AiRequest request,
+                     AssistantClient.Callback callback, Supplier<String> refreshOn401) {
+        EXEC.execute(() -> doSend(c, provider, key, request, callback, refreshOn401));
     }
 
     static void complete(Context c, String provider, String key, AiSelection selection,
                          String instructions, String prompt, AssistantClient.PlanCallback callback) {
-        EXEC.execute(() -> {
+        complete(c, provider, key, selection, instructions, prompt, callback, null);
+    }
+
+    static void complete(Context c, String provider, String key, AiSelection selection,
+                         String instructions, String prompt, AssistantClient.PlanCallback callback,
+                         Supplier<String> refreshOn401) {
+        EXEC.execute(() -> doComplete(c, provider, key, selection, instructions, prompt, callback,
+                refreshOn401));
+    }
+
+    private static void doComplete(Context c, String provider, String key, AiSelection selection,
+                                   String instructions, String prompt,
+                                   AssistantClient.PlanCallback callback,
+                                   Supplier<String> refreshOn401) {
+        {
             HttpURLConnection conn = null;
             try {
                 JSONObject body = ProviderRequestMapper.simple(provider, selection, instructions, prompt);
@@ -54,6 +79,15 @@ final class ApiKeyProviderClient {
                 write(conn, body);
                 int code = conn.getResponseCode();
                 String raw = read(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream());
+                if (code == 401 && refreshOn401 != null) {
+                    String fresh = freshCredential(refreshOn401);
+                    if (!fresh.isEmpty()) {
+                        conn.disconnect();
+                        conn = null;
+                        doComplete(c, provider, fresh, selection, instructions, prompt, callback, null);
+                        return;
+                    }
+                }
                 if (code < 200 || code >= 300) {
                     callback.onError(error(c, provider, code, raw, selection.model));
                     return;
@@ -67,13 +101,24 @@ final class ApiKeyProviderClient {
             } finally {
                 if (conn != null) conn.disconnect();
             }
-        });
+        }
+    }
+
+    /** Asks for a refreshed credential; "" when none could be obtained. Never throws. */
+    private static String freshCredential(Supplier<String> refreshOn401) {
+        try {
+            String fresh = refreshOn401.get();
+            return fresh == null ? "" : fresh;
+        } catch (RuntimeException e) {
+            return "";
+        }
     }
 
     private static void doSend(Context c, String provider, String key, AiRequest request,
-                               AssistantClient.Callback callback) {
+                               AssistantClient.Callback callback, Supplier<String> refreshOn401) {
         HttpURLConnection conn = null;
         boolean openRouter = Prefs.PROVIDER_OPENROUTER.equals(provider);
+        boolean xai = Prefs.PROVIDER_XAI.equals(provider);
         try {
             AiModelSpec spec = OrbitModelCatalog.spec(provider, request.selection.model);
             if (spec == null || !spec.selectable()) {
@@ -87,6 +132,15 @@ final class ApiKeyProviderClient {
             conn = open(provider, key, true);
             write(conn, body);
             int code = conn.getResponseCode();
+            if (code == 401 && refreshOn401 != null) {
+                String fresh = freshCredential(refreshOn401);
+                if (!fresh.isEmpty()) {
+                    conn.disconnect();
+                    conn = null;
+                    doSend(c, provider, fresh, request, callback, null);
+                    return;
+                }
+            }
             if (code < 200 || code >= 300) {
                 String raw = read(conn.getErrorStream());
                 String friendly = error(c, provider, code, raw, request.selection.model);
@@ -106,7 +160,7 @@ final class ApiKeyProviderClient {
                 text = readOpenRouterStream(conn.getInputStream(), callback, request.cancelled,
                         servedBy);
             } else {
-                text = readXaiStream(conn.getInputStream(), callback);
+                text = readXaiStream(conn.getInputStream(), callback, true);
             }
             if (openRouter && request.cancelled.getAsBoolean()) {
                 callback.onError("Stopped.");
@@ -120,8 +174,15 @@ final class ApiKeyProviderClient {
             if (openRouter && OrbitModelCatalog.OPENROUTER_AUTO.equals(request.selection.model)) {
                 details = details.withServedBy(servedBy[0]);
             }
-            callback.onSuccess(new AssistantReply(text.replace("—", "-"), new ArrayList<>())
-                    .withDetails(details));
+            AssistantReply reply = xai
+                    // xAI answers in Orbit's {"text","actions"} envelope (fork patch).
+                    ? DeviceActionContract.parseEnvelope(text, false)
+                    : new AssistantReply(text.replace("—", "-"), new ArrayList<>());
+            if (xai && reply.text.isEmpty() && reply.actions.isEmpty()) {
+                callback.onError(name(provider) + " connected but returned no assistant text. Try again.");
+                return;
+            }
+            callback.onSuccess(reply.withDetails(details));
         } catch (StreamError e) {
             callback.onError(error(c, provider, e.code, e.getMessage(), request.selection.model));
         } catch (Exception e) {
@@ -187,7 +248,17 @@ final class ApiKeyProviderClient {
     }
 
     static String readXaiStream(InputStream input, AssistantClient.Callback callback) throws Exception {
+        return readXaiStream(input, callback, false);
+    }
+
+    /**
+     * With {@code envelope}, the stream is Orbit's JSON envelope: only the decoded "text" field is
+     * shown while streaming (never raw JSON), and the full raw body is returned for parsing.
+     */
+    static String readXaiStream(InputStream input, AssistantClient.Callback callback,
+                                boolean envelope) throws Exception {
         StringBuilder full = new StringBuilder();
+        String lastVisible = "";
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -201,7 +272,16 @@ final class ApiKeyProviderClient {
                 JSONObject delta = choice == null ? null : choice.optJSONObject("delta");
                 if (delta != null && delta.has("content")) {
                     full.append(delta.optString("content", ""));
-                    callback.onDelta(full.toString().replace("—", "-"));
+                    if (envelope) {
+                        String visible = DeviceActionContract.removeEmDashes(
+                                DeviceActionContract.extractPartialText(full.toString()));
+                        if (!visible.isEmpty() && !visible.equals(lastVisible)) {
+                            lastVisible = visible;
+                            callback.onDelta(visible);
+                        }
+                    } else {
+                        callback.onDelta(full.toString().replace("—", "-"));
+                    }
                 }
             }
         }
