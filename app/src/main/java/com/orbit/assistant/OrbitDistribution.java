@@ -42,7 +42,7 @@ public final class OrbitDistribution {
             "Orbit updates are delivered by Google Play. Google Play installs new versions for you, "
                     + "the same way it updates your other apps.";
 
-    private static final String PACKAGE_NAME = "com.orbit.assistant";
+    private static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
 
     private OrbitDistribution() {}
 
@@ -57,12 +57,12 @@ public final class OrbitDistribution {
 
     /** Whether Orbit may check GitHub for, download, and install its own updates. */
     public static boolean selfUpdates() {
-        return selfUpdates(current());
+        return false; // fork: never pull/install upstream-signed Orbit APKs
     }
 
     /** Whether Orbit may download the Orbit Local component APK and hand it to Android. */
     public static boolean installsOrbitLocalComponent() {
-        return installsOrbitLocalComponent(current());
+        return false; // fork: Orbit Local is signature-bound to upstream's key
     }
 
     /**
