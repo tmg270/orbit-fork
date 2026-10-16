@@ -604,6 +604,19 @@ public final class AiProvidersActivity extends Activity {
         inputLp.topMargin = UiKit.dp(this, 10);
         wrap.addView(input, inputLp);
 
+        // Fork patch: SuperGrok OAuth as an alternative to a developer key (xAI only).
+        Button superGrok = null;
+        if (!anthropic) {
+            boolean signedIn = SecureStore.hasSuperGrokSession(this);
+            superGrok = new Button(this);
+            superGrok.setAllCaps(false);
+            superGrok.setText(signedIn ? "Sign out of SuperGrok" : "Or sign in with SuperGrok (experimental)");
+            LinearLayout.LayoutParams sgLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            sgLp.topMargin = UiKit.dp(this, 12);
+            wrap.addView(superGrok, sgLp);
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(name + " connection")
                 .setView(wrap)
@@ -641,8 +654,75 @@ public final class AiProvidersActivity extends Activity {
             refreshCards();
         });
         AlertDialog dialog = builder.create();
+        if (superGrok != null) {
+            superGrok.setOnClickListener(v -> {
+                dialog.dismiss();
+                if (SecureStore.hasSuperGrokSession(this)) {
+                    SuperGrokAuth.signOut(this);
+                    Toast.makeText(this, "Signed out of SuperGrok", Toast.LENGTH_SHORT).show();
+                    refreshCards();
+                } else {
+                    startSuperGrokSignIn();
+                }
+            });
+        }
         UiKit.styleOrbitDialog(dialog, this, false);
         dialog.show();
+    }
+
+    /** Device-code sign-in: show the code, open xAI's page, poll until approved or cancelled. */
+    private void startSuperGrokSignIn() {
+        Toast.makeText(this, "Starting SuperGrok sign-in…", Toast.LENGTH_SHORT).show();
+        SuperGrokAuth.start(new SuperGrokAuth.StartCallback() {
+            @Override public void onCode(SuperGrokAuth.DeviceCode code) {
+                if (isFinishing() || isDestroyed()) { SuperGrokAuth.cancel(); return; }
+                TextView body = UiKit.text(AiProvidersActivity.this,
+                        "Open xAI's sign-in page and confirm this code:\n\n" + code.userCode
+                                + "\n\nOrbit is waiting for approval. Tokens are encrypted with Android Keystore and never backed up.",
+                        14, UiKit.TEXT, false);
+                int pad = UiKit.dp(AiProvidersActivity.this, 22);
+                body.setPadding(pad, UiKit.dp(AiProvidersActivity.this, 8), pad, 0);
+                AlertDialog wait = new AlertDialog.Builder(AiProvidersActivity.this)
+                        .setTitle("Sign in with SuperGrok")
+                        .setView(body)
+                        .setCancelable(false)
+                        .setNegativeButton("Cancel", (d, w) -> SuperGrokAuth.cancel())
+                        .setPositiveButton("Open browser", null)
+                        .create();
+                UiKit.styleOrbitDialog(wait, AiProvidersActivity.this, false);
+                wait.show();
+                wait.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                android.net.Uri.parse(code.browserUrl())));
+                    } catch (Exception e) {
+                        Toast.makeText(AiProvidersActivity.this, "No browser available",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+                SuperGrokAuth.awaitApproval(AiProvidersActivity.this, code, new SuperGrokAuth.DoneCallback() {
+                    @Override public void onSignedIn() {
+                        if (wait.isShowing()) wait.dismiss();
+                        Toast.makeText(AiProvidersActivity.this, "Signed in with SuperGrok",
+                                Toast.LENGTH_SHORT).show();
+                        ProviderCatalogRepository.refreshAsync(AiProvidersActivity.this,
+                                Prefs.PROVIDER_XAI, (changed, error) -> runOnUiThread(() -> {
+                                    if (!error.isEmpty()) Toast.makeText(AiProvidersActivity.this,
+                                            error, Toast.LENGTH_LONG).show();
+                                    refreshCards();
+                                }));
+                    }
+                    @Override public void onError(String message) {
+                        if (wait.isShowing()) wait.dismiss();
+                        Toast.makeText(AiProvidersActivity.this, message, Toast.LENGTH_LONG).show();
+                        refreshCards();
+                    }
+                });
+            }
+            @Override public void onError(String message) {
+                Toast.makeText(AiProvidersActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private Button primaryButton(String text) {
