@@ -59,7 +59,7 @@ final class ContinueChat {
         Context c = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
         if (!available(c)) {
-            main.post(() -> callback.onFailed("Continue in new chat needs ChatGPT sign-in to write "
+            main.post(() -> callback.onFailed("Continue in new chat is not available in GrokLink yet, so it cannot write "
                     + "the summary. This chat is unchanged."));
             return;
         }

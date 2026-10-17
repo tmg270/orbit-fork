@@ -230,8 +230,7 @@ public final class DiagnosticsActivity extends Activity {
         return "GrokLink version: " + versionLabel() +
                 "\nDistribution: " + OrbitDistribution.label() +
                 "\nProvider: " + AiProviders.active(this).displayName() +
-                "\nChatGPT: " + accountStatus() +
-                "\nDefault AI: " + defaultSelectionLabel() +
+                                "\nDefault AI: " + defaultSelectionLabel() +
                 "\nPending requests: " + PendingRequestStore.active(this).size() +
                 "\nThinking updates: " + (Prefs.thinkingUpdates(this) ? "enabled" : "disabled")
                         + " · " + ReasoningSummarySupport.lastSource(this) +

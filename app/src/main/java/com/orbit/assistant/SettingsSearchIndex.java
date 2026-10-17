@@ -266,11 +266,11 @@ public final class SettingsSearchIndex {
         out.add(new Entry("AI provider",
                 "Choose which AI backend GrokLink sends requests to.",
                 S_AI, "ai", KEY_PROVIDER,
-                "provider", "backend", "openrouter", "relay", "orbit local", "chatgpt", "account"));
-        out.add(new Entry("ChatGPT sign-in",
-                "Connect or disconnect your ChatGPT account.",
+                "provider", "backend", "grok", "xai", "supergrok", "account"));
+        out.add(new Entry("Grok sign-in",
+                "Sign in with SuperGrok or manage your xAI API key.",
                 S_AI, "ai", KEY_CHATGPT_ACCOUNT,
-                "chatgpt", "sign in", "log in", "sign out", "account", "openai", "codex"));
+                "grok", "sign in", "log in", "sign out", "account", "xai", "supergrok"));
         out.add(new Entry("Default AI for new chats",
                 "Provider, model and strength new chats start with.",
                 S_AI, "ai", KEY_DEFAULT_AI,
