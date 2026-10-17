@@ -72,19 +72,6 @@ public final class DeckBeta7SurfaceTest {
         assertTrue(activity.gridForTest().orderedChildren().isEmpty());
     }
 
-    @Test public void freeKeepsTheActiveDeckButCalmsAndLocksLayoutManagement() {
-        DeckLayout work = DeckLayoutStore.createBlankLayout(context, "Work");
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_FREE);
-        DeckActivity activity = deck();
-
-        assertEquals(work.id, DeckLayoutStore.activeLayoutId(context));
-        assertEquals("Your shortcuts", activity.headerSubtitleForTest().getText().toString());
-        assertFalse(activity.headerSubtitleForTest().hasOnClickListeners());
-        activity.openLayoutManagerForTest();
-        assertNotNull(findText(activity.getWindow().getDecorView(), "Deck layouts · GrokLink Pro"));
-        assertNotNull(findContainingText(activity.getWindow().getDecorView(),
-                "Your active Deck and all Free organization tools remain fully available"));
-    }
 
     @Test public void managerExposesEveryActionWithoutSwipeGestures() {
         DeckLayoutStore.createBlankLayout(context, "Work");

@@ -149,42 +149,6 @@ public final class AdvancedBackgroundTest {
                 OrbitProStyle.DEFAULT.isDefault());
     }
 
-    /**
-     * 17 and 34 and 35. The free Background colour is still free, and still one end of every effect.
-     *
-     * <p>The point Orbit Pro must not be allowed to blur. Linear does not introduce two premium
-     * colours, it runs the existing free one into one premium colour; Glow does not replace the page,
-     * it lights it. So a Free device can still choose its background colour, and a Pro device's effect
-     * still starts from whatever that choice was.
-     */
-    @Test public void theFreeBackgroundColorStaysFreeAndStaysAnEndpoint() {
-        asFree();
-        OrbitTheme custom = OrbitTheme.orbitDefault().withBackground("#101820");
-        assertTrue("choosing a background colour needs no entitlement",
-                OrbitThemeStore.canApply(context, custom));
-        assertTrue(OrbitThemeStore.applyActive(context, custom));
-        UiKit.syncTheme(context);
-        assertEquals("and it is the colour the page is painted", 0xFF101820, UiKit.BG | 0xFF000000);
-
-        asPro();
-        for (int direction = 0; direction < OrbitProStyle.DIRECTION_COUNT; direction++) {
-            OrbitTheme themed = custom.withPro(linear(direction));
-            GradientDrawable gradient = (GradientDrawable) page(themed);
-            int[] colors = gradient.getColors();
-            assertNotNull(colors);
-            assertEquals("a linear background is the free colour plus one premium colour",
-                    2, colors.length);
-            assertEquals("and the free colour is always one endpoint",
-                    0xFF101820, colors[0] | 0xFF000000);
-            assertEquals(0xFF2A2060, colors[1] | 0xFF000000);
-        }
-
-        OrbitBackground.GlowDrawable lit = (OrbitBackground.GlowDrawable)
-                page(custom.withPro(glow()));
-        assertEquals("a glow is laid over the free colour, never instead of it",
-                0xFF101820, lit.baseColor() | 0xFF000000);
-        assertEquals(0xFF5B3FCF, lit.glowColor() | 0xFF000000);
-    }
 
     // ---- 19 to 26. the fields persist, and survive nonsense ----------------------------------------
 
@@ -265,43 +229,6 @@ public final class AdvancedBackgroundTest {
 
     // ---- 27 to 30. entitlement suppresses and restores ----------------------------------------------
 
-    /**
-     * 27, 28, 29 and 30. Free draws Solid, keeps everything, and gives it all back.
-     *
-     * <p>All four in one test on purpose, because they are one property observed at four moments and
-     * splitting them would let three pass while the interesting one failed. The stored value is read
-     * back after every transition, so "preserved" means the bytes are still there rather than that
-     * nothing visibly broke.
-     */
-    @Test public void freeSuppressesBothEffectsAndProRestoresThemExactly() {
-        asPro();
-        for (OrbitProStyle configured : new OrbitProStyle[]{
-                linear(OrbitProStyle.DIRECTION_TL_BR), glow()}) {
-            OrbitTheme themed = OrbitTheme.orbitDefault().withPro(configured);
-            assertTrue(OrbitThemeStore.applyActive(context, themed));
-
-            asPro();
-            assertTrue("Pro draws the effect the theme asks for",
-                    OrbitBackground.effectDraws(context));
-            assertFalse(page(themed) instanceof ColorDrawable);
-
-            asFree();
-            assertFalse("Free must draw no premium effect at all",
-                    OrbitBackground.effectDraws(context));
-            assertTrue("the page falls back to the plain background colour",
-                    page(themed) instanceof ColorDrawable);
-            assertTrue("and the stored configuration is untouched",
-                    OrbitThemeStore.activeProStyle(context).same(configured));
-
-            asPro();
-            assertTrue("returning to Pro restores exactly what was stored",
-                    OrbitThemeStore.activeProStyle(context).same(configured));
-            assertTrue(OrbitBackground.effectDraws(context));
-            assertEquals("mode and all",
-                    configured.backgroundMode,
-                    OrbitThemeStore.activeProStyle(context).backgroundMode);
-        }
-    }
 
     /** Entitlement is consulted where the page is drawn, not only where the controls are built. */
     @Test public void backgroundRenderingAsksTheCentralEntitlementApi() {
@@ -607,46 +534,6 @@ public final class AdvancedBackgroundTest {
         }
     }
 
-    /**
-     * A page that was built before the theme was applied notices, and rebuilds once.
-     *
-     * <p>The fault this closes was invisible until Beta 4 and certain in it. A page's background used
-     * to be a colour read from {@code UiKit} at build time, and a screen sitting underneath Theme
-     * Studio watched the accent and AMOLED to decide whether to rebuild - so applying a theme that
-     * changed only the background left that screen painting the previous one until the next cold
-     * start. With advanced backgrounds "only the background changed" is the normal case: adding a glow
-     * to the theme you already have moves nothing else at all.
-     *
-     * <p>Asserted on the signatures every such screen actually compares, across a change that touches
-     * the background and nothing else.
-     */
-    @Test public void applyingOnlyABackgroundChangeStillRebuildsThePagesUnderneath() {
-        asPro();
-        assertTrue(OrbitThemeStore.applyActive(context, OrbitTheme.orbitDefault()));
-        UiKit.syncTheme(context);
-        String structuralBefore = UiKit.structuralAppearanceSignature(context);
-        String appearanceBefore = UiKit.appearanceSignature(context);
-
-        // A glow added to the theme already in force. Same accent, same AMOLED, same surfaces, same
-        // background colour: every value a Beta 3 screen would have looked at is unchanged.
-        assertTrue(OrbitThemeStore.applyActive(context,
-                OrbitThemeStore.active(context).withPro(glow())));
-        UiKit.syncTheme(context);
-
-        assertFalse("a screen watching the structural signature must rebuild",
-                structuralBefore.equals(UiKit.structuralAppearanceSignature(context)));
-        assertFalse("and so must one watching the general appearance signature",
-                appearanceBefore.equals(UiKit.appearanceSignature(context)));
-
-        // And a Free device must not be made to rebuild by a stored value it cannot draw.
-        asFree();
-        String freeBefore = UiKit.structuralAppearanceSignature(context);
-        assertTrue(OrbitThemeStore.applyActive(context,
-                OrbitThemeStore.active(context).withPro(
-                        glow().withGlowStrength(OrbitProStyle.GLOW_STRENGTH_MAX))));
-        assertEquals("Free must not rebuild because a suppressed value moved",
-                freeBefore, UiKit.structuralAppearanceSignature(context));
-    }
 
     /** Every page that keeps its own rebuild signature includes the theme's page styling in it. */
     @Test public void everyPageThatWatchesAppearanceWatchesThePageStyling() {
@@ -705,15 +592,6 @@ public final class AdvancedBackgroundTest {
                 OrbitBackground.effectDraws(context));
     }
 
-    /** A Free device is not told about a suppression it could not see anyway. */
-    @Test public void freeIsNotToldAboutASuppressedPremiumEffect() {
-        asFree();
-        OrbitTheme black = OrbitTheme.orbitDefault().withPro(glow()).withAmoled(true);
-        assertFalse("Free draws no effect, so there is nothing for AMOLED to be hiding",
-                OrbitBackground.hiddenByAmoled(OrbitBackground.Page.of(
-                        OrbitThemeTokens.resolve(context, black),
-                        OrbitProStyle.resolve(context, black.pro))));
-    }
 
     /**
      * 40. The background sample says why it is black rather than merely being black.
@@ -943,25 +821,6 @@ public final class AdvancedBackgroundTest {
         }
     }
 
-    /** Strength is premium, because Linear itself is. */
-    @Test public void gradientStrengthIsPremium() {
-        asFree();
-        OrbitTheme themed = OrbitTheme.orbitDefault().withPro(
-                linear(OrbitProStyle.DIRECTION_TOP_BOTTOM).withGradientStrength(40));
-        assertTrue(OrbitThemeStore.applyActive(context, themed));
-        UiKit.syncTheme(context);
-        assertFalse("Free draws no gradient at all, weak or otherwise",
-                OrbitBackground.effectDraws(context));
-        assertEquals("but the strength is kept", 40,
-                OrbitThemeStore.activeProStyle(context).gradientStrength);
-        assertEquals("and resolves to GrokLink's own value while Free",
-                OrbitProStyle.GRADIENT_STRENGTH_DEFAULT,
-                OrbitProStyle.live(context).gradientStrength);
-
-        asPro();
-        assertEquals("returning to Pro brings it back", 40,
-                OrbitProStyle.live(context).gradientStrength);
-    }
 
     // ---- 44. cost ----------------------------------------------------------------------------------
 

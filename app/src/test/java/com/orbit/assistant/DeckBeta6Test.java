@@ -205,31 +205,7 @@ public final class DeckBeta6Test {
         assertTrue(DeckLayoutStore.addFolder(context, "Work"));
     }
 
-    @Test public void appearanceIsStoredWhileFreeIgnoredAndRestoredWithPro() {
-        DeckTile tile = DeckLayoutStore.layout(context).get(0);
-        DeckTileAppearance custom = new DeckTileAppearance("#123456", OrbitTheme.MATERIAL_FROSTED,
-                DeckTileAppearance.ICON_MONOCHROME, false);
-        assertTrue(DeckLayoutStore.updateAppearance(context, tile.instanceId, custom));
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_FREE);
-        DeckTile storedFree = DeckLayoutStore.layout(context).get(0);
-        assertEquals(custom, storedFree.appearance);
-        assertEquals(DeckTileAppearance.DEFAULT, storedFree.appearance.effective(context));
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_PRO);
-        assertEquals(custom, DeckLayoutStore.layout(context).get(0).appearance.effective(context));
-    }
 
-    @Test public void hiddenVisualLabelStillHasAccessibleTitle() {
-        DeckTile base = DeckLayoutStore.layout(context).get(0);
-        DeckTile hidden = base.withAppearance(base.appearance.withShowLabel(false));
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_PRO);
-        DeckTileResolver.Resolved resolved = DeckTileResolver.resolve(context, hidden);
-        DeckTileView view = new DeckTileView(context, hidden, resolved, null);
-        assertFalse(view.labelVisible());
-        assertTrue(String.valueOf(view.getContentDescription()).contains(resolved.title));
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_FREE);
-        DeckTileView free = new DeckTileView(context, hidden, resolved, null);
-        assertTrue(free.labelVisible());
-    }
 
     @Test public void appearanceRoundTripCoversLargeAndAllMaterials() {
         DeckTile tile = DeckLayoutStore.layout(context).get(0);

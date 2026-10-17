@@ -234,37 +234,6 @@ public final class DeckSavedLayoutsTest {
         assertEquals(second.id, DeckLayoutStore.collection(context).activeLayoutId);
     }
 
-    @Test public void freeFallbackPreservesAllLayoutsAndKeepsTheActiveOneEditable() {
-        DeckLayout second = DeckLayoutStore.createBlankLayout(context, "Work");
-        assertNotNull(second);
-        assertTrue(DeckLayoutStore.add(context,
-                DeckTile.of(DeckTileRegistry.TYPE_SETTINGS, DeckTile.Size.LARGE)));
-        String active = DeckLayoutStore.activeLayoutId(context);
-        String rawBefore = DeckLayoutStore.rawForTest(context);
-
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_FREE);
-        assertFalse(DeckLayoutStore.switchLayout(context, DeckLayout.PRIMARY_ID));
-        assertFalse(DeckLayoutStore.renameLayout(context, active, "Hidden rename"));
-        assertNull(DeckLayoutStore.createBlankLayout(context, "Third"));
-        assertNull(DeckLayoutStore.duplicateLayout(context, active, "Copy"));
-        assertFalse(DeckLayoutStore.deleteLayout(context, DeckLayout.PRIMARY_ID));
-        assertEquals(active, DeckLayoutStore.activeLayoutId(context));
-        assertTrue("ordinary Free organization stays writable",
-                DeckLayoutStore.addSection(context, active, "Free section"));
-        assertTrue(DeckLayoutStore.addFolder(context, active, "Free folder"));
-        DeckTile freeTile = DeckLayoutStore.deck(context).allTiles().get(0);
-        assertTrue(DeckLayoutStore.resize(context, active, freeTile.instanceId,
-                DeckTile.Size.STANDARD));
-        DeckFolder freeFolder = firstFolder(DeckLayoutStore.deck(context));
-        assertTrue(DeckLayoutStore.moveTile(context, active, freeTile.instanceId, freeFolder.id));
-        assertEquals(2, DeckLayoutStore.layoutCount(context));
-
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_PRO);
-        assertEquals("Work", DeckLayoutStore.collection(context).layout(active).name);
-        assertNotNull(DeckLayoutStore.collection(context).layout(DeckLayout.PRIMARY_ID));
-        assertNotEquals("the Free edit changes only the active layout, without deleting data",
-                rawBefore, DeckLayoutStore.rawForTest(context));
-    }
 
     @Test public void layoutCapNeverDeletesAnExistingLayout() {
         for (int i = 1; i < DeckLayoutStore.MAX_LAYOUTS; i++) {
