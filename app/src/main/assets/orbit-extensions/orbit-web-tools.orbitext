@@ -1,31 +1,31 @@
 {
   "schemaVersion": 1,
   "id": "com.orbit.extensions.web-tools",
-  "name": "Orbit Web Tools",
-  "version": "1.0.0",
-  "author": "Orbit",
-  "description": "Quick access to Orbit's official public GitHub pages.",
+  "name": "GrokLink Links",
+  "version": "1.0.1",
+  "author": "GrokLink",
+  "description": "Quick access to GrokLink's builds and source, and to Grok on the web.",
   "actions": [
     {
       "id": "open-orbit-releases",
-      "name": "Open Orbit Releases",
-      "description": "Opens Orbit's official release downloads.",
+      "name": "Open GrokLink builds",
+      "description": "Opens the GitHub page where new GrokLink builds are published.",
       "type": "open_url",
-      "url": "https://github.com/lpnovi/Orbit-Assistant/releases"
+      "url": "https://github.com/tmg270/orbit-fork/actions/workflows/build-apk.yml"
     },
     {
       "id": "open-orbit-repository",
-      "name": "Open Orbit Repository",
-      "description": "Opens the public Orbit Assistant source repository.",
+      "name": "Open GrokLink source",
+      "description": "Opens the GrokLink source repository.",
       "type": "open_url",
-      "url": "https://github.com/lpnovi/Orbit-Assistant"
+      "url": "https://github.com/tmg270/orbit-fork"
     },
     {
       "id": "open-orbit-issues",
-      "name": "Open Orbit Issues",
-      "description": "Opens Orbit's public issue tracker.",
+      "name": "Open Grok on the web",
+      "description": "Opens grok.com.",
       "type": "open_url",
-      "url": "https://github.com/lpnovi/Orbit-Assistant/issues"
+      "url": "https://grok.com"
     }
   ]
 }

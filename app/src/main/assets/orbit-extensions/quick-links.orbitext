@@ -3,7 +3,7 @@
   "id": "com.orbit.extensions.quick-links",
   "name": "Quick Links",
   "version": "1.0.0",
-  "author": "Orbit",
+  "author": "GrokLink",
   "description": "Simple public search, maps, and reference links for reusable Routines.",
   "actions": [
     {

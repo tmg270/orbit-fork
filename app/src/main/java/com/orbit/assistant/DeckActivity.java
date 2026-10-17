@@ -927,7 +927,7 @@ public final class DeckActivity extends Activity {
             labels.add("Size");
             actions.add(() -> showSizeChooser(tile, view, expectedLayoutId));
         }
-        labels.add(OrbitProEntitlement.hasPro(this) ? "Appearance · Pro" : "Appearance");
+        labels.add("Appearance");
         actions.add(() -> openAppearanceEditor(tile, expectedLayoutId));
         labels.add("Rename");
         actions.add(() -> openRenameSheet(tile, expectedLayoutId));
@@ -1516,7 +1516,7 @@ public final class DeckActivity extends Activity {
         }
         DeckTile current = tileById(expectedLayoutId, tile.instanceId);
         if (current == null) return;
-        LinearLayout column = openSheet("Tile appearance · Pro", "Changes save immediately");
+        LinearLayout column = openSheet("Tile appearance", "Changes save immediately");
 
         FrameLayout preview = new FrameLayout(this);
         preview.setPadding(0, UiKit.dp(this, 4), 0, UiKit.dp(this, 14));

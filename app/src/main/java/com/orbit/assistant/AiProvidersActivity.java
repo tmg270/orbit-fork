@@ -121,8 +121,8 @@ public final class AiProvidersActivity extends Activity {
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
-        titles.addView(UiKit.text(this, "AI Providers", 24, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Choose what GrokLink thinks with", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "Grok connection", 24, UiKit.TEXT, true));
+        titles.addView(UiKit.text(this, "How GrokLink reaches Grok", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
