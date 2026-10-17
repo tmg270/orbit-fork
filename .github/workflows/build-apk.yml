@@ -43,6 +43,15 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
+      - name: Decode stable debug keystore
+        shell: bash
+        run: |
+          if [[ -n "${{ secrets.ORBIT_DEBUG_KEYSTORE_B64 }}" ]]; then
+            echo "${{ secrets.ORBIT_DEBUG_KEYSTORE_B64 }}" | base64 -d > app/orbit-debug.keystore
+          else
+            base64 -d ci/orbit-debug.keystore.b64 > app/orbit-debug.keystore
+          fi
+
       - name: Build debug APK
         run: ./gradlew --no-daemon clean assembleDebug
 
