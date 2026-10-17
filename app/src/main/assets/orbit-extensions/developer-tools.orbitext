@@ -3,7 +3,7 @@
   "id": "com.orbit.extensions.developer-tools",
   "name": "Developer Tools",
   "version": "1.0.0",
-  "author": "Orbit",
+  "author": "GrokLink",
   "description": "Public Android and GitHub developer resources plus a harmless HTTPS GET test.",
   "actions": [
     {

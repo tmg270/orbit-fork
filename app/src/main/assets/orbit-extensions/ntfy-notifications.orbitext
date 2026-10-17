@@ -3,7 +3,7 @@
   "id": "com.orbit.extensions.ntfy",
   "name": "ntfy Notifications",
   "version": "1.0.0",
-  "author": "Orbit",
+  "author": "GrokLink",
   "description": "Publish a configurable notification to an ntfy topic using its public HTTPS API.",
   "setupFields": [
     {
@@ -18,7 +18,7 @@
     {
       "id": "topic",
       "label": "Topic",
-      "description": "The ntfy topic that should receive Orbit notifications.",
+      "description": "The ntfy topic that should receive GrokLink notifications.",
       "type": "text",
       "required": true,
       "maxLength": 256

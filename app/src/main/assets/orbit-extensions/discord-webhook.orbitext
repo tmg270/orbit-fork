@@ -3,7 +3,7 @@
   "id": "com.orbit.extensions.discord-webhook",
   "name": "Discord Webhook",
   "version": "1.0.0",
-  "author": "Orbit",
+  "author": "GrokLink",
   "description": "Send a configured message to a Discord channel through a securely stored webhook URL.",
   "setupFields": [
     {

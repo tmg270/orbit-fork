@@ -49,9 +49,9 @@ android {
         minSdk 29
         targetSdk 36
         // GrokLink versioning: CI builds get a rising versionCode (1000 + GitHub run number)
-        // so every build installs as an update; local builds fall back to 818.
+        // so every build installs as an update; local builds fall back to 1000.
         def runNumber = System.getenv('GITHUB_RUN_NUMBER')
-        versionCode runNumber ? 1000 + runNumber.toInteger() : 818
+        versionCode runNumber ? 1000 + runNumber.toInteger() : 1000
         versionName runNumber ? "1.0.${runNumber}-groklink" : "1.0.0-groklink-local"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
