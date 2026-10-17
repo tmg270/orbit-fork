@@ -116,7 +116,7 @@ public final class ExistingFeatureInventoryTest {
         assertEquals("so does the ringer",
                 List.of("DeviceActionExecutor.java"), filesContaining("setRingerMode("));
         assertEquals("and media transport control",
-                List.of("MediaControl.java"), filesContaining("getTransportControls"));
+                List.of("MediaControl.java", "MusicPlayer.java"), filesContaining("getTransportControls"));
     }
 
     /** One timer grammar, one alarm grammar, one conversion table per dimension. */

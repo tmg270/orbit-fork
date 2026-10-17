@@ -393,9 +393,13 @@ public final class OrbitVaultStoreTest {
         assertEquals(OrbitVaultStore.MAX_ITEMS, OrbitVaultStore.count(context));
         assertTrue(OrbitVaultStore.isFull(context));
         List<OrbitVaultItem> all = OrbitVaultStore.list(context, OrbitVaultStore.Sort.OLDEST);
-        assertEquals("the oldest item is still there", "note 0", all.get(0).body);
-        assertEquals("the last accepted item is newest",
-                "note " + (OrbitVaultStore.MAX_ITEMS - 1), all.get(all.size() - 1).body);
+        // Items saved within the same millisecond may tie on time, so check membership, not position.
+        java.util.Set<String> bodies = new java.util.HashSet<>();
+        for (OrbitVaultItem it : all) bodies.add(it.body);
+        assertTrue("the oldest item is still there", bodies.contains("note 0"));
+        assertTrue("the last accepted item is kept",
+                bodies.contains("note " + (OrbitVaultStore.MAX_ITEMS - 1)));
+        assertFalse("nothing past the ceiling was saved", bodies.contains("note " + OrbitVaultStore.MAX_ITEMS));
         assertEquals(OrbitVaultStore.FULL_MESSAGE,
                 OrbitVaultStore.saveFailureMessage(context, "generic"));
     }
