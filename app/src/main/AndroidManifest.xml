@@ -106,6 +106,10 @@
         android:theme="@style/Theme.Orbit"
         android:usesCleartextTraffic="false">
 
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
         <!--
           android:enableOnBackInvokedCallback="false" on <application> is the Android 16 (API 36)
           migration, and it changes nothing that was working. Before API 36 an undeclared screen
@@ -434,6 +438,15 @@
                 <action android:name="android.location.PROVIDERS_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".OrbitAutoService"
+            android:exported="true"
+            android:label="Orbit">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
 
         <service
             android:name=".OrbitVoiceInteractionService"

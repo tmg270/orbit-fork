@@ -173,6 +173,7 @@ tasks.withType(Test).configureEach {
 dependencies {
     implementation "androidx.core:core:1.16.0"
     implementation "androidx.work:work-runtime:2.11.2"
+    implementation "androidx.media:media:1.7.0"
     implementation "com.tom-roush:pdfbox-android:2.0.27.0"
     // Smart Vault text recognition (v0.8.1.0-beta.1). The Google Play services form of ML Kit:
     // the recognition model is delivered by Play services on first use instead of being bundled
