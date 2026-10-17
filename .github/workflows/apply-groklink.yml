@@ -2,6 +2,9 @@ name: Apply GrokLink patch (one-shot)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ groklink ]
+    paths: [ '.github/workflows/apply-groklink.yml' ]
 
 permissions:
   contents: write
