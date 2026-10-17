@@ -263,8 +263,8 @@ public final class SettingsSearchIndex {
                 S_ASSISTANT, "assistant", KEY_WIDGETS,
                 "widget", "home screen", "launcher"));
 
-        out.add(new Entry("AI provider",
-                "Choose which AI backend GrokLink sends requests to.",
+        out.add(new Entry("Grok connection",
+                "SuperGrok sign-in or xAI API key status.",
                 S_AI, "ai", KEY_PROVIDER,
                 "provider", "backend", "grok", "xai", "supergrok", "account"));
         out.add(new Entry("Grok sign-in",

@@ -211,8 +211,6 @@ public final class UpdateActivity extends Activity {
     static final AboutLink[] LINKS = {
             new AboutLink("GrokLink on GitHub", "Source code and new builds",
                     "https://github.com/tmg270/orbit-fork"),
-            new AboutLink("Orbit Assistant", "The original app GrokLink is built on, by lpnovi",
-                    "https://github.com/lpnovi/Orbit-Assistant"),
             new AboutLink("Licence", "Mozilla Public License 2.0",
                     "https://www.mozilla.org/MPL/2.0/"),
     };

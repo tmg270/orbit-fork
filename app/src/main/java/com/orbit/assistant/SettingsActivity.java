@@ -799,7 +799,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         backupCard.addView(restoreBackup, restoreBackupLp);
         // Added last in Personalization & data below.
 
-        page.addView(sectionTitle("CONNECTION & PROVIDER", "account"));
+        page.addView(sectionTitle("CONNECTION", "account"));
         LinearLayout accountCard = card();
         tagSectionCard(accountCard, "account");
         AiProvider activeProvider = AiProviders.active(this);
@@ -813,7 +813,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         providersRow.setFocusable(true);
         LinearLayout providersText = new LinearLayout(this);
         providersText.setOrientation(LinearLayout.VERTICAL);
-        providersText.addView(UiKit.text(this, "AI Providers", 15, UiKit.TEXT, true));
+        providersText.addView(UiKit.text(this, "Grok connection", 15, UiKit.TEXT, true));
         providerRowStatus = UiKit.text(this,
                 "Active: " + activeProvider.displayName() + " · " + activeProvider.statusDetail(this),
                 12, UiKit.MUTED, false);

@@ -1177,9 +1177,8 @@ public final class ThemeStudioActivity extends Activity {
         LinearLayout heading = new LinearLayout(this);
         heading.setOrientation(LinearLayout.HORIZONTAL);
         heading.setGravity(Gravity.CENTER_VERTICAL);
-        heading.addView(cardTitle("GrokLink Pro"), new LinearLayout.LayoutParams(0,
+        heading.addView(cardTitle("Advanced styling"), new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        heading.addView(proMark());
         card.addView(heading);
         card.addView(proBody, matchWrap(10));
         return card;
@@ -1271,7 +1270,7 @@ public final class ThemeStudioActivity extends Activity {
         note.setLineSpacing(0, 1.15f);
         proBody.addView(note, matchWrap(6));
 
-        proBody.setContentDescription("GrokLink Pro. Advanced message styling, Liquid Glass and "
+        proBody.setContentDescription("Advanced styling. Advanced message styling, Liquid Glass and "
                 + "advanced backgrounds, locked. " + proUnavailableNote());
         proBody.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         what.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
@@ -1852,7 +1851,7 @@ public final class ThemeStudioActivity extends Activity {
         // Selection is stated, not only drawn. A ring around a card of colours is exactly the kind
         // of state that disappears for anyone who cannot rely on colour to carry it.
         String spokenBase = preset.name
-                + (preset.premium() ? ", GrokLink Pro preset"
+                + (preset.premium() ? ", GrokLink preset"
                         : preset.builtIn ? ", GrokLink preset" : ", your theme")
                 + (locked ? ", locked" : "")
                 + (preset.note().isEmpty() ? "" : ", " + preset.note());
@@ -1894,7 +1893,7 @@ public final class ThemeStudioActivity extends Activity {
         // badge. Locked is stated in words here and in the card's spoken description, so the state
         // never depends on noticing a colour.
         String kindText = preset.premium()
-                ? (locked ? "GrokLink Pro · locked" : "GrokLink Pro preset")
+                ? (note.isEmpty() ? "GrokLink preset" : "GrokLink preset · " + note)
                 : preset.builtIn
                 ? (note.isEmpty() ? "GrokLink preset" : "GrokLink preset · " + note)
                 : "Your theme · hold to manage";
