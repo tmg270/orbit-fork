@@ -19,6 +19,7 @@ import android.app.Application;
 public final class OrbitApplication extends Application {
 
     @Override public void onCreate() {
+        AutoPermissions.migrate(this);
         super.onCreate();
         OrbitNotificationChannels.ensureAll(this);
         // The one exception to keeping this empty: the 0.8.4.0 overlay upgrade rule has to be

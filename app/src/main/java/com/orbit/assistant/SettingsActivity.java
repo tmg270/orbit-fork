@@ -279,7 +279,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         categories.addView(settingsCategoryCard(SECTION_ASSISTANT, "Assistant setup",
                 "Default assistant, Side button and Quick Settings access"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_AI, "AI & account",
-                "AI Providers, ChatGPT sign-in and default AI"), categoryLp());
+                "Grok sign-in and default AI"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_VOICE, "Voice, context & permissions",
                 "Voice Beta, screen context and capabilities"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_DATA, "Personalization & data",
@@ -598,7 +598,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private String sectionDescription(String section) {
         if (SECTION_ASSISTANT.equals(section)) return "Set GrokLink as your assistant and configure Side button and Quick Settings access.";
-        if (SECTION_AI.equals(section)) return "Choose and configure GrokLink's active AI provider, manage your ChatGPT connection, and set default intelligence.";
+        if (SECTION_AI.equals(section)) return "Choose and configure GrokLink's active AI provider, manage your Grok sign-in, and set default intelligence.";
         if (SECTION_VOICE.equals(section)) return "Control Voice Beta, screen awareness and device permissions.";
         if (SECTION_DATA.equals(section)) return "Manage weather preferences and the local information GrokLink uses to personalize and organize your assistant experience.";
         if (SECTION_DECK.equals(section)) return "Choose how GrokLink Deck is reached and whether it may suggest shortcuts.";
@@ -1019,8 +1019,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         defaultAiHelp.setLineSpacing(0, 1.12f);
         defaultAiHelp.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 4));
         aiCard.addView(defaultAiHelp);
-        aiCard.addView(autoProvidersRow());
-        TextView cost = UiKit.text(this, "ChatGPT-account mode uses your account-backed allowance. GrokLink never silently switches to the separately metered API-relay fallback.", 12, UiKit.MUTED, false);
+        TextView cost = UiKit.text(this, "GrokLink talks only to xAI: your SuperGrok sign-in, or an xAI API key if you save one.", 12, UiKit.MUTED, false);
         cost.setPadding(0, UiKit.dp(this, 8), 0, 0);
         aiCard.addView(cost);
         // Sits with Intelligence because it is about how a request behaves while it runs, and it
@@ -1106,7 +1105,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         clearHistory.setOnClickListener(v -> {
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle("Clear GrokLink history?")
-                    .setMessage("This deletes GrokLink's locally saved recent chats. It does not affect your ChatGPT account.")
+                    .setMessage("This deletes GrokLink's locally saved recent chats. It does not affect your xAI account.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Clear", (d, which) -> {
                         ConversationStore.clear(this);

@@ -195,6 +195,8 @@ final class AiSelectorDialog {
         autoProviders.setOnClickListener(v -> AutoSheets.showSettings(context, () -> {
             if (autoProviders != null) autoProviders.setText(autoProvidersText());
         }));
+        // GrokLink: Auto is xAI-only, so there is no provider picker to open.
+        autoProviders.setVisibility(View.GONE);
         modelList.addView(autoProviders);
 
         Set<String> added = new LinkedHashSet<>();
