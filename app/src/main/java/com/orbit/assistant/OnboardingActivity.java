@@ -221,6 +221,8 @@ public final class OnboardingActivity extends Activity {
         skip.setOnClickListener(v -> {
             if (manual) confirmExitSetup(); else confirmSkip();
         });
+        // Nothing left to skip on the completion page.
+        if (step == 7) skip.setVisibility(View.INVISIBLE);
         header.addView(skip, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(this, 42)));
         return header;
@@ -414,7 +416,7 @@ public final class OnboardingActivity extends Activity {
 
         LinearLayout recommended = capabilityCard(page, "RECOMMENDED ACCESS");
         addCapability(recommended, "Notifications",
-                "Reminders, Routine alerts, updates, and background results.",
+                "Reminders, Routine alerts and background results.",
                 ReminderNotifier.notificationsAllowed(this), v ->
                         CapabilityAccessHelper.requestOrManageNotifications(this, REQ_NOTIFICATIONS));
         addRuntimeCapability(recommended, "Microphone", "Used for GrokLink Voice.",

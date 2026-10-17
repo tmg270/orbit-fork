@@ -66,16 +66,13 @@ public final class OrbitNotificationChannels {
     private static List<Definition> definitions() {
         List<Definition> out = new ArrayList<>(4);
         out.add(new Definition(BACKGROUND_RESPONSES, "Background responses",
-                "Notifies you when an GrokLink response finishes after you leave the chat.",
+                "Notifies you when a GrokLink response finishes after you leave the chat.",
                 NotificationManager.IMPORTANCE_DEFAULT));
         out.add(new Definition(REMINDERS, "Reminders",
                 "Reminders you create through GrokLink.",
                 NotificationManager.IMPORTANCE_HIGH));
         out.add(new Definition(ROUTINE_TRIGGERS, "Routine triggers",
                 "Only alerts you when an automatic GrokLink routine needs attention or a foreground step.",
-                NotificationManager.IMPORTANCE_DEFAULT));
-        out.add(new Definition(UPDATES, "GrokLink updates",
-                "Notifies you when a verified GrokLink release is available.",
                 NotificationManager.IMPORTANCE_DEFAULT));
         return out;
     }
@@ -91,6 +88,8 @@ public final class OrbitNotificationChannels {
         NotificationManager manager = manager(context);
         if (manager == null) return;
         for (Definition definition : definitions()) create(manager, definition);
+        // GrokLink has no updater: drop the channel an older build may have registered.
+        try { manager.deleteNotificationChannel(UPDATES); } catch (RuntimeException ignored) {}
     }
 
     /** Declares one channel by ID, for the notifier that is about to use it. */

@@ -76,6 +76,8 @@ public final class OrbitProEntitlement {
      * screen has to be told to invalidate anything.
      */
     public static boolean hasPro(Context context) {
+        // GrokLink: there is no paid tier. Every former "Pro" feature is simply part of the app.
+        if (true) return true;
         return resolve(previewAvailable(), Prefs.proPreviewSelected(context), PROVIDERS, context);
     }
 
@@ -101,6 +103,7 @@ public final class OrbitProEntitlement {
      * preference it must ignore.
      */
     public static boolean previewAvailable() {
+        if (true) return false; // GrokLink: no Free/Pro preview override
         return OrbitDistribution.allowsProPreview(OrbitDistribution.current())
                 && previewAvailable(BuildConfig.DEBUG, BuildConfig.VERSION_NAME);
     }

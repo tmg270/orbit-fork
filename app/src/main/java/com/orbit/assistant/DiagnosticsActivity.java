@@ -124,8 +124,6 @@ public final class DiagnosticsActivity extends Activity {
         // Always open, always short. This is the part someone reads without deciding to.
         page.addView(overviewCard(), cardLp());
 
-        // Developer and Beta builds only. See addProPreview.
-        addProPreview();
 
         TextView sectionsCaption = UiKit.text(this, "DETAILS", 11, UiKit.MUTED, true);
         sectionsCaption.setLetterSpacing(0.09f);
@@ -228,16 +226,11 @@ public final class DiagnosticsActivity extends Activity {
     private String overview() {
         SharedPreferences d = DiagnosticStore.prefs(this);
         return "GrokLink version: " + versionLabel() +
-                "\nDistribution: " + OrbitDistribution.label() +
                 "\nProvider: " + AiProviders.active(this).displayName() +
                                 "\nDefault AI: " + defaultSelectionLabel() +
                 "\nPending requests: " + PendingRequestStore.active(this).size() +
                 "\nThinking updates: " + (Prefs.thinkingUpdates(this) ? "enabled" : "disabled")
                         + " · " + ReasoningSummarySupport.lastSource(this) +
-                // Informational on every build, including Stable, where it is simply "Free". One
-                // line, no badge, and never anything about how an entitlement was obtained beyond
-                // the public name of where it came from.
-                "\nGrokLink Pro: " + OrbitProEntitlement.status(this) +
                 "\n" + healthLine();
     }
 
@@ -1032,8 +1025,6 @@ public final class DiagnosticsActivity extends Activity {
                 "\n  Voice pause-friendly mode: " + Prefs.voicePauseFriendly(this) +
                 "\n  Spoken voice replies: " + Prefs.speak(this) +
                 "\n  Hands-free voice follow-ups: " + Prefs.autoListen(this) +
-                "\n  0.6 capabilities dashboard: available" +
-                "\n  Lelo mode: " + Prefs.leloMode(this) +
                 "\n  Last overlay launch: " + OverlayLaunchTrace.summary(this) +
                 errorHistory();
     }
