@@ -24,7 +24,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-/** Native, informational view of recent stable Orbit GitHub Release notes. */
+/** GrokLink's built-in release notes. Offline; nothing is fetched. */
 public final class WhatsNewActivity extends Activity {
     private LinearLayout notesContainer;
     private TextView status;
@@ -43,7 +43,7 @@ public final class WhatsNewActivity extends Activity {
         setContentView(content);
         UiKit.applyActivityInsets(this, content, true);
         navigation = OrbitPredictiveBack.install(this);
-        loadNotes();
+        renderNotes();
     }
 
     @Override protected void onResume() {
@@ -78,7 +78,7 @@ public final class WhatsNewActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
         titles.addView(UiKit.text(this, "What's New", 24, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Recent stable GrokLink releases", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "What changed in GrokLink", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
@@ -90,13 +90,13 @@ public final class WhatsNewActivity extends Activity {
         currentLp.setMargins(UiKit.dp(this, 3), UiKit.dp(this, 20), UiKit.dp(this, 3), UiKit.dp(this, 12));
         page.addView(current, currentLp);
 
-        status = UiKit.text(this, "Loading stable release notes…", 13, UiKit.MUTED, false);
+        status = UiKit.text(this, "Built into this version of GrokLink.", 13, UiKit.MUTED, false);
         status.setLineSpacing(0, 1.1f);
         page.addView(status);
 
         retry = secondaryButton("Retry");
         retry.setVisibility(View.GONE);
-        retry.setOnClickListener(v -> loadNotes());
+        retry.setOnClickListener(v -> renderNotes());
         LinearLayout.LayoutParams retryLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44));
         retryLp.setMargins(0, UiKit.dp(this, 10), 0, 0);
@@ -110,7 +110,7 @@ public final class WhatsNewActivity extends Activity {
         page.addView(notesContainer, notesLp);
 
         TextView source = UiKit.text(this,
-                "Release notes come from the public lpnovi/Orbit-Assistant GitHub Releases page. GrokLink caches the last successful result for offline viewing.",
+                "GrokLink is an unofficial, Grok-only fork of Orbit Assistant by lpnovi (MPL-2.0). New builds come from github.com/tmg270/orbit-fork. Not affiliated with xAI.",
                 11, UiKit.MUTED, false);
         source.setLineSpacing(0, 1.1f);
         LinearLayout.LayoutParams sourceLp = new LinearLayout.LayoutParams(
@@ -121,85 +121,32 @@ public final class WhatsNewActivity extends Activity {
         return scroll;
     }
 
-    private void loadNotes() {
-        status.setText("Loading stable release notes…");
+
+
+
+    static final String NOTES =
+            "## GrokLink 1.0\n"
+            + "- **Grok only.** ChatGPT, OpenRouter, Anthropic, the API relay and the on-device model are gone. xAI is the only provider.\n"
+            + "- **SuperGrok sign-in.** Sign in with your SuperGrok account using a short code in your browser, or paste an xAI API key.\n"
+            + "- **Guided setup.** Grok sign-in, microphone, default assistant, permissions, and the Android Auto steps.\n"
+            + "- **Android Auto (experimental).** Open GrokLink from Auto's media apps and tap Ask Grok. Needs Android Auto developer mode and Unknown sources.\n"
+            + "- **Live thinking.** Grok's reasoning is shown while it works on models that send it, such as grok-4.7.\n"
+            + "- **Phone actions for Grok.** Timers, alarms, calendar and settings actions through the shared action contract.\n"
+            + "- **New look.** GrokLink name, icon and cyan theme.\n"
+            + "- **Updates.** GrokLink does not update itself. Install new builds from the fork; they install over the top and keep your data.\n";
+
+    private void renderNotes() {
+        status.setText("Built into this version of GrokLink.");
         status.setTextColor(UiKit.MUTED);
         retry.setVisibility(View.GONE);
         notesContainer.removeAllViews();
-        ReleaseNotesRepository.load(this, new ReleaseNotesRepository.Callback() {
-            @Override public void onLoaded(List<ReleaseNotesRepository.ReleaseNote> releases,
-                                           boolean fromCache) {
-                runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    status.setText(fromCache
-                            ? "Offline · showing the last successfully cached release notes."
-                            : "Latest stable release notes from GitHub.");
-                    status.setTextColor(fromCache ? Color.rgb(236, 187, 95) : UiKit.SUCCESS);
-                    renderReleases(releases);
-                });
-            }
-
-            @Override public void onError(String message) {
-                runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    status.setText(message);
-                    status.setTextColor(Color.rgb(239, 105, 105));
-                    retry.setVisibility(View.VISIBLE);
-                });
-            }
-        });
-    }
-
-    private void renderReleases(List<ReleaseNotesRepository.ReleaseNote> releases) {
-        notesContainer.removeAllViews();
-        if (releases == null || releases.isEmpty()) {
-            status.setText("No stable GrokLink release notes are available yet.");
-            retry.setVisibility(View.VISIBLE);
-            return;
-        }
-        // The GitHub updater's prompt. A Play install is updated by Google Play, and a newer GitHub
-        // release is not necessarily on Play yet, so the Play edition never shows it.
-        if (!OrbitDistribution.isPlay()
-                && ReleaseNotesRepository.isNewerThanCurrent(releases.get(0).versionName)) {
-            LinearLayout update = card();
-            update.addView(UiKit.text(this,
-                    "Update available · v" + releases.get(0).versionName, 15, UiKit.TEXT, true));
-            TextView detail = UiKit.text(this,
-                    "Return to About & updates to use GrokLink's verified updater.", 12, UiKit.MUTED, false);
-            detail.setPadding(0, UiKit.dp(this, 4), 0, UiKit.dp(this, 10));
-            update.addView(detail);
-            Button open = primaryButton("Open About & updates");
-            open.setOnClickListener(v -> {
-                startActivity(new Intent(this, UpdateActivity.class));
-                finish();
-            });
-            update.addView(open, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44)));
-            notesContainer.addView(update, cardLp());
-        }
-        for (ReleaseNotesRepository.ReleaseNote release : releases) {
-            notesContainer.addView(releaseCard(release), cardLp());
-        }
-        UiKit.applyTypography(notesContainer);
-    }
-
-    private View releaseCard(ReleaseNotesRepository.ReleaseNote release) {
         LinearLayout card = card();
-        card.addView(UiKit.text(this, release.title, 17, UiKit.TEXT, true));
-        String metadata = "v" + release.versionName;
-        if (release.versionName.equals(BuildConfig.VERSION_NAME)) metadata += " · Installed";
-        if (release.publishedAt.length() >= 10) metadata += " · " + release.publishedAt.substring(0, 10);
-        TextView version = UiKit.text(this, metadata, 11, UiKit.MUTED, false);
-        version.setPadding(0, UiKit.dp(this, 4), 0, UiKit.dp(this, 11));
-        card.addView(version);
-
-        CharSequence notes = markdown(OrbitDistribution.isPlay()
-                ? withoutApkFooter(release.body) : release.body);
         TextView body = UiKit.text(this, "", 13, UiKit.TEXT, false);
-        body.setText(notes.length() == 0 ? "No release notes were provided." : notes);
+        body.setText(markdown(NOTES));
         body.setLineSpacing(UiKit.dp(this, 2), 1.08f);
         card.addView(body);
-        return card;
+        notesContainer.addView(card, cardLp());
+        UiKit.applyTypography(notesContainer);
     }
 
     /**

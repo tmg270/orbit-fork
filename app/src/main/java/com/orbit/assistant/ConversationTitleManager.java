@@ -27,14 +27,14 @@ final class ConversationTitleManager {
         if (job == null) return;
 
         boolean cloud = job.conversationSelection != null
-                && Prefs.PROVIDER_CHATGPT.equals(job.conversationSelection.provider)
-                && ChatGptAuth.isSignedIn(app);
+                && Prefs.PROVIDER_XAI.equals(job.conversationSelection.provider)
+                && SecureStore.hasXaiCredential(app);
         Data input = new Data.Builder()
                 .putString(ConversationTitleWorker.KEY_CONVERSATION_ID, job.conversationId)
                 .putString(ConversationTitleWorker.KEY_TOKEN, job.token)
                 .putString(ConversationTitleWorker.KEY_USER, clip(job.firstUserMessage, 1200))
                 .putString(ConversationTitleWorker.KEY_ASSISTANT, clip(job.firstAssistantResponse, 1200))
-                .putBoolean(ConversationTitleWorker.KEY_USE_CHATGPT, cloud)
+                .putBoolean(ConversationTitleWorker.KEY_USE_CLOUD, cloud)
                 .build();
         Constraints constraints = new Constraints.Builder()
                 .build();

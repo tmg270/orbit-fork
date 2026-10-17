@@ -163,7 +163,7 @@ public final class RichAnswerDiscoveryHintTest {
      * sources, and the provenance layer that decides what a citation is.
      */
     @Test public void hintsAreNeverPromotedIntoFactualProvenance() {
-        String provenance = ComponentUninstallTest.readRepositoryFile(
+        String provenance = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerProvenance.java");
         assertFalse("provenance must know nothing about hints",
                 provenance.contains("RichAnswerDiscoveryHint"));
@@ -173,7 +173,7 @@ public final class RichAnswerDiscoveryHintTest {
 
         // Asserted on call shapes rather than on words, because the class documentation
         // legitimately names the very types it must never use.
-        String hint = ComponentUninstallTest.readRepositoryFile(
+        String hint = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerDiscoveryHint.java");
         for (String forbidden : new String[]{
                 "reply.sourceUrls", "AssistantReply ", "ConversationStore.", "SourceLinkUtil.",
@@ -184,7 +184,7 @@ public final class RichAnswerDiscoveryHintTest {
 
     /** Hints are collected from the answer, never from the prompt or an action's arguments. */
     @Test public void hintsAreReadFromTheAnswerAndNothingElse() {
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         assertTrue(coordinator.contains("RichAnswerDiscoveryHint.from(answer, subject, pages)"));
         assertFalse("the prompt is never mined for links",
@@ -193,7 +193,7 @@ public final class RichAnswerDiscoveryHintTest {
 
     /** The gate is every condition at once, not any one of them. */
     @Test public void theFallbackIsGatedOnAnExplicitlyPluralStrongVisualRequest() {
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         assertTrue(coordinator.contains(
                 "images > 1 && strong && RichAnswerRelevance.requestsMultipleImages(prompt)"));
@@ -201,7 +201,7 @@ public final class RichAnswerDiscoveryHintTest {
 
     /** A hint fetch goes through the same policy every other fetch does. */
     @Test public void hintsUseTheSameSafetyPolicyAsCitedPages() {
-        String hint = ComponentUninstallTest.readRepositoryFile(
+        String hint = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerDiscoveryHint.java");
         assertTrue(hint.contains("RichAnswerUrlPolicy.isFetchablePageUrl"));
         assertTrue(hint.contains("RichAnswerUrlPolicy.isFetchableImageUrl"));

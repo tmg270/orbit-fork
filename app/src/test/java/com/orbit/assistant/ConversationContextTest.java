@@ -136,7 +136,7 @@ public final class ConversationContextTest {
         ConversationStore.appendMessage(context, id, new AssistantClient.History("user", "And spelt?"));
         ConversationStore.Conversation chat = ConversationStore.load(context, id);
         KeptContext.Prepared kept = OrbitRequestWorker.keptFor(chat, chat.messages);
-        JSONObject body = ChatGptClient.requestBody(context, "And spelt?", "", null, chat.messages,
+        JSONObject body = ActionPromptBuilder.requestBody(context, "And spelt?", "", null, chat.messages,
                 LUNA, false, "", "", "", false, false, OrbitModelCatalog.LUNA, kept, null);
         assertEquals("sent once: in the kept block, not again on the turn it came from", 1,
                 count(body.toString(), "UNIQUE-KEPT-PASSAGE"));
@@ -151,7 +151,7 @@ public final class ConversationContextTest {
         ConversationStore.Conversation chat = ConversationStore.load(context, id);
         KeptContext.Prepared kept = OrbitRequestWorker.keptFor(chat, chat.messages);
         assertTrue("the current message already carries it", kept.block.isEmpty());
-        JSONObject body = ChatGptClient.requestBody(context, "Summarize this", pdf, null,
+        JSONObject body = ActionPromptBuilder.requestBody(context, "Summarize this", pdf, null,
                 chat.messages, LUNA, true, "", "", "", false, false, OrbitModelCatalog.LUNA, kept, null);
         assertEquals(1, count(body.toString(), "ORIGIN-PASSAGE"));
     }
@@ -179,31 +179,9 @@ public final class ConversationContextTest {
         assertTrue(kept.block.contains("BRANCH-KEPT"));
     }
 
-    @Test public void orbitLocalFitsKeptContextAsEvidence() {
-        AiRequest request = AiRequest.builder().prompt("What ratio?")
-                .history(Collections.singletonList(new AssistantClient.History("user", "What ratio?")))
-                .keptContext(KeptContext.prepare(Collections.singletonList(KeptContext.create("pdf",
-                        "Bread.pdf", "The ratio is LOCAL-RATIO thirty percent.", "", "", false)), ""))
-                .build();
-        LocalContextBudget.Result fitted = OrbitLocalProvider.buildPrompt(context, request);
-        assertTrue(fitted.prompt.contains("LOCAL-RATIO"));
-        assertTrue(fitted.prompt.contains("untrusted_attachment"));
-    }
 
     // ---- the estimate -----------------------------------------------------------------------------
 
-    @Test public void aShortChatIsALowApproximateShareOfAKnownWindow() {
-        String id = ConversationStore.newId();
-        ConversationStore.save(context, id, Arrays.asList(new AssistantClient.History("user", "Hi"),
-                new AssistantClient.History("assistant", "Hello")));
-        ContextEstimate estimate = ContextEstimate.measure(context, id, LUNA, ContextEstimate.Draft.EMPTY);
-        assertTrue(estimate.knowsLimit());
-        assertEquals(OrbitModelCatalog.OPENAI_CONTEXT_WINDOW, estimate.limit);
-        assertTrue(estimate.tokens > 0);
-        assertEquals(ContextEstimate.Level.NORMAL, estimate.level());
-        assertTrue("an estimate is always marked", estimate.summary().startsWith("~"));
-        assertTrue(estimate.breakdown.containsKey(ContextLedger.Category.CONVERSATION));
-    }
 
     @Test public void theBreakdownReconcilesWithTheTotal() {
         String pdf = repeat("fermentation", 3000);

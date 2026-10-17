@@ -35,7 +35,7 @@ public interface AiProvider {
     /** Stable internal id, also the value stored in {@link Prefs#PROVIDER}. */
     String id();
 
-    /** Short user-facing name, e.g. "ChatGPT" or "GrokLink Local". */
+    /** Short user-facing name, e.g. "xAI / Grok". */
     String displayName();
 
     /** One-line user-facing description for provider management UI. */
@@ -72,7 +72,7 @@ public interface AiProvider {
 
     /** What a provider without structured completions says when asked for one. */
     String COMPLETION_UNSUPPORTED =
-            "Your current AI provider can't write Smart Vault suggestions yet. ChatGPT can.";
+            "Sign in with SuperGrok or add an xAI API key so Grok can write Smart Vault suggestions.";
 
     /**
      * Whether {@link #complete} can be asked right now. Smart Vault reads this before it spends

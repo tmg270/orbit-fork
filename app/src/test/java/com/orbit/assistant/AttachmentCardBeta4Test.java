@@ -26,7 +26,7 @@ public final class AttachmentCardBeta4Test {
     }
 
     @Test public void implementationPinsCompactDimensionsAndPreviewReplacementRule() {
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ChatActivity.java");
         assertTrue(source.contains("setMinimumHeight(UiKit.dp(this, 68))"));
         assertTrue(source.contains("UiKit.dp(this, 52), UiKit.dp(this, 52)"));

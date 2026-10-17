@@ -52,6 +52,13 @@ final class SuperGrokAuth {
 
     private SuperGrokAuth() {}
 
+    /** Whether a failed reply asked the user to sign in to xAI, and they still are not. */
+    static boolean needsSignIn(Context context, String failure) {
+        if (failure == null || SecureStore.hasXaiCredential(context)) return false;
+        String f = failure.toLowerCase(java.util.Locale.US);
+        return f.contains("sign in with supergrok") || f.contains("sign in again");
+    }
+
     static final class DeviceCode {
         final String deviceCode, userCode, verificationUri, verificationUriComplete;
         final long expiresAtMs;

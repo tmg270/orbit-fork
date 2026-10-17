@@ -174,7 +174,7 @@ final class ContextEstimate {
                     ? MemoryStore.select(c, p, attachmentText, turns).promptContext : "";
             ContextLedger ledger = new ContextLedger(true);
             AiSelection proxy = AiSelections.FALLBACK;
-            ChatGptClient.requestBody(c, p, attachmentText, images, turns, proxy, explicit,
+            ActionPromptBuilder.requestBody(c, p, attachmentText, images, turns, proxy, explicit,
                     notificationContext, memory, "", false, false, proxy.model, k, ledger);
             int total = ledger.total();
             Integer instructions = ledger.breakdown().get(ContextLedger.Category.INSTRUCTIONS);
@@ -245,20 +245,6 @@ final class ContextEstimate {
         String memory = Prefs.memoryEnabled(c) && !prompt.isEmpty()
                 ? MemoryStore.select(c, prompt, attachmentText, history).promptContext : "";
 
-        if (Prefs.PROVIDER_LOCAL.equals(resolved.provider)) {
-            // Orbit Local fits every request to its own small window, so the honest figure is the
-            // size of the prompt it would actually run, with no percentage of a window it manages.
-            AiRequest request = AiRequest.builder().prompt(prompt).screenText(attachmentText)
-                    .images(images).history(history).selection(resolved)
-                    .explicitAttachment(explicit).notificationContext(notificationContext)
-                    .memoryContext(memory).keptContext(kept).build();
-            int local = 0;
-            try {
-                local = OrbitLocalProvider.buildPrompt(c, request).estimatedTokens;
-            } catch (Exception ignored) {}
-            return new ContextEstimate(local, 0, Collections.emptyMap(), 0, true, modelName);
-        }
-
         ContextLedger ledger = new ContextLedger(true);
         for (ComposerAttachment attachment : d.attachments) {
             if (attachment == null) continue;
@@ -266,7 +252,7 @@ final class ContextEstimate {
                     attachment.contextText.length());
         }
         try {
-            ChatGptClient.requestBody(c, prompt, attachmentText, images, history, resolved,
+            ActionPromptBuilder.requestBody(c, prompt, attachmentText, images, history, resolved,
                     explicit, notificationContext, memory, "", false, false, resolved.model,
                     kept, ledger);
         } catch (Exception failed) {

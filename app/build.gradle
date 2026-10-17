@@ -54,10 +54,6 @@ android {
         versionCode runNumber ? 1000 + runNumber.toInteger() : 818
         versionName runNumber ? "1.0.${runNumber}-groklink" : "1.0.0-groklink-local"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        // No ABI filter is needed here any more: with the inference runtime moved into the
-        // optional :local component, the main Orbit APK carries no native libraries at all.
-        // The filter now lives in local/build.gradle, where the native code actually is.
     }
 
     signingConfigs {
@@ -105,7 +101,7 @@ android {
         //
         // A build type rather than product flavors, on purpose. Flavors would rename every
         // existing task and output (assembleRelease, app-release.apk, app-debug.apk) that
-        // release.yml, candidate.yml, build-apk.yml and tools/build_orbit.ps1 depend on. A build
+        // release.yml, candidate.yml, build-apk.yml and tools/build_groklink.ps1 depend on. A build
         // type leaves the GitHub edition's debug and release variants exactly as they were.
         //
         // Not initWith(release): that would copy the release signing config, and a Play bundle
@@ -129,14 +125,9 @@ android {
 
     buildFeatures {
         buildConfig true
-        aidl true
     }
 
     sourceSets {
-        // One copy of the Orbit Local IPC contract, compiled into both sides. Duplicating the
-        // .aidl files would let the two ends of the interface drift apart silently.
-        main.aidl.srcDirs += ['../ipc']
-
         // The distribution boundary. src/github holds the only code able to fetch Orbit APKs from
         // GitHub Releases and hand an APK to Android's package installer; both GitHub variants
         // compile it. The play build type compiles src/play instead, whose OrbitEdition has the
@@ -200,9 +191,6 @@ dependencies {
     // the recognition model is delivered by Play services on first use instead of being bundled
     // into every APK. Only called when the user turns on "Read text in pictures".
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:19.0.1"
-    // Orbit Local's inference runtime deliberately does NOT live here. It ships in the
-    // optional :local component so an Orbit install without local AI never carries it.
-    // ReleaseModularityTest fails the build if tasks-genai returns to this module.
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.16"
     androidTestImplementation "androidx.test:core:1.6.1"

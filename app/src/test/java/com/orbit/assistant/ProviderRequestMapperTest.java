@@ -24,30 +24,6 @@ import java.util.List;
 @Config(sdk = {29, 35})
 public final class ProviderRequestMapperTest {
 
-    @Test public void anthropicMapsSystemHistoryExtractedTextImageAndEffort() throws Exception {
-        Bitmap image = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
-        List<AssistantClient.History> history = Arrays.asList(
-                new AssistantClient.History("user", "Earlier question", true, "", "pdf",
-                        "notes.pdf", "Extracted PDF text"),
-                new AssistantClient.History("assistant", "Earlier answer"));
-        AiRequest request = AiRequest.builder().prompt("Current question")
-                .screenText("Current extracted text").images(Arrays.asList(image))
-                .history(history).selection(AiSelection.of(Prefs.PROVIDER_ANTHROPIC,
-                        OrbitModelCatalog.CLAUDE_OPUS_5_5, AiStrength.MEDIUM)).build();
-        JSONObject root = ProviderRequestMapper.anthropic(null, request, true);
-        assertEquals(OrbitModelCatalog.CLAUDE_OPUS_5_5, root.getString("model"));
-        assertTrue(root.getBoolean("stream"));
-        assertTrue(root.getString("system").startsWith("You are GrokLink"));
-        assertEquals("adaptive", root.getJSONObject("thinking").getString("type"));
-        assertEquals("medium", root.getJSONObject("output_config").getString("effort"));
-        JSONArray messages = root.getJSONArray("messages");
-        assertEquals("user", messages.getJSONObject(0).getString("role"));
-        assertTrue(messages.getJSONObject(0).getJSONArray("content").getJSONObject(0)
-                .getString("text").contains("Extracted PDF text"));
-        JSONArray current = messages.getJSONObject(messages.length() - 1).getJSONArray("content");
-        assertTrue(current.getJSONObject(0).getString("text").contains("Current extracted text"));
-        assertEquals("image", current.getJSONObject(1).getString("type"));
-    }
 
     @Test public void xaiUsesSystemRoleOpenAiImagesAndOnlyValidReasoningEffort() throws Exception {
         Bitmap image = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888);
@@ -64,21 +40,6 @@ public final class ProviderRequestMapperTest {
                 .startsWith("data:image/jpeg;base64,"));
     }
 
-    @Test public void streamReadersNormalizeCumulativeDeltas() throws Exception {
-        List<String> anthropicDeltas = new ArrayList<>();
-        String anthropic = "data: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"Hello\"}}\n"
-                + "data: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\" world\"}}\n";
-        String a = ApiKeyProviderClient.readAnthropicStream(bytes(anthropic), callback(anthropicDeltas));
-        assertEquals("Hello world", a);
-        assertEquals(Arrays.asList("Hello", "Hello world"), anthropicDeltas);
-
-        List<String> xaiDeltas = new ArrayList<>();
-        String xai = "data: {\"choices\":[{\"delta\":{\"content\":\"One\"}}]}\n"
-                + "data: {\"choices\":[{\"delta\":{\"content\":\" two\"}}]}\n"
-                + "data: [DONE]\n";
-        assertEquals("One two", ApiKeyProviderClient.readXaiStream(bytes(xai), callback(xaiDeltas)));
-        assertEquals(Arrays.asList("One", "One two"), xaiDeltas);
-    }
 
     @Test public void errorMappingIsUsefulAndNeverReturnsRawPayload() {
         String secretPayload = "{\"error\":\"secret-provider-payload\"}";

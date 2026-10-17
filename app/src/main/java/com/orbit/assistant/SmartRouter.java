@@ -207,7 +207,7 @@ public final class SmartRouter {
             this.estimatedTokens = Math.max(0, estimatedTokens);
             this.contentTokens = Math.max(0, Math.min(this.estimatedTokens, contentTokens));
             this.demand = demand(text, this.imageCount, this.attachmentChars, this.estimatedTokens);
-            this.deviceAction = OrbitLocalActionRouter.looksActionable(text);
+            this.deviceAction = ActionIntent.looksActionable(text);
             this.currentInfo = CURRENT_INFO.matcher(text.toLowerCase(Locale.US)).find();
         }
 
@@ -453,8 +453,8 @@ public final class SmartRouter {
         return out.toString();
     }
 
-    static final String HINT = " Choose a model from the AI menu, or change which providers Auto "
-            + "can use in Settings > Intelligence > Auto.";
+    static final String HINT = " Choose a model from the AI menu, or check your Grok sign-in in "
+            + "Settings > AI Providers.";
 
     /**
      * Why nothing could be chosen. When a connected provider the user has not enabled for Auto could
@@ -469,7 +469,7 @@ public final class SmartRouter {
                         + HINT;
             }
         }
-        if (usable.isEmpty()) return "No Auto-enabled provider is currently available." + HINT;
+        if (usable.isEmpty()) return "Grok is not connected yet. Sign in with SuperGrok or add an xAI API key." + HINT;
         if (r.imageCount > 0) {
             boolean anyVision = false;
             for (Option o : usable) if (o.vision()) anyVision = true;

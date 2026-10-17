@@ -161,7 +161,7 @@ public class AppProfileActivity extends Activity {
         ScreenContextClassifier.Result auto = ScreenContextClassifier.classify(this,"",false,pkg,label);
 
         LinearLayout preview = card();
-        TextView previewTitle = UiKit.text(this, "ORBIT BEHAVIOR", 11, UiKit.accent(this), true);
+        TextView previewTitle = UiKit.text(this, "GROKLINK BEHAVIOR", 11, UiKit.accent(this), true);
         preview.addView(previewTitle);
         String detected = AppProfileStore.CATEGORY_AUTO.equals(current.category)
                 ? (auto.confidence >= 65 ? auto.label : "Automatic")

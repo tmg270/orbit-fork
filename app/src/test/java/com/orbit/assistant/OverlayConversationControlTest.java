@@ -14,7 +14,7 @@ import org.junit.Test;
  */
 public final class OverlayConversationControlTest {
     private static String overlay() {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
     }
 

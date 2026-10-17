@@ -38,7 +38,7 @@ Run the unit tests with:
 ./gradlew :app:testDebugUnitTest
 ```
 
-On Windows, `BUILD_ORBIT.cmd` (a wrapper around `tools/build_orbit.ps1`) can also produce a debug APK. It locates or downloads JDK 17, the Android SDK packages, and Gradle for you, and writes `Orbit-Assistant-v<version>-debug.apk` to the repository root.
+On Windows, `BUILD_GROKLINK.cmd` (a wrapper around `tools/build_groklink.ps1`) can also produce a debug APK. It locates or downloads JDK 17, the Android SDK packages, and Gradle for you, and writes `GrokLink-v<version>-debug.apk` to the repository root.
 
 ## Building with GitHub Actions (forks)
 

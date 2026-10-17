@@ -76,7 +76,6 @@ public final class OrbitNavigation {
         put(DeckActivity.class, Policy.PREDICTIVE, "Deck");
         put(DiagnosticsActivity.class, Policy.PREDICTIVE, "Diagnostics");
         put(AiProvidersActivity.class, Policy.PREDICTIVE, "AI providers");
-        put(LocalAiActivity.class, Policy.PREDICTIVE, "GrokLink Local");
         put(CapabilitiesActivity.class, Policy.PREDICTIVE, "Capabilities");
         put(MemoryActivity.class, Policy.PREDICTIVE, "Memory");
         // Vault and one saved item are two ordinary pages: Chats is under the Vault, and the Vault
@@ -138,9 +137,6 @@ public final class OrbitNavigation {
         // it arrives from another app, draws nothing, and finishes once it has opened a
         // conversation, so there is no Orbit page beneath it for a gesture to reveal.
         put(ProcessTextToOrbitActivity.class, Policy.LOCAL, "Ask GrokLink from text");
-        // The browser's "Return to GrokLink" after ChatGPT sign-in. Another doorway of the same shape:
-        // it draws nothing and only brings forward the screen that started the sign-in.
-        put(ChatGptSignInReturnActivity.class, Policy.LOCAL, "ChatGPT sign-in return");
         // The full-screen attachment viewer. Not a page in the hierarchy but a detail surface laid
         // over one, and — the reason this matters more than the classification usually does — it
         // owns live pan and zoom gestures for the whole width of the screen. An app-wide back

@@ -16,7 +16,7 @@ public final class ConversationTitleWorker extends Worker {
     static final String KEY_TOKEN = "title_token";
     static final String KEY_USER = "first_user";
     static final String KEY_ASSISTANT = "first_assistant";
-    static final String KEY_USE_CHATGPT = "use_chatgpt";
+    static final String KEY_USE_CLOUD = "use_cloud";
 
     public ConversationTitleWorker(@NonNull Context appContext, @NonNull WorkerParameters params) {
         super(appContext, params);
@@ -38,8 +38,8 @@ public final class ConversationTitleWorker extends Worker {
                 || !token.equals(current.titleJobToken)) return Result.success();
 
         String title = "";
-        if (getInputData().getBoolean(KEY_USE_CHATGPT, false) && ChatGptAuth.isSignedIn(app)) {
-            title = generateWithChatGpt(app, user, assistant);
+        if (getInputData().getBoolean(KEY_USE_CLOUD, false) && SecureStore.hasXaiCredential(app)) {
+            title = generateWithGrok(app, user, assistant);
         }
         title = ConversationTitlePolicy.normalizeGenerated(title);
         if (title.isEmpty()) title = ConversationTitlePolicy.fallback(user);
@@ -47,12 +47,11 @@ public final class ConversationTitleWorker extends Worker {
         return Result.success();
     }
 
-    private String generateWithChatGpt(Context context, String user, String assistant) {
+    private String generateWithGrok(Context context, String user, String assistant) {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<String> answer = new AtomicReference<>("");
-        ChatGptClient.complete(context, ConversationTitlePolicy.INSTRUCTIONS,
+        new XaiProvider().complete(context, ConversationTitlePolicy.INSTRUCTIONS,
                 ConversationTitlePolicy.prompt(user, assistant),
-                ConversationTitlePolicy.CHATGPT_TITLE_SELECTION,
                 new AssistantClient.PlanCallback() {
                     @Override public void onText(String text, String providerLabel) {
                         answer.set(text == null ? "" : text);

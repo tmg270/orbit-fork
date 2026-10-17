@@ -484,7 +484,7 @@ public final class RichAnswerVisualDedupeTest {
 
     /** Ownership and cancellation are unchanged by any of this. */
     @Test public void discoveryStillChecksOwnershipBeforeAttaching() {
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         assertTrue("a stopped request must still never decorate its answer",
                 coordinator.contains("OrbitRequestManager.isCancelled(app, owner)"));

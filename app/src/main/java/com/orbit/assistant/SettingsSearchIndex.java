@@ -89,7 +89,7 @@ public final class SettingsSearchIndex {
     public static final String KEY_QUICK_TILES = "quick_tiles";
     public static final String KEY_WIDGETS = "widgets";
     public static final String KEY_PROVIDER = "provider";
-    public static final String KEY_CHATGPT_ACCOUNT = "chatgpt_account";
+    public static final String KEY_GROK_ACCOUNT = "grok_account";
     public static final String KEY_DEFAULT_AI = "default_ai";
     public static final String KEY_THINKING_UPDATES = "thinking_updates";
     public static final String KEY_RICH_ANSWERS = "rich_answers";
@@ -145,7 +145,7 @@ public final class SettingsSearchIndex {
     private static final String S_ADVANCED = "Advanced";
     private static final String S_ROUTINES = "Routines";
     private static final String S_EXTENSIONS = "Extensions";
-    private static final String S_UPDATES = "About & updates";
+    private static final String S_UPDATES = "About";
 
     private static final List<Entry> ENTRIES = buildEntries();
 
@@ -269,13 +269,13 @@ public final class SettingsSearchIndex {
                 "provider", "backend", "grok", "xai", "supergrok", "account"));
         out.add(new Entry("Grok sign-in",
                 "Sign in with SuperGrok or manage your xAI API key.",
-                S_AI, "ai", KEY_CHATGPT_ACCOUNT,
+                S_AI, "ai", KEY_GROK_ACCOUNT,
                 "grok", "sign in", "log in", "sign out", "account", "xai", "supergrok"));
         out.add(new Entry("Default AI for new chats",
                 "Provider, model and strength new chats start with.",
                 S_AI, "ai", KEY_DEFAULT_AI,
                 "model", "ai model", "provider", "strength", "reasoning", "effort", "default",
-                "gpt", "gpt-6", "luna", "sol", "astra", "low", "medium", "high", "max",
+                "grok", "grok-4", "low", "medium", "high", "max",
                 // Auto and its provider switches live in the same card.
                 "auto", "smart routing", "routing", "auto can use"));
         out.add(new Entry("Thinking updates",
@@ -461,10 +461,10 @@ public final class SettingsSearchIndex {
                 "Declarative GrokLink extensions and their setup.",
                 S_EXTENSIONS, "extensions", "",
                 "extension", "orbitext", "integration", "plugin", "api"));
-        out.add(new Entry("About & updates",
-                "Version, update channel and release notes.",
+        out.add(new Entry("About",
+                "Version, licence, What's New and how to get new builds.",
                 S_UPDATES, "updates", "",
-                "update", "version", "beta", "stable", "channel", "release notes", "changelog",
+                "update", "version", "release notes", "changelog", "licence", "license",
                 "about", "upgrade"));
 
         return Collections.unmodifiableList(out);

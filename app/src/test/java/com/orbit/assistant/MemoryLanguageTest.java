@@ -75,7 +75,7 @@ public final class MemoryLanguageTest {
     @Test public void aTopicWithNoMemoriesSaysSoRatherThanGuessing() {
         AssistantReply reply = MemoryCommandRouter.tryHandle(context, "What do you know about Overwatch?");
         assertNotNull(reply);
-        assertTrue(reply.text.toLowerCase().contains("do not have any orbit memories"));
+        assertTrue(reply.text.toLowerCase().contains("do not have any groklink memories"));
     }
 
     // ---- saving ----

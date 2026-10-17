@@ -383,7 +383,7 @@ public final class ConversationBranchTest {
         String id = linearChat("SECRET-ORIGINAL question", "SECRET-ORIGINAL answer");
         ConversationStore.branchFromUserMessage(context, id, 0, key(id, 0), user("Visible question"));
         ConversationStore.Conversation chat = load(id);
-        JSONObject body = ChatGptClient.requestBody(context, "Visible question", "", null,
+        JSONObject body = ActionPromptBuilder.requestBody(context, "Visible question", "", null,
                 chat.messages, AiSelections.globalDefault(context), false, "", "", "", false, false,
                 OrbitModelCatalog.LUNA);
         assertFalse(body.toString().contains("SECRET-ORIGINAL"));
@@ -396,7 +396,7 @@ public final class ConversationBranchTest {
         ConversationStore.commitAnswerVariant(context, id, 1, parent, answer("Shown answer", "rS"));
         List<AssistantClient.History> history = new ArrayList<>(load(id).messages);
         history.add(user("Follow up"));
-        JSONObject body = ChatGptClient.requestBody(context, "Follow up", "", null, history,
+        JSONObject body = ActionPromptBuilder.requestBody(context, "Follow up", "", null, history,
                 AiSelections.globalDefault(context), false, "", "", "", false, false,
                 OrbitModelCatalog.LUNA);
         assertFalse(body.toString().contains("HIDDEN-VARIANT"));

@@ -317,7 +317,7 @@ public final class WeatherService {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(15000);
-            conn.setRequestProperty("User-Agent", "OrbitAssistant/0.5.9 Android");
+            conn.setRequestProperty("User-Agent", GrokLinkHttp.userAgent());
             conn.setRequestProperty("Accept", "application/json");
             int code = conn.getResponseCode();
             InputStream in = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();

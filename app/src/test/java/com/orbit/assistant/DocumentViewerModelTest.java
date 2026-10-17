@@ -78,7 +78,7 @@ public final class DocumentViewerModelTest {
 
     @Test public void searchIsCaseInsensitivePageAwareAndCountsEveryMatch() {
         DocumentTextIndex index = new DocumentTextIndex(Arrays.asList(
-                "GrokLink begins here. orbit again.",
+                "Orbit begins here. orbit again.",
                 "Nothing on this page.",
                 "The final ORBIT mention."));
         List<DocumentTextIndex.Match> matches = index.search("oRbIt");

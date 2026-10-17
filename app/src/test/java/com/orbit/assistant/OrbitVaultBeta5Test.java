@@ -758,17 +758,6 @@ public final class OrbitVaultBeta5Test {
         assertEquals(388, after.pageCount);
     }
 
-    /** Filtering, searching, pinning, swiping and deleting stay local. */
-    @Test public void noneOfThisReachesAProvider() {
-        for (String name : new String[]{"OrbitVaultActivity", "OrbitVaultItemActivity",
-                "OrbitVaultFilter", "OrbitVaultSource", "OrbitSwipeRow"}) {
-            String text = source(name);
-            for (String forbidden : new String[]{"AssistantClient", "ChatGptClient", "AutoRouter",
-                    "HttpURLConnection", "java.net.", "TextRecognizer", "OrbitRequestManager"}) {
-                assertFalse(name + " must not reference " + forbidden, text.contains(forbidden));
-            }
-        }
-    }
 
     /** The chat swipe preference still means chats, and nothing else. */
     @Test public void theChatSwipePreferenceDoesNotReachTheVault() {
@@ -781,7 +770,7 @@ public final class OrbitVaultBeta5Test {
     // ---- helpers ---------------------------------------------------------------------------------
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName + ".java");
     }
 

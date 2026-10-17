@@ -1,3 +1,16 @@
+# Changelog
+
+## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
+
+- Grok only: ChatGPT, OpenRouter, Anthropic, the API relay and Orbit Local are removed.
+- SuperGrok device-code sign-in, or an xAI API key.
+- Guided setup: Grok sign-in, microphone, default assistant, permissions and Android Auto steps.
+- Android Auto "Ask Grok" media item (experimental).
+- Live reasoning for models that send it; xAI device actions.
+- GrokLink name, icon and theme. No self-updater; builds come from tmg270/orbit-fork.
+
+Everything below is the upstream Orbit Assistant history by lpnovi.
+
 # Orbit Assistant Changelog
 
 This is the canonical version-by-version patch history for Orbit Assistant. Each source release should update this file before packaging. The Android `versionName` remains the human-facing four-part Orbit version, while `versionCode` continues as the simple monotonically increasing build number used by Android.

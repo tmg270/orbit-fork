@@ -377,7 +377,7 @@ public final class DeckSurfaceTest {
     /** Turning the shortcut off must never be able to strand Deck. */
     @Test public void deckStaysReachableFromSettingsWithTheShortcutOff() {
         Prefs.get(context).edit().putBoolean(Prefs.DECK_SHORTCUT, false).commit();
-        String settings = ComponentUninstallTest.readRepositoryFile(
+        String settings = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/SettingsActivity.java");
         assertTrue("Settings must offer a way into Deck",
                 settings.contains("DeckActivity.class"));
@@ -411,7 +411,7 @@ public final class DeckSurfaceTest {
 
     /** Deck is Orbit's own screen and is never opened from outside the app. */
     @Test public void deckIsNotExported() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("android:name=\".DeckActivity\"");
         assertTrue("Deck must be declared", start > 0);

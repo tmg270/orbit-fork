@@ -166,14 +166,6 @@ public final class ConversationTitleTest {
                 .split(" ").length <= ConversationTitlePolicy.MAX_WORDS);
     }
 
-    @Test public void metadataPolicyIsFixedAndNeverBorrowsTheConversationsModel() {
-        assertEquals(Prefs.PROVIDER_CHATGPT,
-                ConversationTitlePolicy.CHATGPT_TITLE_SELECTION.provider);
-        assertEquals(OrbitModelCatalog.GPT_5_6_LUNA,
-                ConversationTitlePolicy.CHATGPT_TITLE_SELECTION.model);
-        assertEquals(AiStrength.LOW,
-                ConversationTitlePolicy.CHATGPT_TITLE_SELECTION.strength);
-    }
 
     @Test public void aPendingTitleSurvivesActivityRecreation() {
         String id = ConversationStore.newId();

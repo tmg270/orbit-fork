@@ -102,7 +102,7 @@ public class ForcedVisualSearchTest {
 
     private JSONObject bodyFor(String prompt, boolean force) throws Exception {
         JSONObject root = new JSONObject();
-        ChatGptClient.applyHostedSearch(root, context, prompt, force);
+        ActionPromptBuilder.applyHostedSearch(root, context, prompt, force);
         return root;
     }
 
@@ -112,7 +112,7 @@ public class ForcedVisualSearchTest {
         assertEquals(1, root.getJSONArray("tools").length());
         assertEquals("web_search", root.getJSONArray("tools").getJSONObject(0).getString("type"));
         assertEquals("auto", root.getString("tool_choice"));
-        assertEquals("and it carries no search instruction", "", ChatGptClient.searchPolicy(false));
+        assertEquals("and it carries no search instruction", "", ActionPromptBuilder.searchPolicy(false));
     }
 
     /** A forced request names the hosted tool, and says so in words as well as in a field. */
@@ -121,7 +121,7 @@ public class ForcedVisualSearchTest {
         assertEquals("web_search", root.getJSONArray("tools").getJSONObject(0).getString("type"));
         assertEquals("web_search", root.getJSONObject("tool_choice").getString("type"));
 
-        String instruction = ChatGptClient.searchPolicy(true);
+        String instruction = ActionPromptBuilder.searchPolicy(true);
         assertTrue(instruction.contains("required for it rather than optional"));
         assertTrue("the Source line is what saves an unreadable search envelope",
                 instruction.contains("Source:"));
@@ -189,14 +189,6 @@ public class ForcedVisualSearchTest {
         assertFalse(HostedSearchPolicy.looksLikeForcedSearchRefusal(400, null));
     }
 
-    /** The retry path lives where a rejection is read, and is wired to the ladder. */
-    @Test public void theClientRetriesARefusedForcedSearch() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue(client.contains("HostedSearchPolicy.shouldForce(context, prompt"));
-        assertTrue(client.contains("HostedSearchPolicy.looksLikeForcedSearchRefusal(code, err)"));
-        assertTrue(client.contains("HostedSearchPolicy.degrade(context)"));
-    }
 
     // ---- diagnostics ---------------------------------------------------------------------------------
 

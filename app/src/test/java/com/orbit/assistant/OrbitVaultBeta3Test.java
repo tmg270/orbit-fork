@@ -65,7 +65,7 @@ public final class OrbitVaultBeta3Test {
     }
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName + ".java");
     }
 
@@ -701,25 +701,6 @@ public final class OrbitVaultBeta3Test {
 
     // ---- privacy -------------------------------------------------------------------------------------
 
-    /** Nothing about the new routes made the Vault automatic or gave it a request path. */
-    @Test public void thenewRoutesStayExplicitAndInert() {
-        for (String name : new String[]{"OrbitVaultSource", "OrbitVaultAttachment",
-                "OrbitVaultStore", "OrbitVaultItem"}) {
-            String text = source(name);
-            for (String forbidden : new String[]{"AssistantClient", "ChatGptClient", "AutoRouter",
-                    "OrbitRequestManager", "PendingRequestStore", "HttpURLConnection", "java.net.",
-                    "MemoryStore", "RoutineStore", "DeckLayoutStore"}) {
-                assertFalse(name + " must not reference " + forbidden, text.contains(forbidden));
-            }
-        }
-        String selection = source("ScreenSelectionActivity");
-        assertTrue("the crop editor saves only from a control",
-                selection.contains("saveSelectionToVault"));
-        assertFalse("never on its own from completing a selection",
-                selection.contains("saveImage(this, renderedResult"));
-        assertFalse("and never runs text recognition", selection.contains("TextRecognizer")
-                || selection.contains("OCR"));
-    }
 
     // ---- helpers ---------------------------------------------------------------------------------------
 

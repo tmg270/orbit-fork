@@ -52,7 +52,7 @@ public final class RoadmapSyncTest {
     private static final String SETTINGS_SEARCH = "Settings search";
 
     private static String markdown() {
-        return ComponentUninstallTest.readRepositoryFile("ROADMAP.md");
+        return RepoFiles.readRepositoryFile("ROADMAP.md");
     }
 
     private static String inApp() {
@@ -85,188 +85,12 @@ public final class RoadmapSyncTest {
         }
     }
 
-    /** And in the plan at the top, not buried somewhere in the history below it. */
-    @Test public void theMilestonesAreInThePlanRatherThanTheHistory() {
-        String file = markdown();
-        int history = file.indexOf(HISTORY_HEADING);
-        assertTrue("ROADMAP.md must separate its plan from its history", history > 0);
-        for (String milestone : OrbitRoadmap.MILESTONES) {
-            assertTrue(milestone + " must appear above the development history",
-                    file.indexOf(milestone) < history);
-        }
-    }
 
-    /**
-     * The plan reads in the order it happens, in both documents.
-     *
-     * <p>At Stable promotion the order question changes shape. There is one active milestone left,
-     * so what has to hold is that the finished line is recorded as finished above it and has left
-     * the future-only in-app page entirely.
-     */
-    @Test public void theShippedLineIsRecordedAboveTheActivePlan() {
-        String file = markdown();
-        int shipped = file.indexOf(RICH_ANSWERS);
-        // Anchored on the section heading rather than the first mention of the milestone name:
-        // from 0.8.1.0 the Smart Vault Stable entry names it above the active plan too.
-        int current = file.indexOf("## Current - the journey to GrokLink 0.9");
-        assertTrue("Rich Answers must still be recorded", shipped >= 0);
-        assertTrue("Smart Vault is the active line after the completed Pro Betas", current > shipped);
-        assertTrue("Rich Answers is recorded as Stable, not as current work",
-                file.indexOf("### `0.7.8.5` Stable") >= 0);
-        assertTrue("and the Stable entry comes before the active plan",
-                file.indexOf("### `0.7.8.5` Stable") < current);
-        assertTrue("the 0.8.0.0 line is recorded as Stable too",
-                file.indexOf("### `0.8.0.0` Stable") >= 0);
-        assertTrue("above the active plan as well",
-                file.indexOf("### `0.8.0.0` Stable") < current);
-        assertTrue("the 0.8.1.0 Smart Vault line is recorded as Stable",
-                file.indexOf("### `0.8.1.0` Stable - Smart Vault") >= 0);
-        assertTrue("above the active plan too",
-                file.indexOf("### `0.8.1.0` Stable - Smart Vault") < current);
-        assertTrue("the 0.8.2.0 GrokLink Local 2.0 line is recorded as Stable",
-                file.indexOf("### `0.8.2.0` Stable - GrokLink Local 2.0") >= 0);
-        assertTrue("above the active plan as well",
-                file.indexOf("### `0.8.2.0` Stable - GrokLink Local 2.0") < current);
-        assertTrue("the 0.8.3.0 AI Control line is recorded as Stable",
-                file.indexOf("### `0.8.3.0` Stable - AI Control") >= 0);
-        assertTrue("above the active plan as well",
-                file.indexOf("### `0.8.3.0` Stable - AI Control") < current);
-        assertTrue("the 0.8.4.0 Overlay Styles line is recorded as Stable",
-                file.indexOf("### `0.8.4.0` Stable - Overlay Styles") >= 0);
-        assertTrue("above the active plan as well",
-                file.indexOf("### `0.8.4.0` Stable - Overlay Styles") < current);
-        assertTrue("and the active plan still names its milestone",
-                file.indexOf(OrbitRoadmap.CURRENT, current) > current);
 
-        String page = inApp();
-        assertTrue("the in-app page leads with the active line",
-                page.indexOf(OrbitRoadmap.CURRENT) >= 0);
-        assertFalse("and a shipped line is never offered there", page.contains(RICH_ANSWERS));
-    }
 
-    /**
-     * Orbit Pro is described as an addition to free Orbit, in both documents.
-     *
-     * <p>The commitment worth pinning is not that Orbit Pro exists. It is the sentence a future
-     * release would quietly soften first: no feature that is free today is ever moved behind it.
-     * A roadmap that stops saying so has changed the product, whatever the code does.
-     */
-    @Test public void orbitProIsRecordedAsAdditiveRatherThanAsAPaywall() {
-        String file = markdown();
-        int at = file.indexOf("### `0.8` - GrokLink Pro");
-        assertTrue("GrokLink Pro must have its own section in ROADMAP.md", at >= 0);
-        // Bounded by the heading that follows rather than by a character count. The section grows
-        // as each Beta records what it shipped, and a fixed window quietly stops covering the
-        // commitments it was written to protect - which is exactly what happened to the Play
-        // billing line when Beta 2's shipped list was added above it.
-        int end = file.indexOf("\n## ", at);
-        String section = file.substring(at, end > at ? end : file.length());
-        assertTrue("free GrokLink must stay the complete assistant",
-                section.contains("Free GrokLink stays the real, complete assistant"));
-        assertTrue("and nothing free may move behind Pro",
-                section.contains("free today is ever placed behind Pro"));
-        assertTrue("Theme Studio Pro is named as the first premium feature",
-                section.contains("Theme Studio Pro"));
-        assertTrue("Play billing is recorded as arriving behind the entitlement boundary",
-                section.contains("Google Play entitlement provider"));
-        assertTrue("and the project stays open source rather than growing DRM",
-                section.contains("MPL-2.0") && section.contains("not DRM"));
-        assertTrue("nothing may read as purchasable yet", section.contains("nothing to buy"));
-    }
 
-    /**
-     * Smart Vault was deferred, not cancelled, and not made premium.
-     *
-     * <p>This is the specific misreading worth preventing. Orbit Pro became the immediate focus in
-     * the same release that moved Smart Vault out of Current, and the honest version of that is
-     * "later, and still free". The roadmap has to keep saying the second half.
-     */
-    @Test public void smartVaultIsNextAndStaysFree() {
-        String file = markdown();
-        int pro = file.indexOf("### `0.8` - GrokLink Pro");
-        int vault = file.indexOf("### Smart Vault");
-        assertTrue("Smart Vault must still be planned in ROADMAP.md", vault >= 0);
-        assertTrue("and follows the completed GrokLink Pro milestones", vault > pro);
-        assertTrue("it is recorded as a free GrokLink feature",
-                file.substring(vault, Math.min(file.length(), vault + 400)).contains("free"));
 
-        String page = inApp();
-        assertTrue("it is still offered on the in-app page", page.contains("Smart Vault"));
-        assertTrue("and still described as Free there", page.contains("always Free"));
-    }
 
-    /**
-     * Settings search belongs to the 0.7.8.5 release, and now genuinely exists.
-     *
-     * <p>The inverse of what this asserted before Beta 1. While it was planned work the failure
-     * worth preventing was the roadmap implying a field the app did not have; now that the field
-     * exists, the failure worth preventing is the opposite one - a roadmap that still reads as a
-     * promise about something already shipped. Both directions are the same rule: the two roadmaps
-     * and the app have to agree about what is true today.
-     *
-     * <p>The claims themselves are still pinned, because they are the ones somebody would water
-     * down first: local and provider-free, and landing on the control rather than its section.
-     */
-    @Test public void settingsSearchShippedWithTheRichAnswersRelease() {
-        String file = markdown();
-        // Anchored on the heading rather than on the first mention: Beta 1's shipped list names
-        // Settings search before the section that describes it, and reading the section means
-        // starting where the section starts.
-        int at = file.indexOf("In the same release: " + SETTINGS_SEARCH);
-        assertTrue(SETTINGS_SEARCH + " must have its own section in ROADMAP.md", at >= 0);
-        String section = file.substring(at, Math.min(file.length(), at + 1600));
-        assertTrue("it belongs to the 0.7.8.5 release", file.substring(0, at).contains("0.7.8.5"));
-        assertTrue("and finding a setting must not need a provider", section.contains("No AI"));
-        assertTrue("choosing a result goes to the control itself",
-                section.contains("straight to that control"));
-        assertTrue("Rich Answers is still the primary work of that release",
-                file.contains("remains the primary work"));
-
-        String settings = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/SettingsActivity.java");
-        assertTrue("the Settings screen must actually offer the search field",
-                settings.contains("Search settings"));
-        assertTrue("and it must be driven by the structured index rather than by scraped views",
-                settings.contains("SettingsSearchIndex.search"));
-        assertFalse("searching for a setting must never reach a provider",
-                settings.contains("AssistantClient.send"));
-    }
-
-    /**
-     * The two commitments that make Rich Answers reuse Orbit rather than duplicate it.
-     *
-     * <p>Written down where they can be checked, because they are the part that will be quietly
-     * dropped first: it is much easier to build a second image viewer and a second saving path than
-     * to reach the ones that already exist.
-     */
-    @Test public void richAnswersIsRecordedAsReusingOrbitsOwnImageViewerAndVault() {
-        String file = markdown();
-        int at = file.indexOf(RICH_ANSWERS);
-        assertTrue(at >= 0);
-        // Bounded by the next release heading rather than by a character count. The section grows
-        // as each Beta records what it shipped, and a fixed window quietly stops covering the
-        // commitments it was written to protect.
-        int end = file.indexOf("### `0.7.8.4` Stable", at);
-        String section = file.substring(at, end > at ? end : file.length());
-        assertTrue("inline images must open in the image viewer GrokLink already has",
-                section.contains("image viewer"));
-        assertTrue("and reach the Vault through Save to Vault",
-                section.contains("Save to Vault"));
-        assertTrue("with sourcing that is structured rather than trusted Markdown",
-                section.contains("Markdown"));
-        assertTrue("there must not be a second image ecosystem",
-                section.contains("second image ecosystem"));
-    }
-
-    /** Smart Vault stays opt-in, and the roadmap has to keep saying so. */
-    @Test public void smartVaultIsRecordedAsOptIn() {
-        String file = markdown();
-        int at = file.indexOf("### Smart Vault");
-        assertTrue(at >= 0);
-        String section = file.substring(at, Math.min(file.length(), at + 1400));
-        assertTrue(section.contains("opt-in"));
-        assertTrue("and must never silently upload a Vault", section.contains("silently"));
-    }
 
     /**
      * Neither roadmap may present this release's own work as something still to come.

@@ -64,10 +64,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private static final String SECTION_UPDATES = "updates";
     static final String SECTION_ADVANCED = "advanced";
 
-    /** The ChatGPT account card, where "Sign in with ChatGPT" lives. */
-    static Intent chatGptAccountIntent(Context context) {
-        return new Intent(context, SettingsActivity.class).putExtra(EXTRA_SECTION, SECTION_AI)
-                .putExtra(EXTRA_FOCUS, SettingsSearchIndex.KEY_CHATGPT_ACCOUNT);
+    /** The xAI account page, where SuperGrok sign-in lives. */
+    static Intent xaiAccountIntent(Context context) {
+        return new Intent(context, AiProvidersActivity.class);
     }
 
     public static Intent assistantSetupIntent(Context context) {
@@ -79,16 +78,11 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private Button smartVaultButton;
     private OverlayPreviewView overlayPreview;
     private TextView quickRoutineSelection;
-    private TextView chatGptStatus;
     private LinearLayout providerDetails;
     private TextView providerRowStatus;
     /** Which provider the details block is currently built for, so onResume can catch switches. */
     private String providerDetailsFor;
-    private TextView chatGptHelp;
-    private Button chatGptSignIn;
-    private Button chatGptSignOut;
     /** "Having trouble? Use code sign-in": the device-code fallback, always one tap away. */
-    private Button chatGptCodeSignIn;
     private ScrollView settingsScroll;
     private String appliedAppearance = "";
     /** Accent/AMOLED only — the appearance that forces a rebuild. */
@@ -112,43 +106,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private ImageButton searchClear;
     /** The hub's category cards, put aside while results are showing. */
     private LinearLayout categoryList;
-    private final ChatGptAuth.LoginCallback chatGptLoginCallback = new ChatGptAuth.LoginCallback() {
-        @Override public void onSuccess(ChatGptAuth.AccountInfo account) {
-            runOnUiThread(() -> {
-                if (!canShowAuthResult()) return;
-                updateChatGptStatus();
-                Toast.makeText(SettingsActivity.this,
-                        "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
-            });
-        }
 
-        @Override public void onError(String message) {
-            runOnUiThread(() -> {
-                if (!canShowAuthResult()) return;
-                updateChatGptStatus();
-                showOrbitMessageDialog("ChatGPT sign-in could not complete", message);
-            });
-        }
-    };
-
-    /** Hears how a browser sign-in ended. Attached while this screen is in front. */
-    private final ChatGptBrowserAuth.Listener chatGptBrowserListener = new ChatGptBrowserAuth.Listener() {
-         public void onSignedIn(ChatGptAuth.AccountInfo account) {
-            if (!canShowAuthResult()) return;
-            updateChatGptStatus();
-            Toast.makeText(SettingsActivity.this, "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
-        }
-
-         public void onFailed(String message, boolean offerCodeSignIn) {
-            if (!canShowAuthResult()) return;
-            updateChatGptStatus();
-            showBrowserSignInFailure(message, offerCodeSignIn);
-        }
-
-         public void onCancelled() {
-            if (canShowAuthResult()) updateChatGptStatus();
-        }
-    };
 
     /** Interactive Back for this page. Its classification lives in OrbitNavigation. */
     private OrbitPredictiveBack navigation;
@@ -194,21 +152,11 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         updateAssistantStatus();
         refreshQuickRoutineSelection();
         refreshProviderSection();
-        ChatGptBrowserAuth.attach(chatGptBrowserListener);
-        updateChatGptStatus();
-        if (chatGptStatus != null && !ChatGptAuth.isSignedIn(this) &&
-                ChatGptAuth.resumePendingDeviceCode(this, chatGptLoginCallback)) {
-            chatGptStatus.setText("Finishing secure ChatGPT sign-in…");
-            chatGptStatus.setTextColor(UiKit.TEXT);
-        }
     }
 
     @Override
     protected void onPause() {
         UiPresence.leave(this);
-        // The attempt keeps running while the browser is in front; this screen just stops being
-        // the one told about it, and hears the outcome when it comes back.
-        ChatGptBrowserAuth.detach(chatGptBrowserListener);
         super.onPause();
     }
 
@@ -294,8 +242,8 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 "History, chat behavior and background notifications"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_APPEARANCE, "Look & Feel",
                 "Theme Studio, font, chat text size and haptics"), categoryLp());
-        categories.addView(settingsCategoryCard(SECTION_UPDATES, "About & updates",
-                "Current version and verified official GrokLink releases"), categoryLp());
+        categories.addView(settingsCategoryCard(SECTION_UPDATES, "About",
+                "Version, licence, links and how to get new builds"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_ADVANCED, "Advanced",
                 "Diagnostics and developer tools"), categoryLp());
 
@@ -598,7 +546,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private String sectionDescription(String section) {
         if (SECTION_ASSISTANT.equals(section)) return "Set GrokLink as your assistant and configure Side button and Quick Settings access.";
-        if (SECTION_AI.equals(section)) return "Choose and configure GrokLink's active AI provider, manage your Grok sign-in, and set default intelligence.";
+        if (SECTION_AI.equals(section)) return "Manage your Grok sign-in and choose the default model and reasoning level.";
         if (SECTION_VOICE.equals(section)) return "Control Voice Beta, screen awareness and device permissions.";
         if (SECTION_DATA.equals(section)) return "Manage weather preferences and the local information GrokLink uses to personalize and organize your assistant experience.";
         if (SECTION_DECK.equals(section)) return "Choose how GrokLink Deck is reached and whether it may suggest shortcuts.";
@@ -818,7 +766,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         // Beta 2 gives it three genuinely different controls: whether the feature exists, a way in,
         // and an erase. Those are the answers to three different questions, and burying the erase
         // among the "Manage ..." rows would put a permanent action next to six reversible ones.
-        TextView vaultSection = sectionTitle("ORBIT VAULT", "data");
+        TextView vaultSection = sectionTitle("GROKLINK VAULT", "data");
         LinearLayout vaultCard = card();
         tagSectionCard(vaultCard, "data");
         buildVaultCard(vaultCard);
@@ -891,9 +839,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         populateProviderDetails(providerDetails);
         accountCard.addView(providerDetails);
         page.addView(target(SettingsSearchIndex.KEY_PROVIDER, accountCard));
-        // The provider block and the ChatGPT sign-in inside it are two things people look for
-        // separately, so both are reachable; the second lands inside the first, which is correct.
-        if (providerDetails != null) target(SettingsSearchIndex.KEY_CHATGPT_ACCOUNT, providerDetails);
+        if (providerDetails != null) target(SettingsSearchIndex.KEY_GROK_ACCOUNT, providerDetails);
 
         page.addView(sectionTitle("VOICE & CONTEXT", "voice"));
         LinearLayout voiceCard = card();
@@ -1057,7 +1003,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         diagnostics.setOnClickListener(v -> startActivity(new Intent(this, DiagnosticsActivity.class)));
         page.addView(target(SettingsSearchIndex.KEY_DIAGNOSTICS, diagnosticsCard));
 
-        page.addView(sectionTitle("ORBIT DECK", "deck"));
+        page.addView(sectionTitle("GROKLINK DECK", "deck"));
         LinearLayout deckCard = card();
         tagSectionCard(deckCard, "deck");
         deckCard.addView(toggle("Show Deck shortcut on Chats",
@@ -1213,94 +1159,10 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         return scroll;
     }
 
-    /**
-     * Sign in with ChatGPT: the browser flow. One tap opens OpenAI's normal sign-in page; the
-     * result arrives through {@link #chatGptBrowserListener}. A failure explains itself and offers
-     * code sign-in, and Orbit never switches methods without the user choosing to.
-     */
-    private void startChatGptLogin() {
-        ChatGptBrowserAuth.Started started = ChatGptBrowserAuth.start(this, chatGptBrowserListener);
-        if (!started.ok()) {
-            showBrowserSignInFailure(started.error, true);
-            return;
-        }
-        ChatGptSignInReturnActivity.returnTo = SettingsActivity.class;
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(started.authorizeUrl))
-                    .addCategory(Intent.CATEGORY_BROWSABLE));
-        } catch (Exception e) {
-            ChatGptBrowserAuth.cancel();
-            showBrowserSignInFailure("GrokLink could not open a web browser on this phone.", true);
-            return;
-        }
-        updateChatGptStatus();
-    }
 
-    private void showBrowserSignInFailure(String message, boolean offerCodeSignIn) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("ChatGPT sign-in could not complete")
-                .setMessage(message);
-        if (offerCodeSignIn) {
-            builder.setPositiveButton("Use code sign-in", (d, w) -> startCodeSignIn())
-                    .setNegativeButton("Close", null);
-        } else {
-            builder.setPositiveButton("OK", null);
-        }
-        AlertDialog dialog = builder.create();
-        styleOrbitDialog(dialog, false);
-        dialog.show();
-    }
 
-    /** The device-code fallback, unchanged: a one-time code entered on OpenAI's page. */
-    private void startCodeSignIn() {
-        if (chatGptStatus != null) {
-            chatGptStatus.setText("Starting secure ChatGPT sign-in…");
-            chatGptStatus.setTextColor(UiKit.TEXT);
-        }
-        ChatGptAuth.requestDeviceCode(this, new ChatGptAuth.StartCallback() {
-            @Override public void onSuccess(ChatGptAuth.DeviceCode code) {
-                runOnUiThread(() -> {
-                    if (canShowAuthResult()) showDeviceCode(code);
-                });
-                ChatGptAuth.completeDeviceCode(
-                        SettingsActivity.this, code, chatGptLoginCallback);
-            }
-            @Override public void onError(String message) {
-                runOnUiThread(() -> {
-                    if (!canShowAuthResult()) return;
-                    updateChatGptStatus();
-                    showOrbitMessageDialog("Could not start ChatGPT sign-in", message);
-                });
-            }
-        });
-    }
 
-    private boolean canShowAuthResult() {
-        return !isFinishing() && !isDestroyed();
-    }
 
-    private void showDeviceCode(ChatGptAuth.DeviceCode code) {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Sign in with ChatGPT")
-                .setMessage("Your one-time code is:\n\n" + code.userCode +
-                        "\n\nIt has been copied to your clipboard. Open OpenAI's sign-in page, sign into your normal ChatGPT account, and enter this code. GrokLink will finish connecting automatically.")
-                .setPositiveButton("Open ChatGPT sign-in", (d, which) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(code.verificationUrl))); }
-                    catch (Exception e) { Toast.makeText(this, code.verificationUrl, Toast.LENGTH_LONG).show(); }
-                })
-                .setNeutralButton("Copy code", (d, which) -> {
-                    ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
-                    Toast.makeText(this, "Code copied", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Close", null)
-                .create();
-        styleOrbitDialog(dialog, false);
-        dialog.show();
-    }
 
     private void showOrbitMessageDialog(String title, String message) {
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -1329,176 +1191,22 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         }
     }
 
-    /**
-     * The connected and signed-out states show different actions, not just different text: an
-     * already-connected account never presents a bright "Sign in" as the dominant action, and a
-     * signed-out one never offers "Sign out".
-     */
-    private void updateChatGptStatus() {
-        if (chatGptStatus == null) return;
-        ChatGptAuth.AccountInfo info = ChatGptAuth.getAccountInfo(this);
-        boolean connected = info != null;
-        if (chatGptSignIn != null) chatGptSignIn.setVisibility(connected ? View.GONE : View.VISIBLE);
-        if (chatGptSignOut != null) chatGptSignOut.setVisibility(connected ? View.VISIBLE : View.GONE);
-        if (chatGptCodeSignIn != null) chatGptCodeSignIn.setVisibility(connected ? View.GONE : View.VISIBLE);
-        if (chatGptHelp != null) {
-            chatGptHelp.setText(connected
-                    ? "GrokLink is using this account's ChatGPT/Codex allowance. No API key is needed."
-                    : "Sign in with your normal ChatGPT account in your browser. GrokLink uses your "
-                            + "account-backed ChatGPT/Codex allowance and does not need an OpenAI API key.");
-        }
-        if (!connected && ChatGptBrowserAuth.inProgress()) {
-            chatGptStatus.setText("Waiting for ChatGPT sign-in in your browser…");
-            chatGptStatus.setTextColor(UiKit.TEXT);
-            return;
-        }
-        if (!connected) {
-            chatGptStatus.setText("○ Not signed in with ChatGPT");
-            chatGptStatus.setTextColor(UiKit.TEXT);
-            return;
-        }
-        StringBuilder status = new StringBuilder("✓ Connected to ChatGPT");
-        if (!info.plan.isEmpty()) status.append(" • ").append(info.plan);
-        if (!info.email.isEmpty()) status.append("\n").append(info.email);
-        chatGptStatus.setText(status.toString());
-        chatGptStatus.setTextColor(UiKit.SUCCESS);
-    }
+
 
     private void populateProviderDetails(LinearLayout container) {
         if (container == null) return;
-        chatGptStatus = null;
-        chatGptHelp = null;
-        chatGptSignIn = null;
-        chatGptSignOut = null;
-        chatGptCodeSignIn = null;
-        // The effective provider, not the raw stored one: if a stored Orbit Local selection lost
-        // its model, requests already fall back to ChatGPT, and this block must describe the
-        // provider that actually answers.
         providerDetailsFor = AiProviders.active(this).id();
-        if (Prefs.PROVIDER_XAI.equals(providerDetailsFor)) {
-            TextView grokHelp = UiKit.text(this,
-                    "GrokLink uses only xAI's Grok: sign in with SuperGrok or save an xAI API key. "
-                            + AiProviders.byId(Prefs.PROVIDER_XAI).statusDetail(this) + ".",
-                    13, UiKit.MUTED, false);
-            grokHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
-            container.addView(grokHelp);
-            Button manageGrok = secondaryButton("Manage Grok connection");
-            manageGrok.setOnClickListener(v ->
-                    startActivity(new Intent(this, AiProvidersActivity.class)));
-            container.addView(manageGrok, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
-            return;
-        }
-        if (Prefs.PROVIDER_LOCAL.equals(providerDetailsFor)) {
-            TextView localHelp = UiKit.text(this,
-                    "GrokLink Local answers on this phone with no account and no internet. Your ChatGPT sign-in, if present, stays securely saved but inactive while GrokLink Local is selected.",
-                    13, UiKit.MUTED, false);
-            localHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
-            container.addView(localHelp);
-            Button manageLocal = secondaryButton("Manage GrokLink Local");
-            manageLocal.setOnClickListener(v ->
-                    startActivity(new Intent(this, LocalAiActivity.class)));
-            container.addView(manageLocal, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
-            return;
-        }
-        if (Prefs.PROVIDER_RELAY.equals(providerDetailsFor)) {
-            TextView relayHelp = UiKit.text(this,
-                    "Advanced fallback: GrokLink calls a private HTTPS relay you control. Your OpenAI API key stays on that server and is never stored in GrokLink. ChatGPT credentials, if present, remain securely saved but inactive while this provider is selected.",
-                    13, UiKit.MUTED, false);
-            relayHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
-            container.addView(relayHelp);
-
-            container.addView(label("HTTPS relay URL"));
-            EditText url = field("https://your-relay.example.com", Prefs.backendUrl(this), false);
-            container.addView(url);
-            container.addView(label("Relay access token (optional)"));
-            EditText token = field("Relay access token (optional)", Prefs.token(this), true);
-            container.addView(token);
-
-            Button save = primaryButton("Save relay settings");
-            LinearLayout.LayoutParams saveLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48));
-            saveLp.setMargins(0, UiKit.dp(this, 12), 0, 0);
-            container.addView(save, saveLp);
-            save.setOnClickListener(v -> {
-                try {
-                    String error = Prefs.saveRelaySettings(this, url.getText().toString(),
-                            token.getText().toString());
-                    if (!error.isEmpty()) {
-                        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    Toast.makeText(this, "Relay settings saved securely", Toast.LENGTH_SHORT).show();
-                } catch (Exception error) {
-                    showOrbitMessageDialog("Could not save relay settings",
-                            "GrokLink could not securely save the optional relay access token.");
-                }
-            });
-
-            TextView future = UiKit.text(this,
-                    "More provider options, including Claude and Gemini, are planned for future GrokLink versions.",
-                    11, UiKit.MUTED, false);
-            future.setPadding(0, UiKit.dp(this, 10), 0, 0);
-            container.addView(future);
-            return;
-        }
-
-        chatGptStatus = UiKit.text(this, "Checking ChatGPT sign-in…", 15, UiKit.TEXT, true);
-        container.addView(chatGptStatus);
-        chatGptHelp = UiKit.text(this, "", 13, UiKit.MUTED, false);
-        chatGptHelp.setLineSpacing(0, 1.13f);
-        chatGptHelp.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 13));
-        container.addView(chatGptHelp);
-
-        chatGptSignIn = primaryButton("Sign in with ChatGPT");
-        chatGptSignIn.setOnClickListener(v -> startChatGptLogin());
-        container.addView(chatGptSignIn, new LinearLayout.LayoutParams(
+        TextView grokHelp = UiKit.text(this,
+                "GrokLink uses only xAI's Grok: sign in with SuperGrok or save an xAI API key. "
+                        + AiProviders.byId(Prefs.PROVIDER_XAI).statusDetail(this) + ".",
+                13, UiKit.MUTED, false);
+        grokHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
+        container.addView(grokHelp);
+        Button manageGrok = secondaryButton("Manage Grok connection");
+        manageGrok.setOnClickListener(v ->
+                startActivity(new Intent(this, AiProvidersActivity.class)));
+        container.addView(manageGrok, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
-
-        // The fallback is a quiet text action, not a second primary button: most people never need
-        // it, and it must never look like the recommended path.
-        chatGptCodeSignIn = new Button(this);
-        chatGptCodeSignIn.setText("Having trouble? Use code sign-in");
-        chatGptCodeSignIn.setAllCaps(false);
-        chatGptCodeSignIn.setTextSize(13);
-        chatGptCodeSignIn.setTextColor(UiKit.accent(this));
-        chatGptCodeSignIn.setBackground(UiKit.ripple(Color.TRANSPARENT, UiKit.accent(this), 14, this));
-        chatGptCodeSignIn.setStateListAnimator(null);
-        chatGptCodeSignIn.setMinHeight(UiKit.dp(this, 44));
-        chatGptCodeSignIn.setMinimumHeight(UiKit.dp(this, 44));
-        chatGptCodeSignIn.setOnClickListener(v -> startCodeSignIn());
-        container.addView(chatGptCodeSignIn, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44)));
-
-        // Signing out is disruptive rather than dangerous, so it stays a restrained outlined
-        // action with a confirmation, never a bright primary competing with the connected state.
-        chatGptSignOut = dangerOutlineButton("Sign out of ChatGPT");
-        LinearLayout.LayoutParams signOutLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48));
-        signOutLp.setMargins(0, UiKit.dp(this, 8), 0, 0);
-        container.addView(chatGptSignOut, signOutLp);
-        chatGptSignOut.setOnClickListener(v -> {
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("Sign out of ChatGPT?")
-                    .setMessage("GrokLink forgets this ChatGPT connection on this phone. You can sign in again at any time.")
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Sign out", (d, w) -> {
-                        ChatGptAuth.logout(this);
-                        updateChatGptStatus();
-                        Toast.makeText(this, "Signed out of ChatGPT in GrokLink", Toast.LENGTH_SHORT).show();
-                    })
-                    .create();
-            styleOrbitDialog(dialog, true);
-            dialog.show();
-        });
-
-        TextView experimental = UiKit.text(this,
-                "GrokLink signs in through OpenAI's public Codex OAuth sign-in (browser, or a one-time code). Because OpenAI does not document the Codex backend as a general third-party mobile API, this integration is experimental and the API relay remains available as an explicit fallback.",
-                12, UiKit.MUTED, false);
-        experimental.setPadding(0, UiKit.dp(this, 8), 0, 0);
-        container.addView(experimental);
-        updateChatGptStatus();
     }
 
     /** Reflects a provider switch made in AI Providers when the user returns here. */
@@ -1710,7 +1418,6 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
             setContentView(content);
             UiKit.applyActivityInsets(this, content, true);
             updateAssistantStatus();
-            updateChatGptStatus();
             return;
         }
         if (requestCode == REQ_NOTIFICATIONS) {
@@ -1723,7 +1430,6 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
             setContentView(content);
             UiKit.applyActivityInsets(this, content, true);
             updateAssistantStatus();
-            updateChatGptStatus();
         }
     }
 
@@ -1925,7 +1631,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     static final String VAULT_DELETE_TITLE = "Delete all Vault data?";
     static final String VAULT_DELETE_MESSAGE =
             "All items saved in GrokLink Vault and their local media will be removed from this "
-                    + "device. This cannot be undone.\n\nYour chats, GrokLink Memory, your providers "
+                    + "device. This cannot be undone.\n\nYour chats, GrokLink Memory, your Grok sign-in "
                     + "and the rest of your settings are not affected.";
 
     /**
@@ -2391,7 +2097,6 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
             appliedAppearance = UiKit.appearanceSignature(this);
             appliedStructuralAppearance = desiredStructural;
             updateAssistantStatus();
-            updateChatGptStatus();
             restoreScrollBeforeFirstDraw(oldScrollY);
             return true;
         } finally {

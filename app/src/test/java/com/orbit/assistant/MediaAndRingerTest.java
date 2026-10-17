@@ -100,7 +100,7 @@ public final class MediaAndRingerTest {
 
     /** Nothing here names a music app. Orbit controls whatever Android says is playing. */
     @Test public void nothingIsTiedToAParticularApp() throws Exception {
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/MediaControl.java");
         for (String app : new String[]{"com.spotify", "com.google.android.apps.youtube",
                 "com.samsung.android.app.music"}) {
@@ -222,16 +222,4 @@ public final class MediaAndRingerTest {
 
     // ---- the shared catalog --------------------------------------------------------------------
 
-    /** Both actions are offered to the cloud providers as well, from one catalog. */
-    @Test public void bothActionsAreInTheCloudToolCatalog() {
-        String chatgpt = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        String relay = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/RelayProvider.java");
-        for (String type : new String[]{"MEDIA_CONTROL", "SET_RINGER_MODE"}) {
-            assertTrue(type + " must be offered to ChatGPT", chatgpt.contains("\"" + type + "\""));
-            assertTrue(type + " must be offered to the relay", relay.contains("\"" + type + "\""));
-        }
-        assertTrue("and described in the system prompt", chatgpt.contains("MEDIA_CONTROL {command}"));
-    }
 }

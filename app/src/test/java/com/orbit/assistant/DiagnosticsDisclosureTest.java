@@ -100,43 +100,7 @@ public final class DiagnosticsDisclosureTest {
 
     // ---- the screen is short by default ---------------------------------------------------------
 
-    @Test public void theScreenOpensWithAnOverviewAndCollapsedSections() {
-        seedRequestFlow();
-        ActivityController<DiagnosticsActivity> controller = open();
-        List<String> visible = texts(controller.get());
 
-        assertTrue("the Overview is the part that is always there", visible.contains("Overview"));
-        for (String section : new String[]{"Request flow", "Thinking updates", "AI selection",
-                "Screen & app context", "Memory", "Calendar", "GrokLink Local", "Routines", "Advanced"}) {
-            assertTrue("section " + section + " must have a heading", visible.contains(section));
-        }
-
-        // The detail itself is not on screen until asked for.
-        String joined = String.join("\n", visible);
-        assertFalse("collapsed detail must not be rendered",
-                joined.contains("Superseded worker runs"));
-        assertFalse(joined.contains("Backend has produced a summary"));
-        controller.pause().stop().destroy();
-    }
-
-    @Test public void theOverviewStaysCompactAndAnswersTheBasicQuestions() {
-        ActivityController<DiagnosticsActivity> controller = open();
-        String overview = null;
-        for (String text : texts(controller.get())) {
-            if (text.startsWith("GrokLink version:")) overview = text;
-        }
-        assertNotNull("the Overview must be present", overview);
-        for (String field : new String[]{"GrokLink version:", "Provider:", "ChatGPT:",
-                "Default AI:", "Pending requests:", "Thinking updates:"}) {
-            assertTrue("the Overview must answer " + field, overview.contains(field));
-        }
-        assertTrue("the Overview must still say whether anything is wrong",
-                overview.contains("Status: OK") || overview.contains("Last error:"));
-        assertTrue("the Overview must stay something you can take in at a glance: "
-                        + overview.split("\n").length + " lines",
-                overview.split("\n").length <= 9);
-        controller.pause().stop().destroy();
-    }
 
     @Test public void expandingASectionRevealsItsDetail() {
         seedRequestFlow();
@@ -296,27 +260,6 @@ public final class DiagnosticsDisclosureTest {
         controller.pause().stop().destroy();
     }
 
-    @Test public void copyFullRetainsEveryDebuggingSection() {
-        seedRequestFlow();
-        seedRoutinePlan();
-        ActivityController<DiagnosticsActivity> controller = open();
-        String full = controller.get().fullReport();
-
-        for (String heading : new String[]{"Overview", "Request flow", "Thinking updates",
-                "AI selection", "Screen & app context", "Memory", "Calendar", "GrokLink Local",
-                "Routines", "Advanced"}) {
-            assertTrue("the full report must still contain " + heading, full.contains(heading));
-        }
-        // The specific fields that have diagnosed real failures.
-        for (String field : new String[]{"Accepted submissions", "Suppressed duplicate submissions",
-                "Completions committed", "Completions refused", "Of those, already answered",
-                "Superseded worker runs", "Active requests",
-                "Backend has produced a summary", "Last status handed over to an answer",
-                "Component:", "Direct calendar writes", "Detected screen type"}) {
-            assertTrue("the full report lost " + field, full.contains(field));
-        }
-        controller.pause().stop().destroy();
-    }
 
     // ---- privacy ----------------------------------------------------------------------------------
 
@@ -469,26 +412,6 @@ public final class DiagnosticsDisclosureTest {
         return text == null ? "" : text.toString();
     }
 
-    /**
-     * Overview and every normal section can be copied on their own.
-     *
-     * <p>The complaint this answers is a real one: most visits to this screen are about a single
-     * section, and until now the only way to send one was to copy the whole report and cut it down
-     * by hand.
-     */
-    @Test public void everyNormalSectionHasItsOwnCopyControl() {
-        seedRequestFlow();
-        ActivityController<DiagnosticsActivity> controller = open();
-        Activity activity = controller.get();
-
-        for (String title : new String[]{"Overview", "Request flow", "Thinking updates",
-                "AI selection", "Screen & app context", "Memory", "Calendar", "GrokLink Local",
-                "Routines", "Gestures", "Advanced"}) {
-            assertNotNull(title + " must be copyable on its own",
-                    copyControlFor(activity, title));
-        }
-        controller.pause().stop().destroy();
-    }
 
     /** What a section's Copy puts on the clipboard is that section, titled, and nothing else. */
     @Test public void copyingASectionCopiesThatSectionAlone() {

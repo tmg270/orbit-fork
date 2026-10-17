@@ -178,28 +178,6 @@ public final class ThinkingUpdatePrivacyTest {
         }
     }
 
-    /**
-     * Orbit reads the reasoning <em>summary</em> events and nothing else.
-     *
-     * <p>The same stream can carry hidden chain-of-thought under names one character away from the
-     * ones Orbit wants. This asserts against the source that the raw families are absent, because
-     * "we only read summaries" is a claim that is very easy to break by accident and impossible to
-     * notice on a device.
-     */
-    @Test public void theStreamReaderConsumesSummaryEventsAndNeverRawReasoning() {
-        String client = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue("the summary text events must be the ones GrokLink reads",
-                client.contains("response.reasoning_summary_text."));
-        // Read-shaped tokens only: the class documents by name what it refuses to consume, and
-        // saying so must not be mistaken for doing so.
-        for (String forbidden : new String[]{
-                "\"response.reasoning_text", "\"reasoning_text\"",
-                "optString(\"encrypted_content\")", "opt(\"encrypted_content\")",
-                "getString(\"encrypted_content\")", "optString(\"reasoning\")"}) {
-            assertFalse("GrokLink must never read " + forbidden + " from the response stream",
-                    client.contains(forbidden));
-        }
-    }
 
     /** No surface may render an update through Orbit's markdown or rich-response renderers. */
     @Test public void aStatusLineIsPlainTextAndNeverRenderedAsContent() {

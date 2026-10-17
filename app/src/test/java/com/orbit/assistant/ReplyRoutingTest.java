@@ -140,7 +140,7 @@ public final class ReplyRoutingTest {
      * an SMS-only implementation without anybody noticing.
      */
     @Test public void theSmsHelperIsVisiblySmsSpecific() {
-        String executor = ComponentUninstallTest.readRepositoryFile(
+        String executor = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/DeviceActionExecutor.java");
         assertTrue("the SMS path must be named for SMS",
                 executor.contains("public static String openSmsReplyComposer("));
@@ -155,7 +155,7 @@ public final class ReplyRoutingTest {
      * so its wiring is asserted from the source in the same way the Calendar confirmation rules are.
      */
     @Test public void theOverlayGuardsTheSmsPathBehindTheSurfaceCheck() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the medium must be decided from the foreground package",
                 session.contains("ReplySurface.of(c, foregroundPackage)"));
@@ -171,7 +171,7 @@ public final class ReplyRoutingTest {
 
     /** Nothing in the reply path reaches for a phone number outside the SMS helper. */
     @Test public void noPhoneNumberIsResolvedOutsideTheSmsPath() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertFalse("the overlay must not resolve contacts itself",
                 session.contains("findPhoneNumber"));
@@ -182,7 +182,7 @@ public final class ReplyRoutingTest {
 
     /** And Orbit still has no AccessibilityService, which is why insertion is limited to SMS. */
     @Test public void orbitHasNoAccessibilityServiceToInjectWith() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         assertFalse("an accessibility service would be an invasive way to solve this",
                 manifest.contains("AccessibilityService"));

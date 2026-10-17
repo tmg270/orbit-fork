@@ -81,7 +81,7 @@ public final class HostedSearchPolicy {
         if (context == null || hasAttachedImages) return false;
         // Explicit "open a browser" intent keeps the external WEB_SEARCH action and is not offered
         // the hosted tool at all, so there is nothing here to require.
-        if (!ChatGptClient.shouldOfferHostedWebSearch(prompt)) return false;
+        if (!ActionPromptBuilder.shouldOfferHostedWebSearch(prompt)) return false;
         // A user who has turned Rich Answers off has asked not to be given sourced pictures, and
         // must not be given slower answers to buy them.
         if (!RichAnswerCoordinator.enabled(context)) return false;
@@ -192,7 +192,7 @@ public final class HostedSearchPolicy {
         long last = lastForcedAt(context);
         if (last > 0L) b.append("\nLast one: ").append(RichAnswerTrace.ago(last));
         if (forcedRequests(context) == 0) {
-            b.append("\n\nOrbit requires a web search only for questions whose answer is a picture, "
+            b.append("\n\nGrokLink requires a web search only for questions whose answer is a picture, "
                     + "and only while Rich Answers is on. Ask to see a picture of something, then "
                     + "come back here.");
         }

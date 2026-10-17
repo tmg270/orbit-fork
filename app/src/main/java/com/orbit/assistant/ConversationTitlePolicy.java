@@ -11,9 +11,6 @@ final class ConversationTitlePolicy {
     private static final int MAX_GENERATED_CHARS = 160;
     private static final int MAX_GENERATED_WORDS = 12;
 
-    /** Fixed metadata model. It never inherits or changes the model that answered the chat. */
-    static final AiSelection CHATGPT_TITLE_SELECTION = AiSelection.of(Prefs.PROVIDER_CHATGPT,
-            OrbitModelCatalog.GPT_5_6_LUNA, AiStrength.LOW);
 
     static final String INSTRUCTIONS =
             "Create one concise title for a conversation. Return only the title. Use 2 to 6 words, " +

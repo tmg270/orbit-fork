@@ -81,17 +81,6 @@ public final class ThinkingUpdateTest {
                 ThinkingUpdate.progress(ThinkingUpdate.Stage.LOCAL_INFERENCE).text);
     }
 
-    /** Orbit names a model only when it recognises it, and never guesses one. */
-    @Test public void modelReasoningNamesOnlyModelsOrbitKnows() {
-        assertEquals("Reasoning with GPT-6.1 Sol…", ThinkingUpdate.modelReasoning("gpt-6.1-sol").text);
-        assertEquals("Reasoning with GPT-6 Luna…", ThinkingUpdate.modelReasoning("gpt-6-luna").text);
-        assertEquals("Reasoning with GPT-6 Astra…", ThinkingUpdate.modelReasoning("gpt-6-astra").text);
-        assertEquals("a retired id keeps its own honest name",
-                "Reasoning with GPT-5.6 Terra…", ThinkingUpdate.modelReasoning("gpt-5.6-terra").text);
-        assertNull(ThinkingUpdate.modelReasoning("some-other-model"));
-        assertNull(ThinkingUpdate.modelReasoning(""));
-        assertNull(ThinkingUpdate.modelReasoning(null));
-    }
 
     // ---- arbitrary provider text becomes one short plain line -----------------------------------
 

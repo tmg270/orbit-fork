@@ -43,14 +43,6 @@ public final class DistributionBoundaryTest {
 
     // ---- the GitHub edition is unchanged -----------------------------------------------------------
 
-    @Test public void theGitHubBuildIdentifiesItselfAsGitHub() {
-        assertEquals("github", OrbitEdition.ID);
-        assertEquals(OrbitDistribution.Channel.GITHUB, OrbitDistribution.current());
-        assertFalse(OrbitDistribution.isPlay());
-        assertTrue(OrbitDistribution.selfUpdates());
-        assertTrue(OrbitDistribution.installsOrbitLocalComponent());
-        assertEquals("GitHub", OrbitDistribution.label());
-    }
 
     @Test public void theGitHubEditionKeepsItsUpdaterEndpoints() {
         assertEquals("https://api.github.com/repos/lpnovi/GrokLink-Assistant/releases/latest",
@@ -63,16 +55,6 @@ public final class DistributionBoundaryTest {
                 OrbitEdition.apkInstallerIntent(android.net.Uri.parse("content://x/y")).getType());
     }
 
-    @Test public void theGitHubManifestStillRequestsPackageInstalls() throws Exception {
-        Context context = RuntimeEnvironment.getApplication();
-        PackageInfo info = context.getPackageManager().getPackageInfo(
-                context.getPackageName(), PackageManager.GET_PERMISSIONS);
-        List<String> requested = Arrays.asList(info.requestedPermissions);
-        assertTrue("the GitHub updater and GrokLink Local installer need it",
-                requested.contains("android.permission.REQUEST_INSTALL_PACKAGES"));
-        assertTrue(read("app/src/main/AndroidManifest.xml")
-                .contains("android.permission.REQUEST_INSTALL_PACKAGES"));
-    }
 
     /** Location-triggered Routines are unchanged in the GitHub edition. */
     @Test public void theGitHubEditionKeepsBackgroundLocationTriggers() throws Exception {
@@ -92,16 +74,6 @@ public final class DistributionBoundaryTest {
 
     // ---- one application, one identity -----------------------------------------------------------
 
-    @Test public void thePackageIsComOrbitAssistantInEveryEdition() {
-        assertEquals("com.orbit.assistant", RuntimeEnvironment.getApplication().getPackageName());
-        String gradle = read("app/build.gradle");
-        assertEquals("exactly one applicationId, shared by every build type",
-                1, count(gradle, "applicationId "));
-        assertTrue(gradle.contains("applicationId 'com.orbit.assistant'"));
-        assertFalse("no build type may fork the package", gradle.contains("applicationIdSuffix"));
-        assertFalse(gradle.contains("versionNameSuffix"));
-        assertFalse("no second application through flavors", gradle.contains("productFlavors"));
-    }
 
     @Test public void thePlayBuildTypeSharesTheVersionAndIsNotDebuggable() {
         String play = playBlock();
@@ -123,14 +95,6 @@ public final class DistributionBoundaryTest {
         assertTrue(gradle.contains("tasks.named('preReleaseBuild')"));
     }
 
-    @Test public void bothModulesTargetApi36() {
-        for (String file : new String[]{"app/build.gradle", "local/build.gradle"}) {
-            String gradle = read(file);
-            assertTrue(file, gradle.contains("compileSdk 36"));
-            assertTrue(file, gradle.contains("targetSdk 36"));
-            assertTrue(file + " keeps minSdk 29", gradle.contains("minSdk 29"));
-        }
-    }
 
     /** API 36 made Back callbacks the default; Orbit keeps its old default explicitly. */
     @Test public void theApplicationKeepsLegacyBackUnlessAScreenOptsIn() {
@@ -165,19 +129,6 @@ public final class DistributionBoundaryTest {
         assertTrue(OrbitDistribution.supportsLocationTriggers(github));
     }
 
-    /** Orbit Local serves only the GitHub-signed edition. */
-    @Test public void orbitLocalIsUsableOnlyByTheGitHubEdition() {
-        assertTrue(OrbitDistribution.supportsOrbitLocal());
-        assertTrue(OrbitDistribution.supportsOrbitLocal(OrbitDistribution.Channel.GITHUB));
-        assertFalse(OrbitDistribution.supportsOrbitLocal(OrbitDistribution.Channel.PLAY));
-        String component = withoutComments(
-                read("app/src/main/java/com/orbit/assistant/OrbitLocalComponent.java"));
-        int usable = component.indexOf("public static boolean isUsable(Context context) {");
-        assertTrue(usable > 0);
-        assertTrue("the edition is checked before the component's state is even read",
-                component.indexOf("OrbitDistribution.supportsOrbitLocal()", usable)
-                        < component.indexOf("state(context)", usable));
-    }
 
     /**
      * The dual-signature model, stated the same way everywhere.

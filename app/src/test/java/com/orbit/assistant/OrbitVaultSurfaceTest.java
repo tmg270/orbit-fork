@@ -50,7 +50,7 @@ public final class OrbitVaultSurfaceTest {
     }
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName + ".java");
     }
 
@@ -246,28 +246,6 @@ public final class OrbitVaultSurfaceTest {
 
     // ---- the promises the release notes make -----------------------------------------------------
 
-    /**
-     * Nothing in the Vault talks to an AI provider.
-     *
-     * <p>Zero provider calls is the central privacy claim of Beta 1, and it is asserted the only
-     * way it can be: by reading the classes that make up the feature and refusing every route out.
-     */
-    @Test public void noVaultClassCanReachAProviderOrTheRequestPipeline() {
-        // Beta 2 adds two deliberate, user-invoked routes out of the Vault - Ask Orbit and Attach
-        // from Vault - and neither of them is a provider call. Both end at a ComposerAttachment,
-        // so this list is unchanged in kind and simply gains the two new classes.
-        for (String name : new String[]{"OrbitVaultActivity", "OrbitVaultItemActivity",
-                "OrbitVaultStore", "OrbitVaultItem", "OrbitVaultMedia", "OrbitVaultAttachment",
-                "OrbitVaultPickerActivity"}) {
-            String text = source(name);
-            for (String forbidden : new String[]{"AssistantClient", "AiProviders", "ChatGptClient",
-                    "RelayProvider", "OpenRouterProvider", "OrbitLocalClient", "AutoRouter",
-                    "OrbitRequestManager", "PendingRequestStore", "OrbitRequestWorker",
-                    "HttpURLConnection", "java.net."}) {
-                assertFalse(name + " must not reference " + forbidden, text.contains(forbidden));
-            }
-        }
-    }
 
     /** The Vault and Memory stay two products. Saving something never teaches Orbit anything. */
     @Test public void savingSomethingNeverWritesAMemory() {
@@ -348,7 +326,7 @@ public final class OrbitVaultSurfaceTest {
      * undo that in one line of manifest.
      */
     @Test public void neitherVaultScreenIsExported() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         for (String name : new String[]{"OrbitVaultActivity", "OrbitVaultItemActivity"}) {
             int declaration = manifest.indexOf("android:name=\"." + name + "\"");

@@ -3,21 +3,23 @@ $ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$BuildRoot = Join-Path $env:LOCALAPPDATA "OrbitAssistant\BuildTools"
+$BuildRoot = Join-Path $env:LOCALAPPDATA "GrokLink\BuildTools"
 $SdkRoot = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA "Android\Sdk" }
 $GradleVersion = "8.11.1"
 $GradleHome = Join-Path $BuildRoot "gradle-$GradleVersion"
 
-# Read Orbit's actual Android version from app/build.gradle so the builder
+# Read GrokLink's local Android version from app/build.gradle so the builder
 # never gets stuck using an old hard-coded APK filename again.
 $AppGradle = Join-Path $ProjectRoot "app\build.gradle"
 if (-not (Test-Path $AppGradle)) { throw "app\build.gradle was not found." }
 $AppGradleText = Get-Content $AppGradle -Raw
-$VersionMatch = [regex]::Match($AppGradleText, 'versionName\s+["'']([^"'']+)["'']')
+# versionName is "1.0.<run>-groklink" on CI and the quoted fallback after ':' locally.
+$VersionMatch = [regex]::Match($AppGradleText, 'versionName[^\r\n]*:\s*["'']([^"'']+)["'']')
+if (-not $VersionMatch.Success) { $VersionMatch = [regex]::Match($AppGradleText, 'versionName\s+["'']([^"'']+)["'']') }
 if (-not $VersionMatch.Success) { throw "Could not read versionName from app\build.gradle." }
-$OrbitVersion = $VersionMatch.Groups[1].Value
-$OutputApk = Join-Path $ProjectRoot "Orbit-Assistant-v$OrbitVersion-debug.apk"
-$BuildLog = Join-Path $ProjectRoot "orbit-build.log"
+$GrokLinkVersion = $VersionMatch.Groups[1].Value
+$OutputApk = Join-Path $ProjectRoot "GrokLink-v$GrokLinkVersion-debug.apk"
+$BuildLog = Join-Path $ProjectRoot "groklink-build.log"
 $JdkUrl = "https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jdk/hotspot/normal/eclipse"
 $CmdToolsUrl = "https://dl.google.com/android/repository/commandlinetools-win-15859902_latest.zip"
 $GradleUrl = "https://services.gradle.org/distributions/gradle-$GradleVersion-bin.zip"
@@ -37,7 +39,7 @@ function Download-File([string]$Url, [string]$Destination) {
     # plumbing because some Windows configurations mis-handle native progress output.
     try {
         $client = New-Object System.Net.WebClient
-        $client.Headers.Add("User-Agent", "OrbitAssistantBuilder/$OrbitVersion")
+        $client.Headers.Add("User-Agent", "GrokLinkBuilder/$GrokLinkVersion")
         $client.DownloadFile($Url, $Destination)
         $client.Dispose()
     }
@@ -159,13 +161,13 @@ function Ensure-Gradle {
 }
 
 try {
-    Write-Host "Orbit Assistant automated Android build v$OrbitVersion" -ForegroundColor Magenta
+    Write-Host "GrokLink automated Android build v$GrokLinkVersion" -ForegroundColor Magenta
     Write-Host "Project: $ProjectRoot"
 
-    # Clear old root-level Orbit APK copies to avoid version-name confusion.
-    Get-ChildItem $ProjectRoot -Filter "Orbit-Assistant-v*-debug.apk" -File -ErrorAction SilentlyContinue |
+    # Clear old root-level GrokLink APK copies to avoid version-name confusion.
+    Get-ChildItem $ProjectRoot -Filter "GrokLink-v*-debug.apk" -File -ErrorAction SilentlyContinue |
         Remove-Item -Force -ErrorAction SilentlyContinue
-    Get-ChildItem $ProjectRoot -Filter "Orbit-Assistant-v*-debug.apk.sha256.txt" -File -ErrorAction SilentlyContinue |
+    Get-ChildItem $ProjectRoot -Filter "GrokLink-v*-debug.apk.sha256.txt" -File -ErrorAction SilentlyContinue |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
     Write-Step "Finding a compatible Java runtime"
@@ -184,7 +186,7 @@ try {
     Write-Step "Preparing Gradle"
     $gradle = Ensure-Gradle
 
-    Write-Step "Compiling Orbit Assistant"
+    Write-Step "Compiling GrokLink"
     Push-Location $ProjectRoot
     try {
         Remove-Item $BuildLog -Force -ErrorAction SilentlyContinue
@@ -214,8 +216,8 @@ try {
         Pop-Location
     }
 
-    $builtApk = Join-Path $ProjectRoot "app\build\outputs\apk\debug\app-debug.apk"
-    if (-not (Test-Path $builtApk)) { throw "Gradle finished but app-debug.apk was not found." }
+    $builtApk = Join-Path $ProjectRoot "app\build\outputs\apk\debug\GrokLink-$GrokLinkVersion-debug.apk"
+    if (-not (Test-Path $builtApk)) { throw "Gradle finished but the GrokLink debug APK was not found." }
     Copy-Item $builtApk $OutputApk -Force
 
     $hash = (Get-FileHash $OutputApk -Algorithm SHA256).Hash
@@ -237,6 +239,6 @@ catch {
         Write-Host "Builder location: $($_.ScriptStackTrace)" -ForegroundColor DarkGray
     }
     Write-Host ""
-    Write-Host "Send ChatGPT a screenshot of this window. If orbit-build.log exists, you can upload that too."
+    Write-Host "Share a screenshot of this window. If groklink-build.log exists, share that too."
     exit 1
 }

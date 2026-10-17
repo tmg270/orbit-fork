@@ -250,13 +250,13 @@ public final class CalendarConfirmationTest {
     // ---- both surfaces resolve permission before the write ---------------------------------------------
 
     @Test public void bothSurfacesRunApprovedCalendarActionsThroughTheGate() {
-        String chat = ComponentUninstallTest.readRepositoryFile(
+        String chat = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ChatActivity.java");
         assertTrue(chat.contains("CalendarActionGate.afterApproval(this, action, onAllow)"));
         assertTrue("full chat shows the batch confirmation",
                 chat.contains("confirmCalendarBatch(action, onAllow, onCancel)"));
 
-        String overlay = ComponentUninstallTest.readRepositoryFile(
+        String overlay = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the overlay cannot request permissions itself and uses the same gate",
                 overlay.contains("CalendarActionGate.afterApproval(c, action,"));

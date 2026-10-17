@@ -46,7 +46,7 @@ public final class OrbitNavigationPolicyTest {
             // unconditional. Its sheets and edit mode are closed by its own handler first.
             "DeckActivity",
             "SettingsActivity", "ChatActivity", "DiagnosticsActivity", "AiProvidersActivity",
-            "LocalAiActivity", "CapabilitiesActivity", "MemoryActivity", "AppsActivity",
+            "CapabilitiesActivity", "MemoryActivity", "AppsActivity",
             "NotificationsActivity", "SavedPlacesActivity", "RemindersActivity",
             // Vault and one saved item are ordinary pages: Chats is under the Vault, the Vault is
             // under an item, and both write every change as it is confirmed.
@@ -78,7 +78,6 @@ public final class OrbitNavigationPolicyTest {
             // The external selected-text doorway, which is the same shape as the share bridge.
             "ProcessTextToOrbitActivity",
             // The browser's return doorway after ChatGPT sign-in, the same invisible shape again.
-            "ChatGptSignInReturnActivity",
             // The full-screen attachment viewer. A detail surface rather than a page, and the one
             // screen where the classification is load-bearing beyond appearance: it owns live pan
             // and zoom across the whole window, so an app-wide gesture reading horizontal progress

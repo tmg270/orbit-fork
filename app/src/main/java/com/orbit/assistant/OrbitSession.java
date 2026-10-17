@@ -3431,13 +3431,13 @@ public class OrbitSession extends VoiceInteractionSession {
         rlp.setMargins(UiKit.dp(c, 10), 0, 0, 0);
         row.addView(retry, rlp);
         retry.setOnClickListener(v -> retryFailedRequest(failed));
-        if (ChatGptAuth.needsSignIn(c, failure)) {
+        if (SuperGrokAuth.needsSignIn(c, failure)) {
             Button signIn = tinyTextButton("Sign in again");
             signIn.setTextColor(UiKit.accent(c));
             signIn.setBackground(UiKit.rippleOutlined(UiKit.SURFACE_2, UiKit.accent(c), UiKit.accent(c), 14, c));
             row.addView(signIn, new LinearLayout.LayoutParams(rlp));
             signIn.setOnClickListener(v -> {
-                try { startAssistantActivity(SettingsActivity.chatGptAccountIntent(c)
+                try { startAssistantActivity(SettingsActivity.xaiAccountIntent(c)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
                 catch (Exception ignored) {}
             });

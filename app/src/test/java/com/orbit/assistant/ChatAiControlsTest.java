@@ -91,17 +91,6 @@ public final class ChatAiControlsTest {
 
     // ---- header --------------------------------------------------------------------------------
 
-    @Test public void theHeaderNamesTheModelAndStrength() {
-        seed("c1", "hello", "hi");
-        AiSelections.setForConversation(context, "c1", SOL_HIGH);
-        ChatActivity chat = open("c1").get();
-        assertTrue(chat.modelPillForTest().getText().toString().contains("GPT-6.1 Sol"));
-        assertFalse("never a raw backend id",
-                chat.modelPillForTest().getText().toString().contains("gpt-6.1-sol"));
-        assertTrue(chat.strengthPillForTest().getText().toString().startsWith("High"));
-        assertTrue(chat.modelPillForTest().getContentDescription().toString().contains("ChatGPT"));
-        assertTrue(chat.modelPillForTest().getMinimumHeight() >= 0);
-    }
 
     @Test public void everyChatGptNameFitsTheSameBoundedAccessibleHeaderControls() {
         seed("all-models", "hello", "hi");
@@ -117,56 +106,10 @@ public final class ChatAiControlsTest {
         }
     }
 
-    @Test public void aModelWithoutStrengthsHidesTheStrengthControl() {
-        seed("c1", "hello", "hi");
-        AiSelections.setForConversation(context, "c1",
-                AiSelection.of(Prefs.PROVIDER_LOCAL, OrbitModelCatalog.ORBIT_LOCAL, null));
-        ChatActivity chat = open("c1").get();
-        assertEquals(View.GONE, chat.strengthPillForTest().getVisibility());
-        assertTrue(chat.modelPillForTest().getText().toString().contains("GrokLink Local"));
-    }
 
-    @Test public void changingOneChatChangesOnlyThatChatAndUpdatesInPlace() {
-        seed("a", "q", "r");
-        seed("b", "q", "r");
-        ChatActivity chat = open("a").get();
-        View pill = chat.modelPillForTest();
-        chat.applySelection(ASTRA_MAX);
-        assertEquals(ASTRA_MAX, AiSelections.forConversation(context, "a"));
-        assertEquals("chat B is untouched", AiSelections.FALLBACK,
-                AiSelections.forConversation(context, "b"));
-        assertEquals("the default is untouched", AiSelections.FALLBACK,
-                AiSelections.globalDefault(context));
-        assertTrue("the same control, updated", pill == chat.modelPillForTest());
-        assertTrue(chat.modelPillForTest().getText().toString().contains("GPT-6 Astra"));
-        assertTrue(chat.strengthPillForTest().getText().toString().startsWith("Max"));
-    }
 
-    @Test public void anInvalidChoiceIsResolvedBeforeItIsShownOrStored() {
-        seed("a", "q", "r");
-        ChatActivity chat = open("a").get();
-        chat.applySelection(AiSelection.of(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.SOL, AiStrength.NONE));
-        assertEquals(AiStrength.LOW, chat.currentSelectionForTest().strength);
-        assertEquals(AiStrength.LOW, AiSelections.forConversation(context, "a").strength);
-        assertTrue(chat.strengthPillForTest().getText().toString().startsWith("Low"));
-    }
 
-    @Test public void theSentRequestUsesThisChatsSelection() {
-        seed("a", "q", "r");
-        AiSelections.setForConversation(context, "a", SOL_HIGH);
-        ChatActivity chat = open("a").get();
-        chat.setDraftForTest("Next question");
-        chat.submitForTest();
-        PendingRequestStore.Item item = PendingRequestStore.activeForConversation(context, "a").get(0);
-        assertEquals(SOL_HIGH, item.selection);
-    }
 
-    @Test public void aNewChatsChoiceSurvivesActivityRecreation() {
-        ActivityController<ChatActivity> controller = open("brand-new");
-        controller.get().applySelection(ASTRA_MAX);
-        controller.recreate();
-        assertEquals(ASTRA_MAX, controller.get().currentSelectionForTest());
-    }
 
     // ---- the strip -----------------------------------------------------------------------------
 
@@ -235,16 +178,6 @@ public final class ChatAiControlsTest {
                 2, ConversationStore.load(context, "c1").messages.size());
     }
 
-    @Test public void retryWithUsesTheChosenAiForThatRetryOnly() {
-        seed("c1", "What is Saturn?", "A planet.");
-        AiSelections.setForConversation(context, "c1", SOL_HIGH);
-        ChatActivity chat = open("c1").get();
-        chat.retryLastResponse(ASTRA_MAX);
-        assertEquals(ASTRA_MAX, PendingRequestStore.activeForConversation(context, "c1").get(0).selection);
-        assertEquals("the chat keeps its own selection", SOL_HIGH,
-                AiSelections.forConversation(context, "c1"));
-        assertEquals(SOL_HIGH, chat.currentSelectionForTest());
-    }
 
     @Test public void retryKeepsTheTurnsAttachmentsAndQuote() {
         List<AssistantClient.History> history = new ArrayList<>();
@@ -307,7 +240,7 @@ public final class ChatAiControlsTest {
         AssistantClient.History turn = new AssistantClient.History("user", "What does this mean?")
                 .withQuote(QuotedMessage.of(history.get(0)));
         history.add(turn);
-        org.json.JSONObject body = ChatGptClient.requestBody(context, "What does this mean?", "",
+        org.json.JSONObject body = ActionPromptBuilder.requestBody(context, "What does this mean?", "",
                 new ArrayList<>(), history, AiSelections.FALLBACK, false, "", "", "", false, false,
                 OrbitModelCatalog.LUNA);
         String instructions = body.getString("instructions");
@@ -327,58 +260,7 @@ public final class ChatAiControlsTest {
 
     // ---- requests ------------------------------------------------------------------------------
 
-    @Test public void theRequestBodySendsExactlyTheSelectedModelAndEffort() throws Exception {
-        org.json.JSONObject body = ChatGptClient.requestBody(context, "hi", "", new ArrayList<>(),
-                new ArrayList<>(), ASTRA_MAX, false, "", "", "", false, false, ASTRA_MAX.model);
-        assertEquals("gpt-6-astra", body.getString("model"));
-        assertEquals("max", body.getJSONObject("reasoning").getString("effort"));
 
-        AiSelection solNone = AiSelection.of(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.SOL, AiStrength.NONE);
-        org.json.JSONObject sol = ChatGptClient.requestBody(context, "hi", "", new ArrayList<>(),
-                new ArrayList<>(), solNone, false, "", "", "", false, false, OrbitModelCatalog.SOL);
-        assertEquals("None never reaches Sol", "low", sol.getJSONObject("reasoning").getString("effort"));
-
-        AiSelection lunaNone = AiSelection.of(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.LUNA, AiStrength.NONE);
-        org.json.JSONObject luna = ChatGptClient.requestBody(context, "hi", "", new ArrayList<>(),
-                new ArrayList<>(), lunaNone, false, "", "", "", false, false, OrbitModelCatalog.LUNA);
-        assertFalse("Luna at None sends no reasoning block", luna.has("reasoning"));
-    }
-
-    @Test public void everyProviderRequestCarriesTheResolvedSelectionWithNoRerouting() {
-        List<AiRequest> seen = new ArrayList<>();
-        AiProvider fake = new AiProvider() {
-            @Override public String id() { return Prefs.PROVIDER_CHATGPT; }
-            @Override public String displayName() { return "Fake"; }
-            @Override public String description() { return ""; }
-            @Override public AiCapabilities capabilities() { return AiCapabilities.builder().build(); }
-            @Override public Status status(Context c) { return Status.READY; }
-            @Override public String statusDetail(Context c) { return ""; }
-            @Override public boolean selectable(Context c) { return true; }
-            @Override public void send(Context c, AiRequest r, AssistantClient.Callback cb) { seen.add(r); }
-            @Override public void plan(Context c, String p, AiSelection s, AssistantClient.PlanCallback cb) {}
-        };
-        AiProvider previous = AiProviders.installForTest(fake);
-        try {
-            String hard = "Think deeply and compare three architectures for concurrency, race "
-                    + "conditions, fault tolerance and cost, with a rigorous step by step analysis.";
-            for (AiSelection s : new AiSelection[]{AiSelections.FALLBACK, SOL_HIGH, ASTRA_MAX}) {
-                AssistantClient.send(context, hard, "", (android.graphics.Bitmap) null,
-                        new ArrayList<>(), s, cb());
-                AssistantClient.send(context, "hi there friend", "", (android.graphics.Bitmap) null,
-                        new ArrayList<>(), s, cb());
-            }
-            assertEquals(6, seen.size());
-            assertEquals(AiSelections.FALLBACK, seen.get(0).selection);
-            assertEquals("a hard question is not routed anywhere else", AiSelections.FALLBACK,
-                    seen.get(1).selection);
-            assertEquals(SOL_HIGH, seen.get(2).selection);
-            assertEquals(SOL_HIGH, seen.get(3).selection);
-            assertEquals(ASTRA_MAX, seen.get(4).selection);
-            assertEquals(ASTRA_MAX, seen.get(5).selection);
-        } finally {
-            AiProviders.installForTest(previous);
-        }
-    }
 
     private static AssistantClient.Callback cb() {
         return new AssistantClient.Callback() {
@@ -387,34 +269,9 @@ public final class ChatAiControlsTest {
         };
     }
 
-    @Test public void noRoutingMachineryRemains() {
-        for (String file : new String[]{"AssistantClient.java", "ChatGptClient.java", "RelayProvider.java",
-                "OrbitRequestWorker.java", "OrbitRequestManager.java", "ChatActivity.java", "OrbitSession.java",
-                "SettingsActivity.java", "Prefs.java", "AppProfileActivity.java"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(
-                    "app/src/main/java/com/orbit/assistant/" + file);
-            for (String gone : new String[]{"AutoRouter", "effectiveModelForMode", "MODE_AUTO",
-                    "MODE_BALANCED", "\"Balanced\"", "\"Deep\"", "Default AI strength"}) {
-                assertFalse(file + " still has " + gone, source.contains(gone));
-            }
-        }
-    }
 
     // ---- details and vault ---------------------------------------------------------------------
 
-    @Test public void responseDetailsShowOnlyWhatIsKnown() {
-        ResponseDetails d = ResponseDetails.sentWith(SOL_HIGH).withElapsed(2430);
-        List<String> labels = new ArrayList<>();
-        for (String[] row : d.rows()) labels.add(row[0] + "=" + row[1]);
-        assertEquals(Arrays.asList("Provider=ChatGPT", "Model=GPT-6.1 Sol", "Strength=High",
-                "Response time=2.4 s"), labels);
-        ResponseDetails noTime = ResponseDetails.sentWith(
-                AiSelection.of(Prefs.PROVIDER_LOCAL, OrbitModelCatalog.ORBIT_LOCAL, null));
-        List<String> local = new ArrayList<>();
-        for (String[] row : noTime.rows()) local.add(row[0]);
-        assertEquals(Arrays.asList("Provider", "Model"), local);
-        assertTrue(new ResponseDetails("", "", "", 120).answeredByOrbit());
-    }
 
     @Test public void detailsAreStoredWithTheAnswerAndOfferedOnlyThen() {
         List<AssistantClient.History> history = new ArrayList<>();

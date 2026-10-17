@@ -320,15 +320,15 @@ public final class RichAnswerCompatibilityTest {
     /** Orbit identifies itself truthfully and never impersonates a browser. */
     @Test public void theUserAgentIsTruthful() {
         String agent = RichAnswerPageFetcher.USER_AGENT;
-        assertTrue(agent.startsWith("OrbitAssistant/"));
+        assertTrue(agent.startsWith("GrokLink/"));
         assertTrue("a contact address is what large public hosts ask for",
-                agent.contains("https://github.com/lpnovi/GrokLink-Assistant"));
+                agent.contains("https://github.com/tmg270/orbit-fork"));
         for (String impersonation : new String[]{
                 "Mozilla", "Chrome", "Safari", "AppleWebKit", "Gecko", "Edg/"}) {
             assertFalse("GrokLink must not claim to be " + impersonation,
                     agent.contains(impersonation));
         }
-        String loader = ComponentUninstallTest.readRepositoryFile(
+        String loader = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RemoteImageLoader.java");
         assertTrue("both fetchers must send the same identification",
                 loader.contains("RichAnswerPageFetcher.USER_AGENT"));

@@ -166,195 +166,22 @@ public final class OrbitDialogContractTest {
 
     // ---- the exact Galaxy warning and its system handoff --------------------------------------
 
-    @Test public void removeOrbitLocalWarningIsOrbitOwnedStyledShownAndHandsOffCleanly() {
-        ActivityController<LocalAiActivity> localController =
-                Robolectric.buildActivity(LocalAiActivity.class).setup();
-        try {
-            localController.get().confirmRemoveOrbitLocal();
-            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-            assertNotNull(dialog);
-            assertEquals("Remove GrokLink Local?", Shadows.shadowOf(dialog).getTitle().toString());
-            assertTrue("the GrokLink warning must actually reach the screen", dialog.isShowing());
-            assertCanonicalEntranceIsPrepared(dialog, dialog.getWindow().getDecorView());
-            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-            assertCanonicalEntranceFinished(dialog.getWindow().getDecorView());
-            assertEquals(UiKit.DANGER,
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).getCurrentTextColor());
 
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-            assertEquals("only the GrokLink exit is suppressed before Android owns the next window",
-                    0, dialog.getWindow().getAttributes().windowAnimations);
-            assertFalse(dialog.isShowing());
-            ShadowLooper.idleMainLooper();
-        } finally {
-            localController.pause().stop().destroy();
-        }
-    }
 
-    @Test public void componentOnlyWarningUsesTheSameDestructiveHandoffContract() {
-        ActivityController<LocalAiActivity> localController =
-                Robolectric.buildActivity(LocalAiActivity.class).setup();
-        try {
-            localController.get().confirmUninstallComponent();
-            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-            assertNotNull(dialog);
-            assertEquals("Uninstall the component?",
-                    Shadows.shadowOf(dialog).getTitle().toString());
-            assertTrue(dialog.isShowing());
-            assertCanonicalEntranceIsPrepared(dialog, dialog.getWindow().getDecorView());
-            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-            assertCanonicalEntranceFinished(dialog.getWindow().getDecorView());
-            assertEquals(UiKit.DANGER,
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).getCurrentTextColor());
 
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-            assertEquals(0, dialog.getWindow().getAttributes().windowAnimations);
-            assertFalse(dialog.isShowing());
-            ShadowLooper.idleMainLooper();
-        } finally {
-            localController.pause().stop().destroy();
-        }
-    }
-
-    @Test public void deleteModelWarningUsesTheSharedStableWindowEntrance() throws Exception {
-        ActivityController<LocalAiActivity> localController =
-                Robolectric.buildActivity(LocalAiActivity.class).setup();
-        try {
-            Method confirm = LocalAiActivity.class
-                    .getDeclaredMethod("confirmDeleteModel", boolean.class);
-            confirm.setAccessible(true);
-            confirm.invoke(localController.get(), false);
-
-            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-            assertNotNull(dialog);
-            assertEquals("Remove Qwen 2.5 (1.5B)?",
-                    Shadows.shadowOf(dialog).getTitle().toString());
-            assertTrue(dialog.isShowing());
-            assertCanonicalEntranceIsPrepared(dialog, dialog.getWindow().getDecorView());
-            WindowGeometry before = WindowGeometry.of(dialog);
-            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-            assertCanonicalEntranceFinished(dialog.getWindow().getDecorView());
-            assertEquals(before, WindowGeometry.of(dialog));
-            assertEquals(UiKit.DANGER,
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).getCurrentTextColor());
-        } finally {
-            localController.pause().stop().destroy();
-        }
-    }
-
-    @Test public void systemInstallerUninstallerPermissionsAndPickersRemainSystemOwned() {
-        String request = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/OrbitLocalUninstaller.java");
-        String receiver = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/OrbitLocalUninstallReceiver.java");
-        String updater = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/OrbitUpdater.java");
-        String componentInstaller = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/OrbitLocalInstaller.java");
-        String pickerBridge = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/AttachmentPickerActivity.java");
-        String calendarBridge = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/CalendarPermissionActivity.java");
-        String manifest = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/AndroidManifest.xml");
-
-        assertTrue(request.contains("getPackageInstaller()"));
-        assertTrue(request.contains("installer.uninstall(OrbitLocalComponent.PACKAGE"));
-        assertTrue(receiver.contains("Intent.EXTRA_INTENT"));
-        assertTrue(receiver.contains("context.startActivity(confirm)"));
-        assertFalse("GrokLink must not clone Android's uninstall confirmation",
-                receiver.contains("new AlertDialog.Builder"));
-        assertFalse("GrokLink must not try to paint Android's package-installer window",
-                receiver.contains("styleOrbitDialog"));
-        // The GitHub edition builds both system hand-offs in OrbitEdition (src/github); the
-        // installers still launch them themselves. The Play edition has neither.
-        String gitHubEdition = ComponentUninstallTest.readRepositoryFile(
-                "app/src/github/java/com/orbit/assistant/OrbitEdition.java");
-        assertTrue(gitHubEdition.contains("Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES"));
-        assertTrue(gitHubEdition.contains("new Intent(Intent.ACTION_VIEW)"));
-        assertTrue(updater.contains("OrbitEdition.openUnknownSourcesSettings(activity)"));
-        assertTrue(updater.contains("activity.startActivity(install)"));
-        assertTrue(componentInstaller.contains("OrbitEdition.apkInstallerIntent(uri)"));
-        assertTrue(componentInstaller.contains("activity.startActivity(install)"));
-        assertTrue(pickerBridge.contains("Intent.ACTION_OPEN_DOCUMENT"));
-        assertTrue(pickerBridge.contains("requestPermissions("));
-        assertFalse(componentInstaller.contains("new AlertDialog.Builder"));
-        assertFalse(pickerBridge.contains("new AlertDialog.Builder"));
-
-        // Calendar permission is Android's window, exactly like the picker's. Orbit's own
-        // confirmation happens before this bridge opens and never overlaps it.
-        assertTrue(calendarBridge.contains("requestPermissions("));
-        assertFalse("GrokLink must not draw its own Calendar permission prompt",
-                calendarBridge.contains("new AlertDialog.Builder"));
-        assertFalse(calendarBridge.contains("styleOrbitDialog"));
-
-        // Picker, calendar permission, widget action, the external Share doorway, the
-        // selected-text doorway, and the ChatGPT sign-in return doorway. All six are invisible
-        // bridges rather than pages, and all six keep the dedicated non-page theme.
-        assertTrue("invisible picker, calendar, widget, share, selected-text and sign-in return"
-                        + " bridges keep their non-page theme",
-                count(manifest, "android:theme=\"@style/Theme.GrokLink.Bridge\"") == 6);
-
-        // Both external doorways draw exactly one thing, and only since v0.7.8.4: the question of
-        // where the content should go. Share to Orbit gained it in Beta 1 and the selected-text
-        // doorway in Beta 3, for the same reason both times - a shared link and a selected
-        // paragraph each genuinely have two destinations now, a conversation or the Vault, and
-        // guessing would either silently change what the doorway has always meant or make the Vault
-        // unreachable from it. One Orbit-owned choice is the honest answer; anything beyond it
-        // would be a bridge growing into a screen.
-        //
-        // The selected-text doorway in particular must not answer this with a second entry in
-        // Android's own text-selection menu: the platform gives a handler no say in how its items
-        // are ordered or grouped, so two Orbit entries would be two unexplained words in every
-        // app's menu instead of one question the user can read.
-        for (String bridge : new String[]{"ShareToOrbitActivity", "ProcessTextToOrbitActivity"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(
-                    "app/src/main/java/com/orbit/assistant/" + bridge + ".java");
-            assertTrue(bridge + ": the one dialog it may draw is GrokLink's own, through the shared"
-                            + " styling path",
-                    source.contains("UiKit.styleOrbitDialog(dialog, this, false)"));
-            assertEquals(bridge + ": and there is exactly one of it",
-                    1, count(source, "new AlertDialog.Builder"));
-            assertTrue(bridge + ": it offers the two real destinations and nothing else",
-                    source.contains("setPositiveButton(ASK_ORBIT")
-                            && source.contains("setNegativeButton(SAVE_TO_VAULT"));
-            assertTrue(bridge + ": cancelling is a real third answer",
-                    source.contains("setOnCancelListener"));
-            assertFalse(bridge + ": it must never ask for a permission itself",
-                    source.contains("requestPermissions("));
-            assertFalse(bridge + ": and must never clone an Android-owned window",
-                    source.contains("setCustomTitle"));
-        }
-
-        // And the selected-text doorway still never writes back over the user's selection. This is
-        // Ask Orbit, not Replace with Orbit, and adding a second destination did not change that:
-        // there is no path through it that sets a result.
-        String selectedText = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ProcessTextToOrbitActivity.java");
-        assertFalse("the selected-text doorway must never replace the user's text",
-                selectedText.contains("setResult("));
-
-        // The full-screen attachment viewer is a real screen rather than a bridge, so it keeps the
-        // ordinary Orbit theme and paints its own black background. It is emphatically not a
-        // dialog: a photo shown in a floating window would be a smaller photo.
-        String viewer = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/AttachmentViewerActivity.java");
-        assertFalse("the viewer is a screen, never a dialog",
-                viewer.contains("new AlertDialog.Builder"));
-    }
 
     // ---- resource and popup motion --------------------------------------------------------------
 
     @Test public void popupAndDialogMotionResourcesStaySeparateAndRestrained() {
-        String styles = ComponentUninstallTest.readRepositoryFile(
+        String styles = RepoFiles.readRepositoryFile(
                 "app/src/main/res/values/styles.xml");
-        String enter = ComponentUninstallTest.readRepositoryFile(
+        String enter = RepoFiles.readRepositoryFile(
                 "app/src/main/res/anim/orbit_popup_enter.xml");
-        String exit = ComponentUninstallTest.readRepositoryFile(
+        String exit = RepoFiles.readRepositoryFile(
                 "app/src/main/res/anim/orbit_popup_exit.xml");
-        String dialogExit = ComponentUninstallTest.readRepositoryFile(
+        String dialogExit = RepoFiles.readRepositoryFile(
                 "app/src/main/res/anim/orbit_dialog_exit.xml");
-        String uiKit = ComponentUninstallTest.readRepositoryFile(
+        String uiKit = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/UiKit.java");
 
         assertTrue(styles.contains("<style name=\"OrbitPopupAnimation\">"));
@@ -382,7 +209,7 @@ public final class OrbitDialogContractTest {
     }
 
     @Test public void popupWindowsUseTheSharedMotionAndDialogHandoff() {
-        String uiKit = stripNonCode(ComponentUninstallTest.readRepositoryFile(
+        String uiKit = stripNonCode(RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/UiKit.java"));
         Matcher creations = Pattern.compile("new\\s+PopupWindow\\s*\\(").matcher(uiKit);
         List<Integer> starts = new ArrayList<>();
@@ -400,7 +227,7 @@ public final class OrbitDialogContractTest {
         assertTrue(uiKit.contains("showOrbitMenuWithDialogHandoff"));
         assertTrue(uiKit.contains("popup.setAnimationStyle(0)"));
 
-        String routines = ComponentUninstallTest.readRepositoryFile(
+        String routines = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RoutinesActivity.java");
         assertTrue("the popup action that opens Delete must keep the completion-based handoff",
                 routines.contains("UiKit.showOrbitMenuWithDialogHandoff"));

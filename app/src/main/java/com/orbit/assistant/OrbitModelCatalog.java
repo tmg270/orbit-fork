@@ -320,9 +320,7 @@ public final class OrbitModelCatalog {
         String name = displayName(modelId);
         if (name.isEmpty()) name = modelId == null || modelId.trim().isEmpty()
                 ? "This model" : modelId.trim();
-        String account = spec(Prefs.PROVIDER_CHATGPT, modelId) == null
-                ? "the selected provider account" : "this ChatGPT account";
-        return name + " is not available through " + account + " right now. "
+        return name + " is not available through your xAI account right now. "
                 + "Your selection has not been changed. Choose another model from the AI menu, "
                 + "or use Retry with to try this message on a different one.";
     }

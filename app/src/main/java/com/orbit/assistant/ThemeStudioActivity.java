@@ -1187,7 +1187,7 @@ public final class ThemeStudioActivity extends Activity {
 
     /** The single Orbit Pro marker on this screen. A quiet chip, not a badge on every row. */
     private View proMark() {
-        TextView mark = UiKit.text(this, "ORBIT PRO", 10, UiKit.accent(this), true);
+        TextView mark = UiKit.text(this, "GROKLINK PRO", 10, UiKit.accent(this), true);
         mark.setLetterSpacing(0.1f);
         mark.setPadding(UiKit.dp(this, 8), UiKit.dp(this, 3), UiKit.dp(this, 8), UiKit.dp(this, 4));
         mark.setBackground(UiKit.outlined(UiKit.SURFACE_2,

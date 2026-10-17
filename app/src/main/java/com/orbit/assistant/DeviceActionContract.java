@@ -14,7 +14,7 @@ import java.util.Set;
  * The device-action contract shared by every provider that can propose phone actions: the
  * instructions that ask for the {"text","actions"} envelope, the action allowlist, the progressive
  * text extractor used while streaming, and the envelope parser. Moved verbatim out of
- * {@link ChatGptClient} (fork patch) so that ChatGPT's behaviour is unchanged and xAI can reuse it.
+ * the upstream request builder (fork patch) so xAI can reuse it.
  * Actions still go through {@link OrbitActionEngine} and {@link AssistantReply.Action}'s own
  * confirmation rules; nothing here executes anything.
  */

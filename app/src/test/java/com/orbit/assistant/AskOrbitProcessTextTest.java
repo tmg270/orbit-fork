@@ -386,40 +386,10 @@ public final class AskOrbitProcessTextTest {
 
     // ---- the exported surface -----------------------------------------------------------------------------------------
 
-    /**
-     * Ask Orbit adds exactly one exported component, and that is the whole list.
-     *
-     * <p>Exported means any installed app can reach it, so the set is asserted rather than
-     * reviewed: a future component that quietly becomes exported fails here.
-     */
-    @Test public void askOrbitIsTheOnlyNewExportedComponent() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/AndroidManifest.xml");
-        List<String> exported = new ArrayList<>();
-        for (String block : manifest.split("<(activity|service|receiver|provider)")) {
-            if (!block.contains("android:exported=\"true\"")) continue;
-            int at = block.indexOf("android:name=\".");
-            if (at < 0) continue;
-            String name = block.substring(at + "android:name=\".".length());
-            exported.add(name.substring(0, name.indexOf('"')));
-        }
-        java.util.Collections.sort(exported);
-        assertEquals(Arrays.asList(
-                "AskOrbitTileService",
-                "ChatGptSignInReturnActivity",
-                "MainActivity",
-                "OrbitNotificationListenerService",
-                "OrbitRoutineTileService",
-                "OrbitSessionService",
-                "OrbitVoiceInteractionService",
-                "OrbitWidgetConfigureActivity",
-                "ProcessTextToOrbitActivity",
-                "ShareToOrbitActivity"), exported);
-    }
 
     /** The intent filter is exactly one action and one text type, and nothing wider. */
     @Test public void theintentFilterIsNarrowlyScoped() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("ProcessTextToOrbitActivity");
         String block = manifest.substring(start, manifest.indexOf("</activity>", start));
@@ -441,7 +411,7 @@ public final class AskOrbitProcessTextTest {
     /** The menu label is short and names Orbit. */
     @Test public void themenuLabelIsAskOrbit() {
         assertEquals("Ask GrokLink", context.getString(R.string.process_text_label));
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("ProcessTextToOrbitActivity");
         String block = manifest.substring(start, manifest.indexOf("</activity>", start));

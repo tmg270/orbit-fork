@@ -108,25 +108,6 @@ public final class ExistingFeatureInventoryTest {
 
     // ---- no second implementation ------------------------------------------------------------------
 
-    /**
-     * There is one place that talks to Android for a device action, and it is the executor.
-     *
-     * <p>The pattern this guards against has a name in the release brief: an
-     * {@code OrbitLocalFlashlightExecutor} sitting beside the real one. So no file added by the
-     * local-action work may reach for the Android APIs the executor owns.
-     */
-    @Test public void theLocalActionPathHasNoAndroidControlOfItsOwn() {
-        for (String file : new String[]{"OrbitLocalActionRouter.java", "LocalActionSchema.java"}) {
-            String source = source(file);
-            for (String forbidden : new String[]{
-                    "setTorchMode", "CameraManager", "setStreamVolume", "setInterruptionFilter",
-                    "setRingerMode", "Settings.System.putInt", "AlarmClock.ACTION",
-                    "startActivity", "getLaunchIntentForPackage"}) {
-                assertFalse(file + " must not control Android itself (" + forbidden + ")",
-                        source.contains(forbidden));
-            }
-        }
-    }
 
     /** And the executor is genuinely the only file that does. */
     @Test public void onlyTheExecutorTouchesTheDeviceControlApis() {
@@ -170,30 +151,11 @@ public final class ExistingFeatureInventoryTest {
 
     // ---- what Beta 1 actually added -----------------------------------------------------------------
 
-    /**
-     * The genuinely new actions, and the fact that they are shared rather than local-only.
-     *
-     * <p>Media and ringer control did not exist anywhere in Orbit before this release — asserted
-     * against the Stable source in the report rather than here — and they were added to the one
-     * catalog every provider reads, not to the local path.
-     */
-    @Test public void theNewActionsAreSharedByEveryProvider() {
-        String executor = source("DeviceActionExecutor.java");
-        assertTrue(executor.contains("case \"MEDIA_CONTROL\""));
-        assertTrue(executor.contains("case \"SET_RINGER_MODE\""));
-
-        assertTrue("the cloud client may request them",
-                source("ChatGptClient.java").contains("\"MEDIA_CONTROL\""));
-        assertTrue("so may the relay",
-                source("RelayProvider.java").contains("\"MEDIA_CONTROL\""));
-        assertTrue("and so may the on-device action model",
-                LocalActionSchema.ALLOWED_ACTIONS.contains("MEDIA_CONTROL"));
-    }
 
     // ---- helpers ------------------------------------------------------------------------------------
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName);
     }
 

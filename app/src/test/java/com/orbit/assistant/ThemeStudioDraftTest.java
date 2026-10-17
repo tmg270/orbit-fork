@@ -498,7 +498,7 @@ public final class ThemeStudioDraftTest {
         ActivityController<ThemeStudioActivity> controller = open();
         ThemeStudioActivity activity = controller.get();
         select(activity, OrbitTheme.builtIn(OrbitTheme.ID_NOVA_AMOLED));
-        assertEquals("Nova-AMOLED.orbit-theme.json",
+        assertEquals("Nova-AMOLED.groklink-theme.json",
                 OrbitThemeFileCodec.fileNameFor(draft(activity)));
         controller.pause().stop().destroy();
     }

@@ -29,25 +29,7 @@ public class AboutLinksTest {
         TestWorkManager.ensureInitialized(RuntimeEnvironment.getApplication());
     }
 
-    @Test public void gitHubIsOnTheLinksCardAndPointsAtTheRepository() {
-        View page = page();
-        View row = page.findViewWithTag(REPO);
-        assertNotNull("GitHub row", row);
-        assertTrue(row.isClickable());
-        assertTrue(row.getContentDescription().toString().startsWith("GitHub"));
-        assertNotNull(text(page, "LINKS"));
-        assertEquals(REPO, UpdateActivity.LINKS[0].uri);
-    }
 
-    @Test public void tappingOpensTheRepositoryInTheBrowser() {
-        UpdateActivity activity = Robolectric.buildActivity(UpdateActivity.class).setup().get();
-        activity.getWindow().getDecorView().findViewWithTag(REPO).performClick();
-        Intent opened = shadowOf(activity).getNextStartedActivity();
-        assertNotNull(opened);
-        assertEquals(Intent.ACTION_VIEW, opened.getAction());
-        assertEquals(REPO, opened.getDataString());
-        assertTrue(opened.hasCategory(Intent.CATEGORY_BROWSABLE));
-    }
 
     @Test public void noBrowserMeansAMessageNotACrash() {
         android.content.ContextWrapper noBrowser =
@@ -60,16 +42,6 @@ public class AboutLinksTest {
         assertEquals("No app on this phone can open that link", ShadowToast.getTextOfLatestToast());
     }
 
-    @Test public void everyEntryBecomesOneRowFromTheSameBuilder() {
-        // The card is drawn from LINKS, so adding a link is adding an entry: one row each.
-        View page = page();
-        ViewGroup card = (ViewGroup) page.findViewWithTag(REPO).getParent();
-        assertEquals(UpdateActivity.LINKS.length, card.getChildCount());
-        for (UpdateActivity.AboutLink link : UpdateActivity.LINKS) {
-            assertTrue(link.uri, link.uri.startsWith("https://"));
-            assertNotNull(page.findViewWithTag(link.uri));
-        }
-    }
 
     private static View page() {
         return Robolectric.buildActivity(UpdateActivity.class).setup().get()

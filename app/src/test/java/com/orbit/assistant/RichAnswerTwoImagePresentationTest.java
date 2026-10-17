@@ -99,7 +99,7 @@ public final class RichAnswerTwoImagePresentationTest {
 
     /** Both pictures are pageable in the one existing viewer, which stays the only one. */
     @Test public void bothPicturesReachTheSameSingleViewer() {
-        String card = ComponentUninstallTest.readRepositoryFile(
+        String card = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCardView.java");
         assertTrue("every card hands the viewer the whole set, so paging works",
                 card.contains("AttachmentViewerActivity.openRichAnswer(host, set, image.id)"));
@@ -121,7 +121,7 @@ public final class RichAnswerTwoImagePresentationTest {
         assertNotEquals(both.get(0).vaultTitle(), both.get(1).vaultTitle());
         assertNotEquals(both.get(0).sourceDomain, both.get(1).sourceDomain);
 
-        String viewer = ComponentUninstallTest.readRepositoryFile(
+        String viewer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/AttachmentViewerActivity.java");
         assertFalse("a save is never a batch over the whole set",
                 viewer.contains("for (RichAnswerImage") && viewer.contains("OrbitVaultStore.add"));
@@ -129,60 +129,8 @@ public final class RichAnswerTwoImagePresentationTest {
 
     // ---- wording ---------------------------------------------------------------------------------
 
-    /**
-     * The model is told not to promise a count, because it cannot know one.
-     *
-     * <p>The physical failure: "Here are a few mallard duck photos:" above a single photograph. The
-     * text is written and streamed before discovery has fetched anything, so any number in it is a
-     * guess that the web then gets to contradict.
-     */
-    @Test public void theModelIsToldNotToPromiseAPictureCount() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue(client.contains("never promise a number of pictures"));
-        assertTrue(client.contains("Here are some useful visual references"));
-        assertTrue("and never describe what is about to appear",
-                client.contains("never describe what is about to appear"));
-    }
 
-    /**
-     * Neither image instruction says anything about how Rich Answers works internally.
-     *
-     * <p>Beta 7 split one always-sent sentence into two policies chosen per request, so both are
-     * read here. Everything from the constant's own declaration to the end of its text is scanned;
-     * the javadoc above it is Orbit's, not the model's, and is deliberately outside the window.
-     */
-    @Test public void theInstructionLeaksNoInternalArchitecture() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        for (String name : new String[]{"RICH_ANSWERS_SYSTEM", "MARKDOWN_IMAGES_SYSTEM"}) {
-            int start = client.indexOf("private static final String " + name + " =");
-            assertTrue(name + " must exist", start > 0);
-            String instruction = client.substring(start, client.indexOf("\";", start));
-            for (String internal : new String[]{
-                    "RichAnswer", "Rich Answers", "discovery", "provenance", "MAX_PER_MESSAGE",
-                    "resolver", "candidate", "canonical"}) {
-                assertFalse("the user's model must not be told about " + internal,
-                        instruction.contains(internal));
-            }
-            assertFalse("and GrokLink never writes an em dash", instruction.contains("—"));
-        }
-        int rich = client.indexOf("private static final String RICH_ANSWERS_SYSTEM =");
-        String visual = client.substring(rich, client.indexOf("\";", rich));
-        assertTrue("the count it must not promise is named only as a thing to avoid saying",
-                visual.contains("no I will attach two images"));
-        assertTrue("and so is the claim that the pictures differ",
-                visual.contains("no these are two separate photographs"));
-    }
 
-    /** The mandatory source line the whole recovery route depends on is untouched. */
-    @Test public void theSourceMarkerInstructionIsUnchanged() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue(client.contains(
-                "include one best supporting source URL at the very end on its own line using "
-                        + "exactly Source: https://..."));
-    }
 
     // ---- helpers ---------------------------------------------------------------------------------
 

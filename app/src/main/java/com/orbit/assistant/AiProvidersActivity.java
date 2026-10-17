@@ -37,9 +37,6 @@ public final class AiProvidersActivity extends Activity {
     static final String ACTION_MANAGE = "Manage";
     static final String ACTION_SET_UP = "Set up";
     static final String ACTION_DETAILS = "Details";
-    /** OpenRouter's primary connection: the browser sign-in (0.8.3.0-beta.6+). */
-    static final String ACTION_OPENROUTER_SIGN_IN = "Sign in with OpenRouter";
-    /** OpenRouter's advanced fallback: a key the user creates on OpenRouter and pastes here. */
     static final String ACTION_USE_API_KEY = "Use API key instead";
 
     static final String EXTRA_START = "groklink_start";
@@ -131,7 +128,7 @@ public final class AiProvidersActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Choose how GrokLink thinks. Features and capabilities vary by provider.",
+                "GrokLink uses xAI's Grok. Sign in with SuperGrok, or add an xAI API key.",
                 13, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.14f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -255,8 +252,7 @@ public final class AiProvidersActivity extends Activity {
     }
 
     /**
-     * The same, for one provider. OpenRouter replaces the generic Set up with its own two ways in:
-     * the browser sign-in as the primary action, and a typed key as the quiet fallback.
+     * The same, for one provider.
      */
     static List<String> actionLabels(String providerId, AiProvider.Status status, boolean active) {
         return actionLabels(status, active);
@@ -362,15 +358,14 @@ public final class AiProvidersActivity extends Activity {
     }
 
     private void showApiKeySetup(String provider) {
-        boolean anthropic = false; // GrokLink: xAI only
-        String name = anthropic ? "Anthropic" : "xAI";
-        boolean saved = anthropic ? SecureStore.hasAnthropicKey(this) : SecureStore.hasXaiKey(this);
+        String name = "xAI";
+        boolean saved = SecureStore.hasXaiKey(this);
         LinearLayout wrap = new LinearLayout(this);
         wrap.setOrientation(LinearLayout.VERTICAL);
         int pad = UiKit.dp(this, 22);
         wrap.setPadding(pad, UiKit.dp(this, 8), pad, 0);
         TextView note = UiKit.text(this,
-                "Enter a developer API key from " + name + ". GrokLink encrypts it with Android Keystore, never backs it up, and never shows the saved key again.",
+                "SuperGrok subscribers don't need a key: tap Sign in with SuperGrok below. Or paste a developer API key from console.x.ai. GrokLink encrypts keys with Android Keystore, never backs them up, and never shows a saved key again.",
                 13, UiKit.MUTED, false);
         note.setLineSpacing(0, 1.14f);
         wrap.addView(note);
@@ -388,11 +383,11 @@ public final class AiProvidersActivity extends Activity {
 
         // Fork patch: SuperGrok OAuth as an alternative to a developer key (xAI only).
         Button superGrok = null;
-        if (!anthropic) {
+        {
             boolean signedIn = SecureStore.hasSuperGrokSession(this);
             superGrok = new Button(this);
             superGrok.setAllCaps(false);
-            superGrok.setText(signedIn ? "Sign out of SuperGrok" : "Or sign in with SuperGrok (experimental)");
+            superGrok.setText(signedIn ? "Sign out of SuperGrok" : "Sign in with SuperGrok (no key needed)");
             LinearLayout.LayoutParams sgLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             sgLp.topMargin = UiKit.dp(this, 12);
@@ -400,14 +395,13 @@ public final class AiProvidersActivity extends Activity {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(name + " connection")
+                .setTitle("Grok connection")
                 .setView(wrap)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save and check", (d, w) -> {
                     String value = input.getText().toString().trim();
                     if (value.isEmpty()) return;
-                    boolean stored = anthropic ? SecureStore.saveAnthropicKey(this, value)
-                            : SecureStore.saveXaiKey(this, value);
+                    boolean stored = SecureStore.saveXaiKey(this, value);
                     if (!stored) {
                         Toast.makeText(this, "Could not store the key securely, so it was not saved",
                                 Toast.LENGTH_LONG).show();
@@ -421,8 +415,7 @@ public final class AiProvidersActivity extends Activity {
                                 // different: keep the encrypted key and cached catalog so the user
                                 // can retry without re-entering a secret.
                                 if (error.contains("saved API key was rejected")) {
-                                    if (anthropic) SecureStore.clearAnthropicKey(this);
-                                    else SecureStore.clearXaiKey(this);
+                                    SecureStore.clearXaiKey(this);
                                 }
                                 Toast.makeText(this, error.isEmpty()
                                                 ? name + " connected" : error,
@@ -431,7 +424,7 @@ public final class AiProvidersActivity extends Activity {
                             }));
                 });
         if (saved) builder.setNeutralButton("Remove key", (d, w) -> {
-            if (anthropic) SecureStore.clearAnthropicKey(this); else SecureStore.clearXaiKey(this);
+            SecureStore.clearXaiKey(this);
             Toast.makeText(this, name + " key removed", Toast.LENGTH_SHORT).show();
             refreshCards();
         });
@@ -460,7 +453,7 @@ public final class AiProvidersActivity extends Activity {
                 if (isFinishing() || isDestroyed()) { SuperGrokAuth.cancel(); return; }
                 TextView body = UiKit.text(AiProvidersActivity.this,
                         "Open xAI's sign-in page and confirm this code:\n\n" + code.userCode
-                                + "\n\nOrbit is waiting for approval. Tokens are encrypted with Android Keystore and never backed up.",
+                                + "\n\nGrokLink is waiting for approval. Tokens are encrypted with Android Keystore and never backed up.",
                         14, UiKit.TEXT, false);
                 int pad = UiKit.dp(AiProvidersActivity.this, 22);
                 body.setPadding(pad, UiKit.dp(AiProvidersActivity.this, 8), pad, 0);

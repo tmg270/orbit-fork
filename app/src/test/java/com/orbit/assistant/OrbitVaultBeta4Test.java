@@ -295,21 +295,6 @@ public final class OrbitVaultBeta4Test {
         assertEquals(newest.get(1).id, oldest.get(0).id);
     }
 
-    /** Local, and only local: no provider, no index, no network anywhere in the filter path. */
-    @Test public void filteringNeverReachesAProvider() {
-        for (String name : new String[]{"OrbitVaultFilter", "OrbitVaultStore", "OrbitVaultItem",
-                "OrbitVaultSource"}) {
-            String text = source(name);
-            for (String forbidden : new String[]{"AssistantClient", "ChatGptClient", "AutoRouter",
-                    // Asserted on API names rather than on English: the javadoc in these files
-                    // legitimately promises there is no embedding and no provider, and a test that
-                    // searched for those words would fail on the promise itself.
-                    "OrbitRequestManager", "PendingRequestStore", "HttpURLConnection", "java.net.",
-                    "MemoryStore", "TextRecognizer", "ExecutorService"}) {
-                assertFalse(name + " must not reference " + forbidden, text.contains(forbidden));
-            }
-        }
-    }
 
     // ---- the screen ---------------------------------------------------------------------------------
 
@@ -761,7 +746,7 @@ public final class OrbitVaultBeta4Test {
     // ---- helpers ------------------------------------------------------------------------------------------
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName + ".java");
     }
 

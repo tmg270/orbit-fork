@@ -191,7 +191,7 @@ final class AiSelectorDialog {
                 UiKit.dp(context, 6));
         autoProviders.setMinHeight(UiKit.dp(context, 32));
         autoProviders.setGravity(Gravity.CENTER_VERTICAL);
-        autoProviders.setContentDescription("Choose which providers Auto can use");
+        autoProviders.setContentDescription("Auto settings");
         autoProviders.setOnClickListener(v -> AutoSheets.showSettings(context, () -> {
             if (autoProviders != null) autoProviders.setText(autoProvidersText());
         }));
@@ -322,7 +322,7 @@ final class AiSelectorDialog {
     private View autoRow;
     private TextView autoProviders;
 
-    /** "Auto can use ChatGPT, GrokLink Local ›": the one line that leads to Auto's settings. */
+    /** "Auto can use xAI / Grok ›": the one line that leads to Auto's settings. */
     private String autoProvidersText() {
         return "Auto can use " + AutoPermissions.summary(context) + " ›";
     }

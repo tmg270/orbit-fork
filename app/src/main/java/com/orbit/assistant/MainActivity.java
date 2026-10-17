@@ -41,9 +41,6 @@ public class MainActivity extends Activity {
     private String appliedPresentation;
     private boolean rebuildingTheme;
     private boolean foregroundActive;
-    private boolean postUpdatePromptShown;
-    private OrbitUpdater.Release pendingForegroundRelease;
-    private AlertDialog foregroundUpdateDialog;
 
     /** How long a deleted chat can be taken back before the deletion is actually carried out. */
     private static final long UNDO_WINDOW_MS = 5200L;
@@ -79,8 +76,7 @@ public class MainActivity extends Activity {
         // recovery path in addition to the manifest reschedule receiver.
         RoutineTriggerScheduler.rescheduleAll(this);
         ReminderScheduler.rescheduleAll(this);
-        OrbitUpdater.reconcilePendingInstall(this);
-        OrbitUpdateWorker.schedule(this);
+        cancelLegacyUpdateCheck();
         Window w = getWindow();
         w.setStatusBarColor(UiKit.BG);
         w.setNavigationBarColor(UiKit.BG);
@@ -92,8 +88,6 @@ public class MainActivity extends Activity {
         if (launchOnboarding) {
             getWindow().getDecorView().post(() ->
                     startActivity(OnboardingActivity.freshInstallIntent(this)));
-        } else {
-            getWindow().getDecorView().postDelayed(this::checkForForegroundUpdate, 900L);
         }
     }
 
@@ -117,7 +111,6 @@ public class MainActivity extends Activity {
         UiPresence.enter(this);
         ConversationTitleManager.addListener(titleListener);
         if (!syncThemeIfNeeded()) refresh();
-        maybeShowForegroundUpdate();
     }
 
     @Override protected void onPause() {
@@ -133,93 +126,19 @@ public class MainActivity extends Activity {
         super.onPause();
     }
 
-    /**
-     * Acknowledges a completed Orbit update once, before any newer-release prompt, so the two can
-     * never stack. Returns true when it took over this launch's startup prompt.
-     */
-    private boolean maybeShowPostUpdatePrompt() {
-        if (postUpdatePromptShown || isFinishing() || isDestroyed()) return false;
-        String version = OrbitUpdater.pendingPostUpdateVersion(this);
-        if (version.isEmpty()) return false;
-        // Marked immediately, so a recreation or a background/foreground cycle cannot show it
-        // twice, and consumed from storage so it never returns for this version.
-        postUpdatePromptShown = true;
-        OrbitUpdater.clearPostUpdateVersion(this);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("GrokLink updated")
-                .setMessage("You're now on GrokLink v" + version + ".")
-                .setNegativeButton("Done", null)
-                .setPositiveButton("What's New", (d, w) ->
-                        startActivity(new Intent(this, WhatsNewActivity.class)))
-                .create();
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.show();
-        return true;
-    }
 
-    private void checkForForegroundUpdate() {
-        // A completed update is acknowledged first; the newer-release check resumes next launch.
-        if (maybeShowPostUpdatePrompt()) return;
-        // Google Play offers the Play edition's updates itself; Orbit never checks GitHub there.
-        if (!OrbitDistribution.selfUpdates()) return;
-        if (!Prefs.updateNotifications(this) || isFinishing() || isDestroyed()) return;
-        OrbitUpdater.Release cached = OrbitUpdater.loadCachedAvailable(this);
-        if (cached != null && !OrbitUpdater.wasNotified(this, cached.versionCode)) {
-            pendingForegroundRelease = cached;
-            maybeShowForegroundUpdate();
-            return;
-        }
-        if (!OrbitUpdater.claimForegroundCheck(this)) return;
-        OrbitUpdater.checkAsync(this, new OrbitUpdater.CheckCallback() {
-            @Override public void onResult(OrbitUpdater.CheckResult result) {
-                runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed() || !Prefs.updateNotifications(MainActivity.this)) {
-                        return;
-                    }
-                    if (result.updateAvailable && result.release != null &&
-                            !OrbitUpdater.wasNotified(MainActivity.this,
-                                    result.release.versionCode)) {
-                        pendingForegroundRelease = result.release;
-                        maybeShowForegroundUpdate();
-                    }
-                });
-            }
 
-            @Override public void onError(String message) {
-                // Foreground discovery is opportunistic. Manual checks retain errors.
-            }
-        });
-    }
 
-    private void maybeShowForegroundUpdate() {
-        OrbitUpdater.Release release = pendingForegroundRelease;
-        if (!foregroundActive || release == null || foregroundUpdateDialog != null ||
-                !Prefs.updateNotifications(this) ||
-                OrbitUpdater.wasNotified(this, release.versionCode)) return;
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("GrokLink update available")
-                .setMessage("GrokLink v" + release.versionName +
-                        " is ready to view. GrokLink will not download it without your approval.")
-                .setNegativeButton("Later", null)
-                .setPositiveButton("View update", (ignored, which) ->
-                        startActivity(new Intent(this, UpdateActivity.class)))
-                .create();
-        foregroundUpdateDialog = dialog;
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.setOnDismissListener(ignored -> foregroundUpdateDialog = null);
+    /** GrokLink never updates itself: drop the periodic GitHub check an Orbit build may have left. */
+    private void cancelLegacyUpdateCheck() {
         try {
-            dialog.show();
-            pendingForegroundRelease = null;
-            OrbitUpdater.markNotified(this, release.versionCode);
-        } catch (Exception ignored) {
-            foregroundUpdateDialog = null;
-        }
+            androidx.work.WorkManager.getInstance(getApplicationContext())
+                    .cancelUniqueWork("orbit-stable-update-check");
+        } catch (Exception ignored) {}
     }
 
-
-    /** How long the Orbit mark has to be held before the hidden scene opens. */
+    /** How long the GrokLink mark has to be held before the hidden scene opens. */
     static final long LAUNCH_SEQUENCE_HOLD_MS = 2600L;
 
     private final android.os.Handler launchSequenceTimer =

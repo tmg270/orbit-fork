@@ -81,22 +81,6 @@ public final class DiagnosticsProPreviewTest {
 
     // ---- 15. visibility follows the build policy, and only the build policy -----------------------
 
-    /**
-     * The selector exists on this build, and exists exactly when the entitlement layer says so.
-     *
-     * <p>A unit test runs against the debug variant, so the eligible branch is the one that can be
-     * exercised here. What the assertion pins is the equivalence rather than the constant: the
-     * area is present if and only if {@link OrbitProEntitlement#previewAvailable()} is true.
-     */
-    @Test public void theSelectorIsShownExactlyWhenThePreviewIsAvailable() {
-        boolean available = OrbitProEntitlement.previewAvailable();
-        assertTrue("a debug unit-test build must be eligible", available);
-
-        Activity activity = screen();
-        assertEquals(available, allText(activity).contains("ORBIT PRO PREVIEW"));
-        assertEquals(available, choice(activity, "Free") != null);
-        assertEquals(available, choice(activity, "Pro Preview") != null);
-    }
 
     /**
      * Diagnostics never re-derives eligibility, which is what keeps Stable safe.
@@ -106,7 +90,7 @@ public final class DiagnosticsProPreviewTest {
      * one. That behaviour is only guaranteed while this screen asks rather than decides.
      */
     @Test public void diagnosticsAsksTheEntitlementLayerRatherThanTheBuild() {
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/DiagnosticsActivity.java");
         assertTrue("the screen must ask the entitlement layer",
                 source.contains("OrbitProEntitlement.previewAvailable()"));

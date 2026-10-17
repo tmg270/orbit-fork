@@ -22,8 +22,7 @@ final class AutoSheets {
 
     static final String INTRO_TITLE = "Auto";
     static final String INTRO_BODY = AiSelection.AUTO_DESCRIPTION
-            + "\n\nYou control which providers Auto may use."
-            + "\n\nSeparately billed API providers stay off until you enable them.";
+            + "\n\nAuto always uses xAI's Grok models.";
     static final String METERED_NOTE = "May use API credits";
 
     private AutoSheets() {}
@@ -56,15 +55,12 @@ final class AutoSheets {
         body.addView(intro);
 
         for (String provider : AutoPermissions.PROVIDERS) {
-            if (Prefs.PROVIDER_LOCAL.equals(provider) && !OrbitDistribution.supportsOrbitLocal()) {
-                continue;
-            }
             body.addView(providerRow(c, provider, onChanged));
         }
 
         TextView note = UiKit.text(c,
-                "Auto only uses a provider that is switched on here and ready. Choosing a model "
-                        + "yourself always uses exactly that model.",
+                "Auto always uses xAI's Grok models. Choosing a model yourself always uses exactly "
+                        + "that model.",
                 12, UiKit.MUTED, false);
         note.setLineSpacing(0, 1.12f);
         note.setPadding(0, UiKit.dp(c, 10), 0, 0);
@@ -179,11 +175,6 @@ final class AutoSheets {
                 .setTitle(INTRO_TITLE)
                 .setView(body)
                 .setNegativeButton("Cancel", null)
-                .setNeutralButton("Providers", (d, w) -> {
-                    markIntroSeen(c);
-                    showSettings(c, null);
-                    proceed.run();
-                })
                 .setPositiveButton("Use Auto", (d, w) -> {
                     markIntroSeen(c);
                     proceed.run();

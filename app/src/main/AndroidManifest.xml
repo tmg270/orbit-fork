@@ -31,46 +31,8 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!--
-      Required before Orbit may ask Android to remove the optional Orbit Local component.
-
-      Android has demanded this of any app targeting API 28 or above since Android 9; Orbit targets
-      36. Without it the platform's uninstaller logs the refusal and finishes without ever drawing
-      its confirmation, while startActivity returns as though all was well. That is exactly what
-      v0.7.7.5 did on a Galaxy S25 Ultra: Orbit's dialog closed, Android's never opened, and the
-      component stayed installed with nothing reported.
-
-      Normal protection level, so declaring it is all that is needed — there is no runtime prompt.
-      It only ever lets an app *ask*; Android still draws the confirmation and the user still
-      decides. Orbit aims it at one hardcoded package, com.orbit.assistant.local, and treats the
-      package manager's own answer afterwards as the only proof of what happened.
-    -->
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <!--
-      Declared by the optional Orbit Local component at signature protection level, so Android
-      grants it only because both APKs carry Orbit's permanent release certificate. Without it
-      bindService to the component's service is refused outright, whatever the package visibility
-      rules say: visibility decides whether Orbit can see the package, this decides whether Orbit
-      is allowed to talk to it.
-    -->
-    <uses-permission android:name="com.orbit.assistant.permission.BIND_ORBIT_LOCAL" />
 
     <queries>
-        <!--
-          The optional Orbit Local component, named exactly and on its own.
-
-          Orbit targets an Android where package visibility is filtered by default: without this,
-          getPackageInfo for the component throws NameNotFoundException even when the package is
-          installed and Android has just reported "Install success". That is exactly how
-          v0.7.7.5-beta.2 came to show "Not installed" for a component sitting on the device.
-
-          Deliberately one <package> entry and never QUERY_ALL_PACKAGES. Orbit needs to see its own
-          optional component and nothing else. Visibility is not trust: OrbitLocalComponent still
-          requires the exact package, Orbit's permanent signing certificate, the matching version,
-          and a compatible protocol before a single request crosses the boundary.
-        -->
-        <package android:name="com.orbit.assistant.local" />
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
@@ -269,8 +231,6 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".AiProvidersActivity"
             android:enableOnBackInvokedCallback="true" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".LocalAiActivity"
-            android:enableOnBackInvokedCallback="true" android:exported="false" />
         <activity android:name=".OnboardingActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".DiagnosticsActivity"
             android:enableOnBackInvokedCallback="true" android:exported="false" />
@@ -348,24 +308,6 @@
         -->
         <activity android:name=".OrbitLaunchSequenceActivity"
             android:exported="false" android:excludeFromRecents="true" />
-        <!--
-          The browser's "Return to Orbit" button after ChatGPT sign-in. Exported and BROWSABLE only
-          because a web page cannot otherwise hand the user back to an app; it reads nothing from the
-          link and only brings the screen that started the sign-in forward. See the class comment.
-        -->
-        <activity
-            android:name=".ChatGptSignInReturnActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:theme="@style/Theme.Orbit.Bridge">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="orbit-assistant" android:host="chatgpt-signin" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".OrbitWidgetConfigureActivity"
             android:exported="true"
@@ -395,14 +337,6 @@
         <receiver android:name=".LocationRoutineTriggerReceiver" android:exported="false" />
         <receiver android:name=".ReminderReceiver" android:exported="false" />
         <receiver android:name=".OrbitWidgetActionReceiver" android:exported="false" />
-        <!--
-          Where Android reports the result of an Orbit Local component uninstall.
-
-          Not exported: the package installer reaches it through a PendingIntent Orbit created
-          with an explicit component, which needs no exported surface. Nothing else can deliver
-          to it, and it acts only on a status naming com.orbit.assistant.local.
-        -->
-        <receiver android:name=".OrbitLocalUninstallReceiver" android:exported="false" />
         <receiver android:name=".AskOrbitWidgetProvider" android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

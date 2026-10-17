@@ -165,7 +165,7 @@ public final class CustomCommandStore {
         do {
             stripped = false;
             String lower = value.toLowerCase(Locale.US);
-            String[] wrappers = {"hey orbit,", "hey orbit ", "orbit,", "orbit ", "please,", "please "};
+            String[] wrappers = {"hey groklink,", "hey groklink ", "hey grok,", "hey grok ", "groklink,", "groklink ", "grok,", "grok ", "hey orbit,", "hey orbit ", "orbit,", "orbit ", "please,", "please "};
             for (String wrapper : wrappers) {
                 if (lower.startsWith(wrapper)) {
                     value = value.substring(wrapper.length()).trim();
@@ -180,7 +180,8 @@ public final class CustomCommandStore {
     private static boolean isReservedPhrase(String phrase) {
         String normalized = normalizeForMatch(phrase);
         if (normalized.isEmpty() || normalized.equals("orbit") || normalized.equals("please") ||
-                normalized.equals("hey orbit")) return true;
+                normalized.equals("hey orbit") || normalized.equals("grok") || normalized.equals("groklink")
+                || normalized.equals("hey grok") || normalized.equals("hey groklink")) return true;
         if (MemoryCommandRouter.canHandle(normalized) || LocalCommandRouter.canHandle(normalized) ||
                 RoutineCommandRouter.isReservedCommandPhrase(normalized)) return true;
         return normalized.equals("weather") || normalized.equals("forecast") ||

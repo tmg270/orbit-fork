@@ -257,7 +257,7 @@ public final class SubmissionGateTest {
     }
 
     private static String readSource(String fileName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + fileName);
     }
 }

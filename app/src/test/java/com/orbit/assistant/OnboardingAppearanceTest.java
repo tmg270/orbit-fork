@@ -67,7 +67,7 @@ public final class OnboardingAppearanceTest {
     }
 
     private static String source() {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OnboardingActivity.java");
     }
 
@@ -139,7 +139,7 @@ public final class OnboardingAppearanceTest {
 
     /** Removing them from setup did not remove them from the editor that owns them. */
     @Test public void themeStudioKeepsEverythingOnboardingDropped() {
-        String studio = ComponentUninstallTest.readRepositoryFile(
+        String studio = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ThemeStudioActivity.java");
         assertTrue(studio.contains("Accent"));
         assertTrue(studio.contains("amoledSwitch"));

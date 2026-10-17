@@ -180,7 +180,7 @@ public final class RichAnswerDiscoveryTest {
                     RichAnswerPageFetcher.looksLikeHtml(type));
         }
 
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerPageFetcher.java");
         assertTrue("no cookies may travel with it", source.contains("\"Cookie\", \"\""));
         assertFalse("and it must never POST", source.contains("setRequestMethod(\"POST\")"));
@@ -191,7 +191,7 @@ public final class RichAnswerDiscoveryTest {
 
     /** An image fetch is bounded too, and refuses anything that is not an image. */
     @Test public void theImageFetchIsBoundedAndTypeChecked() {
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RemoteImageLoader.java");
         assertTrue("the content type must be an image",
                 source.contains("startsWith(\"image/\")"));

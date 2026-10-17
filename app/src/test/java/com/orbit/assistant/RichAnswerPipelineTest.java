@@ -544,7 +544,7 @@ public final class RichAnswerPipelineTest {
         }
         assertTrue("and none of them may reach the network", images.requested.isEmpty());
 
-        String renderer = ComponentUninstallTest.readRepositoryFile(
+        String renderer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
         for (String forbidden : new String[]{
                 "HttpURLConnection", "openConnection", "setRequestProperty", "URLConnection"}) {
@@ -652,19 +652,6 @@ public final class RichAnswerPipelineTest {
         assertTrue(RichAnswerTrace.attempts(context).isEmpty());
     }
 
-    /** A web answer to a non-visual question is recorded, so "why no picture" has an answer. */
-    @Test public void aWebAnswerThatWasNotVisualRecordsWhyItWasSkipped() {
-        RichAnswerCoordinator.discover(context, "chat-1", "req-1",
-                "What is the population of Michigan?",
-                new AssistantReply("About 10 million.")
-                        .withSourceUrls(Collections.singletonList("https://example.org/mi")));
-        RichAnswerTrace.Attempt recorded = RichAnswerTrace.last(context);
-        assertNotNull(recorded);
-        assertEquals(RichAnswerTrace.Outcome.NOT_VISUAL, recorded.outcome);
-        assertEquals(RichAnswerTrace.Intent.NONE, recorded.intent);
-        assertEquals(1, recorded.sourcesReceived);
-        assertTrue("and nothing was fetched to decide it", pages.requested.isEmpty());
-    }
 
     // ---- bounds ----------------------------------------------------------------------------------
 
@@ -697,7 +684,7 @@ public final class RichAnswerPipelineTest {
                 "app/src/main/java/com/orbit/assistant/RichAnswerArticleImages.java",
                 "app/src/main/java/com/orbit/assistant/RichAnswerSubject.java",
                 "app/src/main/java/com/orbit/assistant/RichAnswerTrace.java"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(file);
+            String source = RepoFiles.readRepositoryFile(file);
             for (String forbidden : new String[]{
                     "OrbitVaultStore", "MemoryStore", "NotificationStore", "AttachmentStore",
                     "SecureStore", "ConversationStore.list", "setRequestProperty"}) {

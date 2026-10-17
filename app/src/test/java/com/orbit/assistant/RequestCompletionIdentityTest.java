@@ -168,7 +168,7 @@ public final class RequestCompletionIdentityTest {
     }
 
     @Test public void theWorkerAbandonsARerunOfACommittedRequest() {
-        String worker = ComponentUninstallTest.readRepositoryFile(
+        String worker = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRequestWorker.java");
         assertTrue("the worker must check the durable claim before running the turn again",
                 worker.contains("if (item.committed)"));
@@ -212,7 +212,7 @@ public final class RequestCompletionIdentityTest {
 
         assertEquals(before, PendingRequestStore.activeForConversation(context, CHAT).size());
 
-        String manager = ComponentUninstallTest.readRepositoryFile(
+        String manager = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRequestManager.java");
         int addListener = manager.indexOf("public static void addListener(");
         assertTrue(addListener > 0);
@@ -223,7 +223,7 @@ public final class RequestCompletionIdentityTest {
 
     /** A recreated chat re-attaches to the request it left running, and starts nothing. */
     @Test public void fullChatAttachesToExistingRequestsRatherThanResending() {
-        String chat = ComponentUninstallTest.readRepositoryFile(
+        String chat = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ChatActivity.java");
         int attach = chat.indexOf("private void attachToPending()");
         assertTrue(attach > 0);
@@ -239,7 +239,7 @@ public final class RequestCompletionIdentityTest {
 
     /** The overlay handing off to full chat carries a conversation, not a new request. */
     @Test public void theOverlayHandoffCarriesTheConversationNotANewRequest() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         int handoff = session.indexOf("ChatActivity.EXTRA_ASSISTANT_HANDOFF");
         assertTrue(handoff > 0);

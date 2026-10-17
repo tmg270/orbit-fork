@@ -208,7 +208,7 @@ public final class RichAnswerVaultTest {
 
     /** The viewer offers Save to Vault through the Vault's own path, not a private one. */
     @Test public void theViewerSavesThroughTheVaultsOwnPath() {
-        String viewer = ComponentUninstallTest.readRepositoryFile(
+        String viewer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/AttachmentViewerActivity.java");
         assertTrue(viewer.contains("OrbitVaultStore.saveRichAnswerImage"));
         assertFalse("no second media store may appear beside the Vault's",
@@ -224,10 +224,10 @@ public final class RichAnswerVaultTest {
         assertFalse("a rich-answer viewer Activity must not exist",
                 new File("app/src/main/java/com/orbit/assistant/"
                         + "RichAnswerImageViewerActivity.java").exists());
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         assertFalse(manifest.contains("RichAnswerImageViewerActivity"));
-        String card = ComponentUninstallTest.readRepositoryFile(
+        String card = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCardView.java");
         assertTrue("tapping a rich image opens the canonical viewer",
                 card.contains("AttachmentViewerActivity.openRichAnswer"));

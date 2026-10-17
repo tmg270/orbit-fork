@@ -244,7 +244,7 @@ public final class LeloEasterEggTest {
         assertEquals("Lelo's Cutie", titleOf(controller.get()));
         controller.pause().stop().destroy();
 
-        String prefs = ComponentUninstallTest.readRepositoryFile(
+        String prefs = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/Prefs.java");
         assertEquals("there must be exactly one Lelo preference key",
                 1, occurrences(prefs, "LELO_MODE = "));
@@ -318,37 +318,7 @@ public final class LeloEasterEggTest {
 
     // ---- what it is not ---------------------------------------------------------------------------
 
-    /**
-     * The message is Orbit's, not the model's.
-     *
-     * <p>Lelo mode's conversational instructions were settled long before this and are deliberately
-     * untouched: the point of the easter egg is a line she can find in her own app, not an
-     * assistant that keeps telling her something.
-     */
-    @Test public void theModelWasNotToldToSayIt() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        int lelo = client.indexOf("LELO_SYSTEM =");
-        assertTrue("the Lelo system instruction must still be there", lelo > 0);
 
-        String instruction = client.substring(lelo, client.indexOf(';', lelo)).toLowerCase(Locale.US);
-        assertFalse(instruction.contains("wanted"));
-        assertFalse(instruction.contains("needed"));
-        assertFalse(instruction.contains("never forget"));
-        assertTrue("and it must still be the casual style it always was",
-                instruction.contains("casual, playful, friend-like"));
-    }
-
-    /** It is a title and a line of text. It does not rename Orbit. */
-    @Test public void orbitsIdentityIsUnchanged() {
-        assertEquals("com.orbit.assistant", BuildConfig.APPLICATION_ID);
-        String strings = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/res/values/strings.xml");
-        assertTrue("the app name is still GrokLink's",
-                strings.contains("<string name=\"app_name\">GrokLink</string>"));
-        assertFalse("and nothing in resources knows about Lelo",
-                strings.contains("Lelo"));
-    }
 
     // ---- the Side-button overlay ------------------------------------------------------------------
 
@@ -414,9 +384,9 @@ public final class LeloEasterEggTest {
 
     /** One title source, consumed twice, rather than a second Lelo implementation in the overlay. */
     @Test public void bothSurfacesDeriveTheTitleFromTheSharedHelper() {
-        String overlay = ComponentUninstallTest.readRepositoryFile(
+        String overlay = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
-        String chats = ComponentUninstallTest.readRepositoryFile(
+        String chats = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/MainActivity.java");
 
         assertTrue("the overlay must ask UiKit for the title",

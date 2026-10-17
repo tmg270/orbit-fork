@@ -479,10 +479,6 @@ public final class AssistantClient {
         // validates it, and the shared executor runs it. Every other outcome - a refusal, malformed
         // output, a model failure, a timeout - continues to the provider exactly as before, so this
         // can add an answer and can never take one away.
-        if (OrbitLocalActionRouter.shouldTry(context, prompt)) {
-            OrbitLocalActionRouter.handle(context, prompt, cb, continueToProvider);
-            return;
-        }
         continueToProvider.run();
     }
 

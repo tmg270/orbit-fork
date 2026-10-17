@@ -378,7 +378,7 @@ public final class LocalCommandRouter {
                     "a", "an", "the", "my", "our", "your", "new", "another", "same", "that",
                     "this", "it", "quick", "short", "long", "second", "seconds", "minute",
                     "minutes", "hour", "hours", "min", "mins", "sec", "secs", "hr", "hrs",
-                    "and", "or", "set", "start", "begin", "make", "create", "run", "orbit",
+                    "and", "or", "set", "start", "begin", "make", "create", "run", "orbit", "grok", "groklink",
                     "countdown", "up", "also", "please", "for", "of", "to"));
 
     /**

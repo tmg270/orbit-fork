@@ -64,7 +64,7 @@ public final class RichAnswerImageTest {
         assertEquals(RichAnswerImage.WEB_SOURCE, sourced().provenance);
         assertEquals("web_source", RichAnswerImage.WEB_SOURCE);
         assertEquals("generated", RichAnswerImage.GENERATED);
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         assertTrue("discovery must only ever mint web-sourced images",
                 coordinator.contains("RichAnswerImage.webSource("));

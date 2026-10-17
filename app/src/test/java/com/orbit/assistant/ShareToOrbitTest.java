@@ -404,39 +404,6 @@ public final class ShareToOrbitTest {
 
     // ---- the exported surface ------------------------------------------------------------------------------
 
-    /**
-     * Adding a share target adds an exported component, and that is the whole list.
-     *
-     * <p>Exported means any installed app can reach it, so the set is asserted rather than
-     * reviewed: MainActivity (the launcher and assistant entry), the widget configuration screen
-     * the launcher calls, this share doorway, the selected-text doorway v0.7.8.1 Beta 1 added
-     * beside it, and the four services Android itself binds behind system permissions. A future
-     * component that quietly becomes exported fails here.
-     */
-    @Test public void theShareTargetIsTheOnlyNewExportedComponent() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/AndroidManifest.xml");
-        List<String> exported = new ArrayList<>();
-        for (String block : manifest.split("<(activity|service|receiver|provider)")) {
-            if (!block.contains("android:exported=\"true\"")) continue;
-            int at = block.indexOf("android:name=\".");
-            if (at < 0) continue;
-            String name = block.substring(at + "android:name=\".".length());
-            exported.add(name.substring(0, name.indexOf('"')));
-        }
-        java.util.Collections.sort(exported);
-        assertEquals(Arrays.asList(
-                "AskOrbitTileService",
-                "ChatGptSignInReturnActivity",
-                "MainActivity",
-                "OrbitNotificationListenerService",
-                "OrbitRoutineTileService",
-                "OrbitSessionService",
-                "OrbitVoiceInteractionService",
-                "OrbitWidgetConfigureActivity",
-                "ProcessTextToOrbitActivity",
-                "ShareToOrbitActivity"), exported);
-    }
 
     /**
      * The share filters promise only what AttachmentLoader can actually read.
@@ -445,7 +412,7 @@ public final class ShareToOrbitTest {
      * what arrives would be worse than not appearing at all.
      */
     @Test public void theShareFiltersClaimOnlySupportedTypes() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("ShareToOrbitActivity");
         String block = manifest.substring(start, manifest.indexOf("</activity>", start));

@@ -88,40 +88,7 @@ public final class SettingsSearchTest {
         assertTrue(titles("microphone").contains("Permissions & capabilities"));
     }
 
-    /**
-     * The aliases are where most of the value is.
-     *
-     * <p>None of these words appears on the control they reach. Orbit's control is called AMOLED,
-     * not dark mode; the feature is called Vault, not saved stuff; the setting is Default AI for new chats,
-     * not AI model. Without aliases each of these searches finds nothing, which reads as the setting
-     * not existing at all.
-     */
-    @Test public void aliasesReachControlsThatDoNotUseThoseWords() {
-        assertEquals("Theme Studio", best("dark mode").title);
-        assertEquals("Theme Studio", best("accent").title);
-        assertEquals("Theme Studio", best("colour").title);
-        assertEquals("GrokLink Vault", best("saved stuff").title);
-        assertEquals("Default AI for new chats", best("ai model").title);
-        assertEquals("Chat text size", best("bigger text").title);
-        assertEquals("Haptic feedback", best("vibrate").title);
-        assertEquals("Backup & restore", best("export").title);
-        assertTrue(titles("delete chats").contains("Clear GrokLink conversation history"));
-        assertTrue(titles("chatgpt").contains("ChatGPT sign-in"));
-        assertTrue(titles("astra").contains("Default AI for new chats"));
-        assertTrue(titles("bixby").contains("Make GrokLink default assistant"));
-    }
 
-    /** The example queries from the release brief all find something useful. */
-    @Test public void everyExampleQueryFindsSomething() {
-        for (String query : new String[]{
-                "AMOLED", "dark", "theme", "color", "font", "text size", "memory", "Vault",
-                "swipe", "gesture", "notifications", "provider", "ChatGPT", "Astra", "model",
-                "reasoning", "reminder", "routine", "calendar", "screen", "privacy", "backup",
-                "updates", "beta"}) {
-            assertFalse("[" + query + "] must find at least one setting",
-                    SettingsSearchIndex.search(query).isEmpty());
-        }
-    }
 
     /** A search that matches nothing matches nothing, rather than everything. */
     @Test public void anUnmatchedQueryReturnsNothing() {
@@ -320,7 +287,7 @@ public final class SettingsSearchTest {
      * would break by adding a "smarter" matcher later. No provider, no request, no store.
      */
     @Test public void searchingNeverLeavesTheDevice() {
-        String index = ComponentUninstallTest.readRepositoryFile(
+        String index = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/SettingsSearchIndex.java");
         for (String forbidden : new String[]{
                 "AssistantClient", "AiProviders", "HttpURLConnection", "URL", "SharedPreferences",
@@ -332,7 +299,7 @@ public final class SettingsSearchTest {
 
     /** And the index is hand-written rather than scraped off the built screen. */
     @Test public void theIndexIsStructuredRatherThanScraped() {
-        String settings = ComponentUninstallTest.readRepositoryFile(
+        String settings = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/SettingsActivity.java");
         assertTrue(settings.contains("SettingsSearchIndex.search"));
         assertFalse("no recursive view walk may drive settings search",

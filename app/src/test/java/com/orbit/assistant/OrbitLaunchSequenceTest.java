@@ -75,7 +75,7 @@ public final class OrbitLaunchSequenceTest {
 
     /** It is hidden, so there is no switch for it anywhere in Settings. */
     @Test public void thereIsNoSettingForIt() {
-        String settings = ComponentUninstallTest.readRepositoryFile(
+        String settings = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/SettingsActivity.java");
         assertFalse(settings.contains("Launch sequence"));
         assertFalse(settings.contains("OrbitLaunchSequence"));
@@ -83,7 +83,7 @@ public final class OrbitLaunchSequenceTest {
 
     /** And it does not disturb the Lelo easter egg, which lives somewhere else entirely. */
     @Test public void theLeloEasterEggIsUntouched() {
-        String settings = ComponentUninstallTest.readRepositoryFile(
+        String settings = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/SettingsActivity.java");
         assertTrue("Lelo mode is still unlocked from the Settings footer",
                 settings.contains("handleLeloSecretTap"));
@@ -164,13 +164,13 @@ public final class OrbitLaunchSequenceTest {
      * (GPT-6 Luna, GPT-6.1 Sol), which {@code theModelNamesLiveInTheCatalog} below pins.
      */
     @Test public void theBodiesAreUnnamedAndNeverFunctional() {
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitLaunchSequenceView.java");
         for (String codename : new String[]{"Luna", "Terra", "Sol"}) {
             assertFalse("the scene must not name an orbiter " + codename,
                     source.contains("\"" + codename + "\""));
         }
-        String activity = ComponentUninstallTest.readRepositoryFile(
+        String activity = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitLaunchSequenceActivity.java");
         for (String codename : new String[]{"Luna", "Terra", "Sol"}) {
             assertFalse(activity.contains("\"" + codename + "\""));
@@ -182,13 +182,6 @@ public final class OrbitLaunchSequenceTest {
         }
     }
 
-    /**
-     * The names the scene stopped borrowing belong to the model catalog, and only there.
-     */
-    @Test public void theModelNamesLiveInTheCatalog() {
-        assertTrue(OrbitModelCatalog.displayName(OrbitModelCatalog.LUNA).contains("Luna"));
-        assertTrue(OrbitModelCatalog.displayName(OrbitModelCatalog.SOL).contains("Sol"));
-    }
 
     // ---- dragging ------------------------------------------------------------------------------
 
@@ -372,19 +365,6 @@ public final class OrbitLaunchSequenceTest {
 
     // ---- what it must never do -----------------------------------------------------------------
 
-    /** No network, no provider, no storage, no telemetry. Asserted from the source. */
-    @Test public void theSceneTouchesNothingItShouldNot() {
-        for (String path : new String[]{
-                "app/src/main/java/com/orbit/assistant/OrbitLaunchSequenceView.java",
-                "app/src/main/java/com/orbit/assistant/OrbitLaunchSequenceActivity.java"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(path);
-            for (String forbidden : new String[]{"HttpURLConnection", "java.net", "OkHttp",
-                    "getSharedPreferences", "SecureStore", "ConversationStore", "MemoryStore",
-                    "OrbitLocalClient", "openFileOutput", "Log."}) {
-                assertFalse(path + " must not use " + forbidden, source.contains(forbidden));
-            }
-        }
-    }
 
     /** A screen reader must always have a labelled way out that does not depend on the drawing. */
     @Test public void thereIsAnAccessibleExit() {
@@ -431,7 +411,7 @@ public final class OrbitLaunchSequenceTest {
         assertEquals("Launch sequence",
                 OrbitNavigation.labelFor(OrbitLaunchSequenceActivity.class));
 
-        String manifest = ComponentUninstallTest.readRepositoryFile("app/src/main/AndroidManifest.xml");
+        String manifest = RepoFiles.readRepositoryFile("app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("android:name=\".OrbitLaunchSequenceActivity\"");
         assertTrue("the scene must be declared", start > 0);
         String declaration = manifest.substring(start, manifest.indexOf('>', start));

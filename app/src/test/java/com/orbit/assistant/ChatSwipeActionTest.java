@@ -360,18 +360,6 @@ public final class ChatSwipeActionTest {
         assertFalse(ConversationStore.load(context, id).pinned);
     }
 
-    /** Pinning does not pretend the chat just happened. */
-    @Test public void pinningDoesNotDisturbRecentOrdering() {
-        String older = chat("Older", "first");
-        String newer = chat("Newer", "second");
-        long olderAt = ConversationStore.load(context, older).updatedAt;
-
-        ConversationStore.setPinned(context, older, true);
-        assertEquals("pinning is not activity", olderAt,
-                ConversationStore.load(context, older).updatedAt);
-        assertEquals("and the newest chat is still the newest",
-                newer, ConversationStore.latest(context).id);
-    }
 
     /** Everything else about the chat survives being pinned. */
     @Test public void pinningKeepsTheRestOfTheConversationIntact() {

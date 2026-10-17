@@ -496,7 +496,7 @@ public final class RemoteImageTransportTest {
     @Test public void productionUsesTheRealTransport() {
         RemoteImageLoader.installTransportForTest(null);
         assertTrue(RemoteImageLoader.usingNetworkTransport());
-        String loader = ComponentUninstallTest.readRepositoryFile(
+        String loader = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RemoteImageLoader.java");
         assertEquals("only the test seam may install a transport", 1,
                 countOccurrences(loader, "installTransportForTest"));
@@ -504,7 +504,7 @@ public final class RemoteImageTransportTest {
                 "RichAnswerCoordinator", "RichAnswerCardView", "OrbitRichResponseRenderer",
                 "ChatActivity", "OrbitSession"}) {
             assertFalse(file + " must never replace the transport",
-                    ComponentUninstallTest.readRepositoryFile(
+                    RepoFiles.readRepositoryFile(
                             "app/src/main/java/com/orbit/assistant/" + file + ".java")
                             .contains("installTransportForTest"));
         }

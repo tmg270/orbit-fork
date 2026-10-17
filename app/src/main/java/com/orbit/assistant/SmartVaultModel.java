@@ -313,7 +313,7 @@ final class SmartVaultModel {
             connection.setConnectTimeout(20_000);
             connection.setReadTimeout(60_000);
             connection.setRequestProperty("User-Agent",
-                    "OrbitAssistant/" + BuildConfig.VERSION_NAME + " (Android; Smart Vault)");
+                    GrokLinkHttp.userAgent());
             int status = connection.getResponseCode();
             if (status < 200 || status >= 300) {
                 return "The model server answered " + status + ". Try again later.";

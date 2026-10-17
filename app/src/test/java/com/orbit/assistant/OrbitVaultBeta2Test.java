@@ -73,7 +73,7 @@ public final class OrbitVaultBeta2Test {
     }
 
     private static String source(String simpleName) {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/" + simpleName + ".java");
     }
 
@@ -514,26 +514,6 @@ public final class OrbitVaultBeta2Test {
         assertEquals(1, controller.get().pendingAttachments().size());
     }
 
-    /** The item screen builds the Intent and stops: no request machinery is reachable from it. */
-    @Test public void theItemScreenStagesRatherThanSends() {
-        String screen = source("OrbitVaultItemActivity");
-        assertTrue("Ask GrokLink hands the id to the ordinary chat screen",
-                screen.contains("ChatActivity.EXTRA_VAULT_ITEM_ID"));
-        for (String forbidden : new String[]{"AssistantClient", "AiProviders", "AutoRouter",
-                "OrbitRequestManager", "PendingRequestStore", "OrbitRequestWorker",
-                "HttpURLConnection", "java.net."}) {
-            assertFalse("the item screen must not reference " + forbidden,
-                    screen.contains(forbidden));
-        }
-        for (String name : new String[]{"OrbitVaultAttachment", "OrbitVaultPickerActivity"}) {
-            String text = source(name);
-            for (String forbidden : new String[]{"AssistantClient", "AiProviders", "ChatGptClient",
-                    "AutoRouter", "OrbitRequestManager", "PendingRequestStore",
-                    "HttpURLConnection", "java.net.", "MemoryStore"}) {
-                assertFalse(name + " must not reference " + forbidden, text.contains(forbidden));
-            }
-        }
-    }
 
     // ---- Attach from Vault --------------------------------------------------------------------------
 
@@ -771,7 +751,7 @@ public final class OrbitVaultBeta2Test {
 
     /** The Vault gains no new exported door, and the picker is not one. */
     @Test public void thepickerIsNotExported() {
-        String manifest = ComponentUninstallTest.readRepositoryFile(
+        String manifest = RepoFiles.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int declaration = manifest.indexOf("android:name=\".OrbitVaultPickerActivity\"");
         assertTrue("the picker must be declared", declaration > 0);

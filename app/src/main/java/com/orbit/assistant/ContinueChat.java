@@ -17,16 +17,13 @@ import java.util.List;
  * plus whatever the user had kept in the original. Orbit never trims or rewrites the original's
  * history to make a meter look better.
  *
- * <p><b>Summary policy.</b> One fixed, small metadata model, exactly like automatic titles:
- * GPT-5.6 Luna at Low strength through the user's ChatGPT sign-in. The chat's own model is never
- * used for this and Astra is never spent on it. The request carries only the visible conversation
+ * <p><b>Summary policy.</b> Written by xAI (Grok) with the user's API key or SuperGrok sign-in,
+ * using the default xAI model. The request carries only the visible conversation
  * text - no Orbit instructions, no memories, no screen, no hidden branches - and asks for facts,
  * the current task and its state, and open decisions. If the summary cannot be written (no sign-in,
  * a network failure, an empty reply) nothing is created and the user stays where they are.
  */
 final class ContinueChat {
-    static final AiSelection SUMMARY_SELECTION = AiSelection.of(Prefs.PROVIDER_CHATGPT,
-            OrbitModelCatalog.GPT_5_6_LUNA, AiStrength.LOW);
     /** Most of the conversation the summary request reads, newest kept when it is longer. */
     static final int MAX_TRANSCRIPT_CHARS = 24000;
     static final int MAX_SUMMARY_CHARS = 4000;
@@ -49,7 +46,7 @@ final class ContinueChat {
 
     /** Whether a summary can be written at all on this phone right now. */
     static boolean available(Context c) {
-        return c != null && ChatGptAuth.isSignedIn(c);
+        return c != null && SecureStore.hasXaiCredential(c);
     }
 
     /**
@@ -59,7 +56,7 @@ final class ContinueChat {
         Context c = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
         if (!available(c)) {
-            main.post(() -> callback.onFailed("Continue in new chat is not available in GrokLink yet, so it cannot write "
+            main.post(() -> callback.onFailed("Sign in with SuperGrok or add an xAI API key first, so GrokLink can write "
                     + "the summary. This chat is unchanged."));
             return;
         }
@@ -69,7 +66,7 @@ final class ContinueChat {
             return;
         }
         String prompt = summaryPrompt(chat.title, chat.messages, chat.keptItems());
-        ChatGptClient.complete(c, INSTRUCTIONS, prompt, SUMMARY_SELECTION,
+        new XaiProvider().complete(c, INSTRUCTIONS, prompt,
                 new AssistantClient.PlanCallback() {
                     @Override public void onText(String raw, String providerLabel) {
                         String summary = cleanSummary(raw);

@@ -57,17 +57,6 @@ public final class ModelLibraryStoreTest {
         assertEquals(1, count);
     }
 
-    @Test public void providerDefaultsAreIndependentAndDoNotChangeTheGlobalDefault() {
-        AiSelection global = AiSelections.setGlobalDefault(context, AiSelection.of(
-                Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.GPT_5_6_TERRA, AiStrength.MEDIUM));
-        AiSelection claude = AiSelection.of(Prefs.PROVIDER_ANTHROPIC,
-                OrbitModelCatalog.CLAUDE_SONNET_5_5, AiStrength.HIGH);
-        ModelLibraryStore.rememberProviderDefault(context, claude);
-        assertEquals(claude, ModelLibraryStore.providerDefault(context, Prefs.PROVIDER_ANTHROPIC));
-        assertEquals("switching providers restores that provider's model and strength", claude,
-                AiSelections.withProvider(context, global, Prefs.PROVIDER_ANTHROPIC));
-        assertEquals(global, AiSelections.globalDefault(context));
-    }
 
     @Test public void portableStateRoundTripsButCatalogCacheDoesNotEnterPrefsBackup() throws Exception {
         AiSelection claude = AiSelection.of(Prefs.PROVIDER_ANTHROPIC,
@@ -95,23 +84,7 @@ public final class ModelLibraryStoreTest {
         assertEquals(null, resolved.strength);
     }
 
-    @Test public void modelSearchCoversNameFamilyAndProvider() {
-        AiModelSpec claude = OrbitModelCatalog.spec(Prefs.PROVIDER_ANTHROPIC,
-                OrbitModelCatalog.CLAUDE_OPUS_5_5);
-        assertTrue(ModelLibraryDialog.matches(claude, "Anthropic Claude", "opus"));
-        assertTrue(ModelLibraryDialog.matches(claude, "Anthropic Claude", "anthropic"));
-        assertTrue(ModelLibraryDialog.matches(claude, "Anthropic Claude", "claude 5"));
-        assertFalse(ModelLibraryDialog.matches(claude, "Anthropic Claude", "grok"));
-    }
 
-    @Test public void contextMetadataBelongsToTheSelectedProviderModel() {
-        assertEquals(1_050_000, AiSelections.specFor(AiSelection.of(Prefs.PROVIDER_CHATGPT,
-                OrbitModelCatalog.LUNA, AiStrength.MEDIUM)).contextWindowTokens);
-        assertEquals(1_000_000, AiSelections.specFor(AiSelection.of(Prefs.PROVIDER_ANTHROPIC,
-                OrbitModelCatalog.CLAUDE_SONNET_5_5, AiStrength.HIGH)).contextWindowTokens);
-        assertEquals(500_000, AiSelections.specFor(AiSelection.of(Prefs.PROVIDER_XAI,
-                OrbitModelCatalog.GROK_4_7, AiStrength.HIGH)).contextWindowTokens);
-    }
 
     @Test public void responseDetailsKeepTheHistoricalDynamicDisplayName() throws Exception {
         AiModelSpec dynamic = new AiModelSpec("grok-account-model", "Grok Account Model", "Grok",

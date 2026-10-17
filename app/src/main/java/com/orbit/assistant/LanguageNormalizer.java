@@ -64,8 +64,8 @@ public final class LanguageNormalizer {
         boolean changed = true;
         while (changed) {
             changed = false;
-            for (String lead : new String[]{"please ", "hey orbit ", "ok orbit ", "okay orbit ",
-                    "orbit ", "can you ", "could you ", "would you ", "will you ", "i want you to ",
+            for (String lead : new String[]{"please ", "hey groklink ", "hey grok ", "ok grok ", "okay grok ", "groklink ", "grok ",
+                    "hey orbit ", "ok orbit ", "okay orbit ", "orbit ", "can you ", "could you ", "would you ", "will you ", "i want you to ",
                     "i'd like you to ", "go ahead and ", "just "}) {
                 if (value.startsWith(lead)) {
                     value = value.substring(lead.length()).trim();

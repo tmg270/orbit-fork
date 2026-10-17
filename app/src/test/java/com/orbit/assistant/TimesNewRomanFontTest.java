@@ -57,7 +57,7 @@ public final class TimesNewRomanFontTest {
         for (int style : new int[]{Typeface.NORMAL, Typeface.BOLD, Typeface.ITALIC, Typeface.BOLD_ITALIC}) {
             assertNotNull(UiKit.typefaceForFontChoice("times_new_roman", style));
         }
-        String source = ComponentUninstallTest.readRepositoryFile(
+        String source = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/UiKit.java");
         assertFalse("the remappable alias is only a last resort, never the first choice",
                 source.contains("return Typeface.create(Typeface.SERIF, style);"));

@@ -63,7 +63,7 @@ public final class RichAnswerSubject {
             "make", "made", "use", "used", "using", "want", "need", "please", "thanks",
             "search", "searching", "web", "internet", "online", "google", "browser", "link",
             "describe", "description", "explain", "tell", "show", "showing", "shown", "display",
-            "answer", "answers", "response", "reply", "orbit", "assistant",
+            "answer", "answers", "response", "reply", "orbit", "grok", "groklink", "assistant",
             "picture", "pictures", "photo", "photos", "photograph", "photographs",
             // Beta 9. "Show me pics of a mallard duck" used to make "pic" a subject word, so any
             // candidate whose path contained it scored as a subject match - which is precisely the

@@ -53,7 +53,7 @@ public final class RichAnswerRenderingTest {
     }
 
     @Test public void richCaptionIsTheAccessibleOpenSourceControl() {
-        String card = ComponentUninstallTest.readRepositoryFile(
+        String card = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCardView.java");
         assertTrue(card.contains("Open image source: "));
         assertTrue(card.contains("caption.setClickable(true)"));
@@ -144,7 +144,7 @@ public final class RichAnswerRenderingTest {
      * model as history. Rewriting it to remove a duplicate picture would corrupt all three.
      */
     @Test public void theAnswerTextIsNeverRewritten() {
-        String renderer = ComponentUninstallTest.readRepositoryFile(
+        String renderer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
         int at = renderer.indexOf("suppressesMarkdownImage(block, richImages)) continue;");
         assertTrue("suppression must be a skipped draw", at > 0);
@@ -165,7 +165,7 @@ public final class RichAnswerRenderingTest {
      * the picture belongs to, and that page is what a person actually wants to see.
      */
     @Test public void theRichCardOffersTheSourcePageRatherThanTheRawImage() {
-        String card = ComponentUninstallTest.readRepositoryFile(
+        String card = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCardView.java");
         assertTrue(card.contains("\"Open source\""));
         assertFalse("the raw file is not a destination for a person",
@@ -178,7 +178,7 @@ public final class RichAnswerRenderingTest {
 
     /** The Markdown card keeps the fallback it has always had. */
     @Test public void theMarkdownCardKeepsItsOwnFallback() {
-        String renderer = ComponentUninstallTest.readRepositoryFile(
+        String renderer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
         assertTrue(renderer.contains("\"Open image\""));
         assertTrue(renderer.contains("\"Image unavailable\""));
@@ -186,9 +186,9 @@ public final class RichAnswerRenderingTest {
 
     /** Both paths draw through the one loader, so their transport cannot drift apart. */
     @Test public void bothImagePathsUseTheCanonicalLoader() {
-        String markdown = ComponentUninstallTest.readRepositoryFile(
+        String markdown = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
-        String rich = ComponentUninstallTest.readRepositoryFile(
+        String rich = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCardView.java");
         assertTrue(markdown.contains("RemoteImageLoader.load("));
         assertTrue(rich.contains("RemoteImageLoader.loadDetailed("));
@@ -287,7 +287,7 @@ public final class RichAnswerRenderingTest {
 
     /** No failure path may reserve a picture-sized hole in the answer. */
     @Test public void noFailurePathReservesAPictureSizedArea() {
-        String renderer = ComponentUninstallTest.readRepositoryFile(
+        String renderer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
         int failure = renderer.indexOf("static void showImageFailure");
         int end = renderer.indexOf("\n    private static View linkedFallback", failure);

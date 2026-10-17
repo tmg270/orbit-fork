@@ -70,57 +70,10 @@ public final class OnboardingActivity extends Activity {
     private int step;
     private boolean manual;
     private boolean resumedOnce;
-    /** Whether the collapsed "More provider options" area is open. */
-    private boolean advancedExpanded;
     private boolean completionCelebrationPlayed;
     private String appliedAppearance = "";
     private FrameLayout completionMarkHost;
     private View completionMark;
-
-    private final ChatGptAuth.LoginCallback loginCallback = new ChatGptAuth.LoginCallback() {
-        @Override public void onSuccess(ChatGptAuth.AccountInfo account) {
-            runOnUiThread(() -> {
-                if (!canUpdateUi()) return;
-                Toast.makeText(OnboardingActivity.this,
-                        "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
-                render();
-            });
-        }
-
-        @Override public void onError(String message) {
-            runOnUiThread(() -> {
-                if (!canUpdateUi()) return;
-                render();
-                showMessage("ChatGPT sign-in could not complete", message);
-            });
-        }
-    };
-
-    /** Hears how a browser sign-in ended. Attached while onboarding is in front. */
-    private final ChatGptBrowserAuth.Listener browserListener = new ChatGptBrowserAuth.Listener() {
-         public void onSignedIn(ChatGptAuth.AccountInfo account) {
-            if (!canUpdateUi()) return;
-            Toast.makeText(OnboardingActivity.this, "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
-            render();
-        }
-
-         public void onFailed(String message, boolean offerCodeSignIn) {
-            if (!canUpdateUi()) return;
-            render();
-            AlertDialog dialog = new AlertDialog.Builder(OnboardingActivity.this)
-                    .setTitle("ChatGPT sign-in could not complete")
-                    .setMessage(message)
-                    .setPositiveButton("Use code sign-in", (d, w) -> startCodeSignIn())
-                    .setNegativeButton("Close", null)
-                    .create();
-            UiKit.styleOrbitDialog(dialog, OnboardingActivity.this, false);
-            dialog.show();
-        }
-
-         public void onCancelled() {
-            if (canUpdateUi()) render();
-        }
-    };
 
     public static Intent freshInstallIntent(Context context) {
         return new Intent(context, OnboardingActivity.class)
@@ -137,18 +90,11 @@ public final class OnboardingActivity extends Activity {
         manual = getIntent() != null && getIntent().getBooleanExtra(EXTRA_MANUAL, false);
         if (savedInstanceState != null) {
             step = savedInstanceState.getInt("step", 0);
-            advancedExpanded = savedInstanceState.getBoolean("advancedExpanded", false);
             completionCelebrationPlayed = savedInstanceState.getBoolean(
                     "completionCelebrationPlayed", false);
         }
         else if (manual) step = 0;
         else step = OnboardingState.currentStep(this);
-        // Someone already on an advanced provider should not have to go looking for it.
-        if (savedInstanceState == null
-                && (Prefs.PROVIDER_RELAY.equals(Prefs.provider(this))
-                        || Prefs.PROVIDER_OPENROUTER.equals(Prefs.provider(this)))) {
-            advancedExpanded = true;
-        }
         persistStep();
         render();
     }
@@ -167,7 +113,6 @@ public final class OnboardingActivity extends Activity {
 
     @Override protected void onSaveInstanceState(Bundle outState) {
         outState.putInt("step", step);
-        outState.putBoolean("advancedExpanded", advancedExpanded);
         outState.putBoolean("completionCelebrationPlayed", completionCelebrationPlayed);
         super.onSaveInstanceState(outState);
     }
@@ -178,16 +123,10 @@ public final class OnboardingActivity extends Activity {
         String appearance = UiKit.appearanceSignature(this);
         if (resumedOnce || !appearance.equals(appliedAppearance)) render();
         resumedOnce = true;
-        ChatGptBrowserAuth.attach(browserListener);
-        if (step == 1 && !ChatGptAuth.isSignedIn(this) &&
-                ChatGptAuth.resumePendingDeviceCode(this, loginCallback)) {
-            Toast.makeText(this, "Finishing secure ChatGPT sign-in…", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override protected void onPause() {
         UiPresence.leave(this);
-        ChatGptBrowserAuth.detach(browserListener);
         super.onPause();
     }
 
@@ -309,7 +248,7 @@ public final class OnboardingActivity extends Activity {
         restore.setOnClickListener(v -> chooseBackup());
         page.addView(restore, buttonLp());
         TextView note = UiKit.text(this,
-                "A restored backup brings back supported local data and appearance. ChatGPT credentials, Android permissions, and default-assistant status are intentionally not restored.",
+                "A restored backup brings back supported local data and appearance. Grok sign-in and API keys, Android permissions, and default-assistant status are intentionally not restored.",
                 12, UiKit.MUTED, false);
         note.setPadding(UiKit.dp(this, 3), UiKit.dp(this, 8), UiKit.dp(this, 3), 0);
         page.addView(note);
@@ -350,149 +289,9 @@ public final class OnboardingActivity extends Activity {
         page.addView(key, buttonLp());
     }
 
-    @SuppressWarnings("unused")
-    private void buildConnectLegacy(LinearLayout page) {
-        addTitle(page, "Connect GrokLink",
-                "Choose how GrokLink thinks. ChatGPT is the recommended full experience. GrokLink Local is optional, private, and can be added later.");
-        page.addView(chatGptCard(), cardLp());
-        page.addView(orbitLocalCard(), cardLp());
 
-        Button more = quietButton(advancedExpanded
-                ? "Hide more provider options" : "More provider options");
-        more.setOnClickListener(v -> {
-            advancedExpanded = !advancedExpanded;
-            render();
-        });
-        page.addView(more, buttonLp());
 
-        if (advancedExpanded) {
-            page.addView(openRouterCard(), cardLp());
-            buildRelayFallback(page);
-        }
-    }
 
-    /** The recommended provider. Its existing secure device-code sign-in is untouched. */
-    private LinearLayout chatGptCard() {
-        AiProvider provider = AiProviders.byId(Prefs.PROVIDER_CHATGPT);
-        boolean connected = provider.status(this) == AiProvider.Status.READY;
-        boolean active = Prefs.PROVIDER_CHATGPT.equals(Prefs.provider(this));
-
-        LinearLayout card = card();
-        card.addView(providerHeading(provider.displayName(), "Recommended"));
-        card.addView(providerStatusLine(connected, provider.statusDetail(this)));
-        addCardDescription(card,
-                "GrokLink's fullest experience: stronger answers, hosted web search, screen and image context, and device-action planning.");
-        addCapabilityLine(card, provider);
-
-        TextView help = UiKit.text(this, connected
-                ? "GrokLink keeps using the securely stored session already on this phone."
-                : "Your browser handles authorization. GrokLink never asks for your ChatGPT password.",
-                12, UiKit.MUTED, false);
-        help.setPadding(0, 0, 0, UiKit.dp(this, 12));
-        card.addView(help);
-
-        Button action = primaryButton(connected
-                ? (active ? "ChatGPT active" : "Use ChatGPT")
-                : "Sign in with ChatGPT");
-        action.setEnabled(!connected || !active);
-        action.setAlpha(connected && active ? .68f : 1f);
-        action.setOnClickListener(v -> {
-            if (connected) {
-                AiProviders.select(this, Prefs.PROVIDER_CHATGPT);
-                render();
-            } else startChatGptLogin();
-        });
-        card.addView(action, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 48)));
-        if (!connected) {
-            // The fallback, quiet and always present: never the recommended path, never hidden.
-            Button code = new Button(this);
-            code.setText("Having trouble? Use code sign-in");
-            code.setAllCaps(false);
-            code.setTextSize(13);
-            code.setTextColor(UiKit.accent(this));
-            code.setBackground(UiKit.ripple(android.graphics.Color.TRANSPARENT, UiKit.accent(this), 14, this));
-            code.setStateListAnimator(null);
-            code.setOnClickListener(v -> startCodeSignIn());
-            card.addView(code, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 44)));
-        }
-        return card;
-    }
-
-    /**
-     * The optional on-device provider.
-     *
-     * <p>Never forced, and never a second downloader: setup opens the dedicated Orbit Local screen
-     * that already owns the component install, the model download, and their progress, and this
-     * page simply reflects whatever state that screen left behind when the user returns.
-     */
-    private LinearLayout orbitLocalCard() {
-        AiProvider provider = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        AiProvider.Status status = provider.status(this);
-        boolean ready = status == AiProvider.Status.READY;
-        boolean active = ready && Prefs.PROVIDER_LOCAL.equals(Prefs.provider(this));
-        boolean supported = status != AiProvider.Status.UNSUPPORTED;
-
-        LinearLayout card = card();
-        card.addView(providerHeading(provider.displayName(), "Optional"));
-        card.addView(providerStatusLine(ready, provider.statusDetail(this)));
-        addCardDescription(card,
-                "Runs privately on this phone and keeps working offline once it is set up. It uses a small model, so answers are simpler than cloud AI.");
-        addCapabilityLine(card, provider);
-
-        String missing = missingCapabilitySentence(provider.capabilities());
-        if (!missing.isEmpty() && supported) {
-            TextView limits = UiKit.text(this, missing, 12, UiKit.MUTED, false);
-            limits.setLineSpacing(0, 1.12f);
-            limits.setPadding(0, 0, 0, UiKit.dp(this, 12));
-            card.addView(limits);
-        }
-
-        if (!supported) return card;
-        if (!ready && !OrbitDistribution.installsOrbitLocalComponent()) {
-            // A setup button here would lead to a screen that cannot set anything up.
-            TextView unavailable = UiKit.text(this, LocalAiActivity.PLAY_UNAVAILABLE,
-                    12, UiKit.MUTED, false);
-            unavailable.setLineSpacing(0, 1.12f);
-            card.addView(unavailable);
-            return card;
-        }
-
-        Button action = primaryButton(active ? "GrokLink Local active"
-                : ready ? "Use GrokLink Local" : "Set up GrokLink Local");
-        action.setEnabled(!active);
-        action.setAlpha(active ? .68f : 1f);
-        action.setOnClickListener(v -> {
-            if (ready) {
-                AiProviders.select(this, Prefs.PROVIDER_LOCAL);
-                render();
-            } else {
-                // The one screen that owns the 35 MB component and the model download. Setup
-                // returns here, and onResume re-reads the real state.
-                startActivity(new Intent(this, LocalAiActivity.class));
-            }
-        });
-        card.addView(action, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 48)));
-        return card;
-    }
-
-    /**
-     * OpenRouter (0.8.3.0-beta.6+): a real optional provider, kept behind More provider options so
-     * ChatGPT and Orbit Local stay the first choices. Connecting happens in AI Providers, where
-     * Sign in with OpenRouter lives; nothing here connects anything on the user's behalf.
-     */
-    private LinearLayout openRouterCard() {
-        AiProvider provider = AiProviders.byId(Prefs.PROVIDER_OPENROUTER);
-        LinearLayout card = card();
-        card.addView(providerHeading(provider.displayName(), "Optional"));
-        boolean ready = provider.status(this) == AiProvider.Status.READY;
-        card.addView(providerStatusLine(ready, provider.statusDetail(this)));
-        addCardDescription(card,
-                "Many AI models through one OpenRouter account. Usage is billed to your OpenRouter credits, separately from ChatGPT. Sign in any time from AI Providers.");
-        Button manage = secondaryButton(ready ? "Open provider settings" : "Set up OpenRouter");
-        manage.setOnClickListener(v -> startActivity(new Intent(this, AiProvidersActivity.class)));
-        card.addView(manage, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 46)));
-        return card;
-    }
 
     private LinearLayout providerHeading(String name, String tag) {
         LinearLayout row = new LinearLayout(this);
@@ -545,50 +344,6 @@ public final class OnboardingActivity extends Activity {
         return out.append(".").toString();
     }
 
-    private void buildRelayFallback(LinearLayout page) {
-        LinearLayout relayCard = card();
-        relayCard.addView(providerHeading("Private API relay", "Advanced"));
-        boolean configured = Prefs.relayConfigured(this);
-        boolean relayActive = Prefs.PROVIDER_RELAY.equals(Prefs.provider(this)) && configured;
-        relayCard.addView(providerStatusLine(configured, relayActive
-                ? "Active provider" : configured ? "Relay saved" : "Relay URL required"));
-        addCardDescription(relayCard,
-                "For advanced users running their own HTTPS relay. GrokLink talks to your server; your API key stays on it and never enters GrokLink.");
-
-        EditText url = field("https://your-relay.example.com", Prefs.backendUrl(this), false);
-        relayCard.addView(url, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 52)));
-        EditText token = field("Relay access token (optional)", Prefs.token(this), true);
-        LinearLayout.LayoutParams tokenLp = new LinearLayout.LayoutParams(-1, UiKit.dp(this, 52));
-        tokenLp.topMargin = UiKit.dp(this, 9);
-        relayCard.addView(token, tokenLp);
-
-        Button save = secondaryButton("Save and use private relay");
-        LinearLayout.LayoutParams saveLp = new LinearLayout.LayoutParams(-1, UiKit.dp(this, 46));
-        saveLp.topMargin = UiKit.dp(this, 11);
-        relayCard.addView(save, saveLp);
-        save.setOnClickListener(v -> {
-            try {
-                String requestedUrl = url.getText().toString().trim();
-                if (requestedUrl.isEmpty()) {
-                    Toast.makeText(this, "Enter an HTTPS relay URL first.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String error = Prefs.saveRelaySettings(this, requestedUrl,
-                        token.getText().toString());
-                if (!error.isEmpty()) {
-                    Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                AiProviders.select(this, Prefs.PROVIDER_RELAY);
-                Toast.makeText(this, "Private relay saved and selected", Toast.LENGTH_SHORT).show();
-                render();
-            } catch (Exception error) {
-                showMessage("Could not save relay settings",
-                        "GrokLink could not securely save the optional relay access token.");
-            }
-        });
-        page.addView(relayCard, cardLp());
-    }
 
     private void buildAssistant(LinearLayout page) {
         addTitle(page, "Make GrokLink your assistant",
@@ -898,7 +653,7 @@ public final class OnboardingActivity extends Activity {
                 "You're all set. GrokLink is ready when you are.");
         LinearLayout summary = card();
         List<String> items = new ArrayList<>();
-        if (ChatGptAuth.isSignedIn(this)) items.add("✓ ChatGPT connected");
+        if (SecureStore.hasXaiCredential(this)) items.add("✓ Grok connected");
         if (OrbitSetupHelper.isOrbitAssistantActive(this)) items.add("✓ GrokLink set as assistant");
         if (OnboardingState.askTileConfirmed(this)) items.add("✓ Quick Settings tile added");
         RoutineStore.Routine starter = RoutineStore.findById(this,
@@ -1406,60 +1161,8 @@ public final class OnboardingActivity extends Activity {
         startActivity(new Intent(this, CapabilitiesActivity.class));
     }
 
-    /** Sign in with ChatGPT: the browser flow, as in Settings. */
-    private void startChatGptLogin() {
-        ChatGptBrowserAuth.Started started = ChatGptBrowserAuth.start(this, browserListener);
-        if (!started.ok()) {
-            browserListener.onFailed(started.error, true);
-            return;
-        }
-        ChatGptSignInReturnActivity.returnTo = OnboardingActivity.class;
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(started.authorizeUrl))
-                    .addCategory(Intent.CATEGORY_BROWSABLE));
-        } catch (Exception e) {
-            ChatGptBrowserAuth.cancel();
-            browserListener.onFailed("GrokLink could not open a web browser on this phone.", true);
-        }
-    }
 
-    /** The device-code fallback, unchanged. */
-    private void startCodeSignIn() {
-        ChatGptAuth.requestDeviceCode(this, new ChatGptAuth.StartCallback() {
-            @Override public void onSuccess(ChatGptAuth.DeviceCode code) {
-                runOnUiThread(() -> { if (canUpdateUi()) showDeviceCode(code); });
-                ChatGptAuth.completeDeviceCode(OnboardingActivity.this, code, loginCallback);
-            }
 
-            @Override public void onError(String message) {
-                runOnUiThread(() -> { if (canUpdateUi())
-                    showMessage("Could not start ChatGPT sign-in", message); });
-            }
-        });
-    }
-
-    private void showDeviceCode(ChatGptAuth.DeviceCode code) {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        if (clipboard != null)
-            clipboard.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Sign in with ChatGPT")
-                .setMessage("Your one-time code is:\n\n" + code.userCode +
-                        "\n\nIt has been copied. Complete authorization in your browser, then return to GrokLink.")
-                .setPositiveButton("Open ChatGPT sign-in", (d, which) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(code.verificationUrl))); }
-                    catch (Exception e) { Toast.makeText(this, code.verificationUrl, Toast.LENGTH_LONG).show(); }
-                })
-                .setNeutralButton("Copy code", (d, which) -> {
-                    ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    if (cm != null) cm.setPrimaryClip(
-                            ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
-                })
-                .setNegativeButton("Close", null)
-                .create();
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.show();
-    }
 
     private void chooseBackup() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);

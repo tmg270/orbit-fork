@@ -595,7 +595,7 @@ public final class DeviceActionExecutor {
         String[] reject = {
                 "message", "messages", "reply", "typing", "search", "settings", "back",
                 "send", "camera", "gallery", "emoji", "today", "yesterday", "online",
-                "screen", "conversation", "rcs", "sms", "orbit", "call", "video"
+                "screen", "conversation", "rcs", "sms", "orbit", "grok", "groklink", "call", "video"
         };
         for (String word : reject) if (lower.equals(word) || lower.startsWith(word + " ")) return false;
         int words = line.split(" ").length;

@@ -86,7 +86,7 @@ public final class OnboardingState {
         // A real package update is authoritative even if the user kept Orbit's defaults.
         if (packageWasUpdated(c)) return true;
 
-        if (ChatGptAuth.isSignedIn(c)) return true;
+        if (SecureStore.hasXaiCredential(c)) return true;
         if (!ConversationStore.list(c).isEmpty() || !RoutineStore.list(c).isEmpty() ||
                 !MemoryStore.list(c).isEmpty() || !ReminderStore.list(c).isEmpty() ||
                 !SavedPlaceStore.list(c).isEmpty() || !AppProfileStore.list(c).isEmpty() ||

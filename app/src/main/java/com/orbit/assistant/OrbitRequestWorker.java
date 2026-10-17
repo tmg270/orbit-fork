@@ -127,7 +127,7 @@ public final class OrbitRequestWorker extends Worker {
         // request this is the exact route Auto chose, never a second routing decision.
         if (outcome.reply == null && !item.selection.isAuto()
                 && AiProviders.forSelection(c, item.selection).capabilities().hostedWebSearch
-                && ChatGptClient.shouldOfferHostedWebSearch(item.prompt)
+                && ActionPromptBuilder.shouldOfferHostedWebSearch(item.prompt)
                 && looksServerOverloaded(outcome.error)) {
             outcome = performRequest(c, item, images, history,
                     item.selection, id, true, 2);

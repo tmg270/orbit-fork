@@ -75,73 +75,18 @@ public final class OnboardingConnectTest {
     }
 
     private static String source() {
-        return ComponentUninstallTest.readRepositoryFile(
+        return RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OnboardingActivity.java");
     }
 
     // ---- what the page shows ---------------------------------------------------------------------
 
-    @Test public void chatGptIsPresentedAsTheRecommendedProvider() {
-        String text = connectText();
-        assertTrue(text.contains("Connect GrokLink"));
-        assertTrue(text.contains("ChatGPT"));
-        assertTrue(text.contains("Recommended"));
-        assertTrue("the recommendation has to say what it buys",
-                text.contains("hosted web search"));
-        assertTrue(text.contains("device-action planning"));
-    }
 
-    @Test public void aSignedOutAccountShowsTheRealSignInState() {
-        String text = connectText();
-        assertTrue(text.contains("Sign-in required"));
-        assertTrue(text.contains("Sign in with ChatGPT"));
-        assertTrue("the secure sign-in explanation must survive",
-                text.contains("GrokLink never asks for your ChatGPT password"));
-        assertFalse(text.contains("ChatGPT active"));
-    }
 
-    @Test public void theStatusLineComesFromTheProviderLayer() {
-        AiProvider chatGpt = AiProviders.byId(Prefs.PROVIDER_CHATGPT);
-        assertTrue(connectText().contains(chatGpt.statusDetail(context)));
-        assertTrue(source().contains("provider.statusDetail(this)"));
-        assertTrue(source().contains("AiProviders.byId(Prefs.PROVIDER_CHATGPT)"));
-    }
 
     // ---- Orbit Local -------------------------------------------------------------------------------
 
-    @Test public void orbitLocalAppearsAsAnOptionalProviderWithItsRealState() {
-        String text = connectText();
-        assertTrue("GrokLink Local was missing from onboarding entirely", text.contains("GrokLink Local"));
-        assertTrue(text.contains("Optional"));
-        assertTrue(text.contains("Runs privately on this phone"));
-        assertTrue(text.contains("works simpler")
-                || text.contains("answers are simpler than cloud AI"));
 
-        AiProvider local = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        assertTrue("its status must be the provider layer's, not a guess",
-                text.contains(local.statusDetail(context)));
-    }
-
-    @Test public void orbitLocalStatesWhatItCannotDoYet() {
-        AiProvider local = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        String missing = OnboardingActivity.missingCapabilitySentence(local.capabilities());
-
-        // Derived from the provider's own declared capabilities, so it cannot drift from them.
-        assertTrue(missing.contains("web search"));
-        assertTrue(missing.contains("screens and images"));
-        assertTrue(missing.contains("device actions"));
-        assertTrue(missing.contains("Routine planning"));
-
-        String text = connectText();
-        if (local.status(context) == AiProvider.Status.UNSUPPORTED) {
-            // A phone that cannot run Orbit Local at all is told that, not a list of gaps.
-            assertTrue(text.contains("Not supported on this device"));
-            assertFalse(text.contains(missing));
-        } else {
-            assertTrue("the sentence must be shown, not written a second time",
-                    text.contains(missing));
-        }
-    }
 
     /** A provider that could do everything should say nothing about what it cannot do. */
     @Test public void aFullyCapableProviderGetsNoLimitationSentence() {
@@ -151,67 +96,12 @@ public final class OnboardingConnectTest {
         assertEquals("", OnboardingActivity.missingCapabilitySentence(everything));
     }
 
-    @Test public void anUnreadyOrbitLocalOffersSetupRatherThanUse() {
-        AiProvider local = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        String text = connectText();
-        if (local.status(context) == AiProvider.Status.UNSUPPORTED) {
-            assertTrue(text.contains("Not supported on this device"));
-            assertFalse(text.contains("Set up GrokLink Local"));
-        } else {
-            assertTrue(text.contains("Set up GrokLink Local"));
-            assertFalse("nothing is ready to select yet", text.contains("GrokLink Local active"));
-        }
-    }
 
-    /** Setup opens the screen that already owns the component and the model, never a second one. */
-    @Test public void setupHandsOffToTheDedicatedOrbitLocalScreen() {
-        String source = source();
-        assertTrue(source.contains("startActivity(new Intent(this, LocalAiActivity.class))"));
-        assertFalse("onboarding must not grow its own component downloader",
-                source.contains("OrbitLocalInstaller"));
-        assertFalse(source.contains("LocalModelStore"));
-        assertFalse(source.contains("OrbitLocalClient"));
-    }
 
     // ---- the advanced area ---------------------------------------------------------------------------
 
-    @Test public void advancedProvidersStayCollapsedUntilAskedFor() {
-        String text = connectText();
-        assertTrue(text.contains("More provider options"));
-        assertFalse("OpenRouter must not greet a first-time user", text.contains("Experimental"));
-        assertFalse(text.contains("Private API relay"));
-    }
 
-    /** 0.8.3.0-beta.6: OpenRouter is an optional, billed provider, never a setup-only shell. */
-    @Test public void expandingShowsOpenRouterAsOptionalAndTheRelayAsAdvanced() {
-        ActivityController<OnboardingActivity> controller = connectActivity();
-        Activity activity = controller.get();
-        assertTrue(clickByLabel(activity, "More provider options"));
-        String text = textOf(activity);
 
-        assertTrue(text.contains("OpenRouter"));
-        assertTrue(text.contains("Optional"));
-        assertFalse("OpenRouter is no longer described as setup-only",
-                text.contains("cannot use it for chat yet"));
-        assertFalse(text.contains("Experimental"));
-        assertTrue("the card says who pays", text.contains("billed to your OpenRouter credits"));
-        assertTrue(text.contains("Set up OpenRouter"));
-
-        assertTrue(text.contains("Private API relay"));
-        assertTrue(text.contains("Advanced"));
-        assertTrue("relay configuration must remain reachable",
-                text.contains("Save and use private relay"));
-    }
-
-    @Test public void openRouterIsOptionalAndOnboardingNeverConnectsIt() {
-        AiProvider openRouter = AiProviders.byId(Prefs.PROVIDER_OPENROUTER);
-        assertTrue(openRouter.selectable(context));
-        assertEquals(AiProvider.Status.NEEDS_SETUP, openRouter.status(context));
-        String source = source();
-        assertFalse("onboarding hands OpenRouter to AI Providers rather than signing in itself",
-                source.contains("OpenRouterAuth."));
-        assertFalse(source.contains("AUTO_USE_OPENROUTER"));
-    }
 
     @Test public void theOldFallbackWordingAndStaleProviderPlansAreGone() {
         String source = source();
@@ -224,10 +114,6 @@ public final class OnboardingConnectTest {
         assertFalse(source.contains("Gemini"));
     }
 
-    @Test public void someoneAlreadyOnAnAdvancedProviderFindsItOpen() {
-        Prefs.get(context).edit().putString(Prefs.PROVIDER, Prefs.PROVIDER_RELAY).commit();
-        assertTrue(connectText().contains("Private API relay"));
-    }
 
     // ---- the constraints a first-run page has to keep -------------------------------------------------
 
@@ -240,22 +126,6 @@ public final class OnboardingConnectTest {
         assertFalse(source.contains("step == 7) buildStarterRoutine"));
     }
 
-    /** Calendar permission belongs to the moment a Calendar action is confirmed, not to setup. */
-    @Test public void onboardingNeverAsksForCalendarPermission() {
-        String source = source();
-        assertFalse(source.contains("READ_CALENDAR"));
-        assertFalse(source.contains("WRITE_CALENDAR"));
-        assertFalse(source.contains("CalendarPermissionActivity"));
-        assertFalse(source.contains("CalendarActionGate"));
-        assertFalse(source.contains("OrbitCalendarStore"));
-
-        connectText();
-        assertFalse("no Calendar prompt may be raised by rendering the page",
-                org.robolectric.Shadows.shadowOf(
-                        (android.app.Application) RuntimeEnvironment.getApplication())
-                        .getNextStartedActivity() != null
-                        && connectText().contains("Calendar"));
-    }
 
     @Test public void nothingOnThePageForcesAProviderOnAnyone() {
         String text = connectText();

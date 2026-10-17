@@ -128,7 +128,7 @@ public final class OrbitExtensionActionExecutor {
             connection.setUseCaches(false);
             connection.setRequestMethod(action.method);
             connection.setRequestProperty("Accept", "application/json, text/plain;q=0.8, */*;q=0.2");
-            connection.setRequestProperty("User-Agent", "Orbit-Assistant/" + BuildConfig.VERSION_NAME);
+            connection.setRequestProperty("User-Agent", GrokLinkHttp.userAgent());
             for (Map.Entry<String, String> header : renderedHeaders.entrySet())
                 connection.setRequestProperty(header.getKey(), header.getValue());
             if ("POST".equals(action.method)) {

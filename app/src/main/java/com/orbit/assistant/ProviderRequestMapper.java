@@ -23,19 +23,6 @@ final class ProviderRequestMapper {
 
     private ProviderRequestMapper() {}
 
-    static JSONObject anthropic(Context c, AiRequest request, boolean stream) throws Exception {
-        JSONObject root = new JSONObject();
-        root.put("model", request.selection.model);
-        root.put("max_tokens", 8192);
-        root.put("stream", stream);
-        root.put("system", system(request));
-        root.put("messages", messages(c, request, true));
-        if (request.selection.strength != null) {
-            root.put("thinking", new JSONObject().put("type", "adaptive"));
-            root.put("output_config", new JSONObject().put("effort", request.selection.effortId()));
-        }
-        return root;
-    }
 
     static JSONObject xai(Context c, AiRequest request, boolean stream) throws Exception {
         JSONObject root = new JSONObject();
@@ -57,40 +44,12 @@ final class ProviderRequestMapper {
         return root;
     }
 
-    /**
-     * OpenRouter's OpenAI-compatible chat completion (0.8.3.0-beta.6+). Only parameters the chosen
-     * model's catalog entry vouches for are sent: {@code reasoning.effort} only when the model lists
-     * supported efforts and the selection carries one of them, images only for a model whose input
-     * modalities include images (handled in {@link #messages}), and never tools or web search.
-     * OpenRouter Auto gets no reasoning parameter: its downstream model varies.
-     */
-    static JSONObject openRouter(Context c, AiRequest request, boolean stream) throws Exception {
-        JSONObject root = new JSONObject();
-        root.put("model", request.selection.model);
-        root.put("stream", stream);
-        JSONArray messages = new JSONArray();
-        messages.put(new JSONObject().put("role", "system").put("content", system(request)));
-        JSONArray mapped = messages(c, request, false);
-        for (int i = 0; i < mapped.length(); i++) messages.put(mapped.get(i));
-        root.put("messages", messages);
-        AiModelSpec spec = OrbitModelCatalog.spec(Prefs.PROVIDER_OPENROUTER, request.selection.model);
-        if (spec != null && spec.supports(request.selection.strength)) {
-            root.put("reasoning", new JSONObject().put("effort", request.selection.effortId())
-                    // Orbit shows only the answer; it never asks for or stores model reasoning.
-                    .put("exclude", true));
-        }
-        return root;
-    }
 
     static JSONObject simple(String provider, AiSelection selection, String system,
                              String prompt) throws Exception {
         AiRequest request = AiRequest.builder().prompt(prompt).selection(selection).build();
-        JSONObject root = Prefs.PROVIDER_ANTHROPIC.equals(provider)
-                ? anthropic(null, request, false)
-                : Prefs.PROVIDER_OPENROUTER.equals(provider)
-                ? openRouter(null, request, false) : xai(null, request, false);
-        if (Prefs.PROVIDER_ANTHROPIC.equals(provider)) root.put("system", system);
-        else root.getJSONArray("messages").getJSONObject(0).put("content", system);
+        JSONObject root = xai(null, request, false);
+        root.getJSONArray("messages").getJSONObject(0).put("content", system);
         // Plain-text completions (e.g. Android Auto voice replies) must not use JSON mode; only
         // callers that explicitly ask for JSON keep response_format json_object.
         if (system == null || !system.contains("JSON")) root.remove("response_format");
@@ -113,7 +72,7 @@ final class ProviderRequestMapper {
             if (h == null || safe(h.content).trim().isEmpty()) continue;
             String role = "assistant".equalsIgnoreCase(h.role) ? "assistant" : "user";
             String text = RenderedResultContext.neutralizeMarkers(safe(h.content))
-                    + ChatGptClient.quoteBlock(h)
+                    + ActionPromptBuilder.quoteBlock(h)
                     + RenderedResultContext.block(h, i == end - 1);
             if ("user".equals(role) && h.screenAttached && !safe(h.attachmentText).isEmpty()) {
                 text += HistoryAttachments.wrap(h.attachmentKind, safe(h.attachmentText));
@@ -130,7 +89,7 @@ final class ProviderRequestMapper {
         }
 
         StringBuilder current = new StringBuilder(safe(request.prompt).trim());
-        if (end < history.size()) current.append(ChatGptClient.quoteBlock(history.get(history.size() - 1)));
+        if (end < history.size()) current.append(ActionPromptBuilder.quoteBlock(history.get(history.size() - 1)));
         if (!safe(request.screenText).trim().isEmpty()) current.append("\n\n<orbit_user_attachment untrusted=\"true\">\n")
                 .append(limit(request.screenText, 105000)).append("\n</orbit_user_attachment>");
         if (!safe(request.notificationContext).trim().isEmpty()) current.append("\n\n<orbit_notification_context untrusted=\"true\">\n")

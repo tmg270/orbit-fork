@@ -282,17 +282,6 @@ public final class EmergencyDialGuardTest {
 
     // ---- nothing else can reach a protected dial --------------------------------------------------
 
-    /**
-     * Orbit Local cannot emit a dial at all, and that is asserted rather than assumed.
-     *
-     * <p>The on-device action model validates against a fixed allowlist, and nothing that places a
-     * call is on it. Even if it were, the executor gate above would still stop it — but the
-     * cheapest place to stop it is before it is ever a valid action.
-     */
-    @Test public void theLocalActionAllowlistCannotProduceADial() {
-        assertFalse(LocalActionSchema.ALLOWED_ACTIONS.contains("DIAL"));
-        assertFalse(LocalActionSchema.ALLOWED_ACTIONS.contains("DIAL_CONTACT"));
-    }
 
     /**
      * A headless run — a widget, a tile, an automatic Routine trigger — cannot dial either.

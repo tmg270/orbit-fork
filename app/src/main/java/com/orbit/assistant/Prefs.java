@@ -671,7 +671,6 @@ public final class Prefs {
         String value = normalizeChannel(channel);
         if (value.equals(updateChannel(c))) return true;
         boolean saved = get(c).edit().putString(UPDATE_CHANNEL, value).commit();
-        if (saved) OrbitUpdater.onChannelChanged(c);
         return saved;
     }
 

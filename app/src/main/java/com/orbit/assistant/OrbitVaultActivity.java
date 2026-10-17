@@ -809,7 +809,7 @@ public final class OrbitVaultActivity extends Activity {
                     .append(" is not ready yet, so you may need to finish setting it up first.");
         } else if (SmartVault.localProviderActive(this)) {
             // Worth saying, because it is the reason many people choose Orbit Local at all.
-            message.append("\n\nOrbit Local will answer on this phone. These items never leave it.");
+            message.append("\n\nSelected items are sent to xAI with your question.");
         }
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(ASK_VAULT_LABEL)

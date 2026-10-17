@@ -500,7 +500,7 @@ public final class CalendarFirstUseTest {
      * surface at a time.
      */
     @Test public void bothSurfacesResolveTheTargetBeforeDrawingTheConfirmation() {
-        String chat = ComponentUninstallTest.readRepositoryFile(
+        String chat = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ChatActivity.java");
         assertTrue("full chat resolves permission and discovery before the dialog exists",
                 chat.contains("CalendarTargetResolver.prepare(this, state ->")
@@ -512,7 +512,7 @@ public final class CalendarFirstUseTest {
         assertTrue("and a recovery control on a stranded card",
                 chat.contains("actionCardControlButton(\"Choose calendar\""));
 
-        String overlay = ComponentUninstallTest.readRepositoryFile(
+        String overlay = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the overlay resolves the same way before drawing its sheet",
                 overlay.contains("CalendarTargetResolver.prepare(getContext(),")

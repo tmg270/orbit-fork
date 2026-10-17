@@ -70,24 +70,6 @@ public final class FileProviderPathsTest {
                 paths().contains("<cache-path name=\"orbit_local_component\" path=\"orbit-local/\" />"));
     }
 
-    /**
-     * The declared path and the directory the installer actually writes to must be the same one.
-     *
-     * <p>Asserted against the real {@link OrbitLocalInstaller#componentDirectory} rather than a
-     * copied string, so renaming the directory without updating the XML fails here instead of on a
-     * phone.
-     */
-    @Test public void theDeclaredPathMatchesTheDirectoryTheInstallerUses() {
-        Context context = RuntimeEnvironment.getApplication();
-        File directory = OrbitLocalInstaller.componentDirectory(context);
-        File cacheRoot = context.getCacheDir();
-
-        assertEquals("the component APK must live directly under the cache root",
-                cacheRoot.getAbsolutePath(), directory.getParentFile().getAbsolutePath());
-        assertEquals("orbit-local", directory.getName());
-        assertTrue("file_paths.xml must expose exactly that directory name",
-                paths().contains("path=\"" + directory.getName() + "/\""));
-    }
 
     /** The same relationship for the main updater, which is why that path has always worked. */
     @Test public void theUpdaterDirectoryRemainsExposed() {
@@ -101,25 +83,6 @@ public final class FileProviderPathsTest {
 
     // ---- the surface stays narrow --------------------------------------------------------------------
 
-    /**
-     * The invariant that was actually violated, checked the way FileProvider checks it.
-     *
-     * <p>{@code SimplePathStrategy} resolves a file by finding a configured root that contains it;
-     * a file under no root gets no URI and the call throws. So this resolves the real directories
-     * Orbit hands out against the real declared roots. It is deliberately not a string comparison
-     * — renaming either side breaks it.
-     *
-     * <p>End-to-end {@code getUriForFile} is not asserted here because Robolectric cannot resolve
-     * FileProvider roots in this project at all: the {@code updates/} path, which has installed
-     * Orbit's own updates for many releases on real devices, fails there identically. Modelling
-     * the lookup is what makes this catchable off-device.
-     */
-    @Test public void everyDirectoryOrbitSharesIsUnderADeclaredRoot() {
-        Context context = RuntimeEnvironment.getApplication();
-        assertCovered(OrbitLocalInstaller.componentDirectory(context),
-                "the GrokLink Local component installer");
-        assertCovered(new File(context.getCacheDir(), "updates"), "the main GrokLink updater");
-    }
 
     private void assertCovered(File directory, String who) {
         File cacheRoot = RuntimeEnvironment.getApplication().getCacheDir();
@@ -200,14 +163,5 @@ public final class FileProviderPathsTest {
                 manifest.contains("android:resource=\"@xml/file_paths\""));
     }
 
-    /** The authority the installer asks for is the one the manifest declares. */
-    @Test public void theInstallerUsesTheDeclaredAuthority() {
-        Context context = RuntimeEnvironment.getApplication();
-        assertEquals(context.getPackageName() + ".fileprovider",
-                OrbitLocalInstaller.fileProviderAuthority(context));
-    }
 
-    @Test public void theInstallerUsesTheApkMimeType() {
-        assertEquals("application/vnd.android.package-archive", OrbitLocalInstaller.APK_MIME_TYPE);
-    }
 }

@@ -237,7 +237,7 @@ public final class DiagnosticsActivity extends Activity {
                 // Informational on every build, including Stable, where it is simply "Free". One
                 // line, no badge, and never anything about how an entitlement was obtained beyond
                 // the public name of where it came from.
-                "\nOrbit Pro: " + OrbitProEntitlement.status(this) +
+                "\nGrokLink Pro: " + OrbitProEntitlement.status(this) +
                 "\n" + healthLine();
     }
 
@@ -289,7 +289,7 @@ public final class DiagnosticsActivity extends Activity {
     private void addProPreview() {
         if (!OrbitProEntitlement.previewAvailable()) return;
 
-        TextView caption = UiKit.text(this, "ORBIT PRO PREVIEW", 11, UiKit.MUTED, true);
+        TextView caption = UiKit.text(this, "GROKLINK PRO PREVIEW", 11, UiKit.MUTED, true);
         caption.setLetterSpacing(0.09f);
         caption.setPadding(UiKit.dp(this, 4), UiKit.dp(this, 14), 0, UiKit.dp(this, 2));
         page.addView(caption);
@@ -384,7 +384,6 @@ public final class DiagnosticsActivity extends Activity {
         sections.add(new Section("Calendar", CalendarDiagnostics.body(this)));
         sections.add(new Section("Rich Answers", RichAnswerTrace.body(this)));
         sections.add(new Section("Hosted search", hostedSearch()));
-        sections.add(new Section("GrokLink Local", orbitLocal(d)));
         sections.add(new Section("Actions & utilities", actionsAndUtilities(d)));
         sections.add(new Section("Routines", routines(d)));
         sections.add(new Section("GrokLink Deck", deck(d)));
@@ -586,9 +585,7 @@ public final class DiagnosticsActivity extends Activity {
     }
 
     private String accountStatus() {
-        ChatGptAuth.AccountInfo account = ChatGptAuth.getAccountInfo(this);
-        return account == null ? "Not signed in"
-                : "Connected" + (account.plan.isEmpty() ? "" : " • " + account.plan);
+        return AiProviders.byId(Prefs.PROVIDER_XAI).statusDetail(this);
     }
 
     /**
@@ -862,7 +859,7 @@ public final class DiagnosticsActivity extends Activity {
      * for "why did this stop". No model contents, no conversation, no file paths.
      */
     /**
-     * The deterministic utility routes, and what the Orbit Local action model last did.
+     * The deterministic utility routes.
      *
      * <p>Categories and outcomes only. What was calculated, what was converted, which app was
      * opened, what a timer was named, and every word the user or the model actually wrote are all
@@ -870,35 +867,9 @@ public final class DiagnosticsActivity extends Activity {
      * which path answered and whether validation accepted it, and that is exactly what is here.
      */
     private String actionsAndUtilities(SharedPreferences d) {
-        OrbitLocalStatus status = OrbitLocalProvider.cachedStatus(this);
-        boolean installed = status != null && status.actionModelReady();
-        long updated = d.getLong("local_action_updated", 0L);
         long utilityUpdated = d.getLong("utility_updated", 0L);
 
-        return "\n  Local action model installed: " + (installed ? "yes" : "no") +
-                "\n  Local device actions enabled: " + Prefs.localDeviceActions(this) +
-                (status == null ? "" :
-                        "\n  Action model: " + (status.actionModelId.isEmpty()
-                                ? "none" : status.actionModelId) +
-                        "\n  Action model state: " + status.actionModelState +
-                        (status.actionModelLicense.isEmpty() ? ""
-                                : "\n  Action model licence: " + status.actionModelLicense) +
-                        "\n  Action model bytes: " + status.actionModelTotalBytes +
-                        (status.actionLastFailure.isEmpty() ? ""
-                                : "\n  Action model last failure: " + status.actionLastFailure)) +
-                "\n  Semantic fallback available: "
-                        + OrbitLocalActionRouter.available(this) +
-                "\n  Last action route: " + (updated == 0L ? "none"
-                        : d.getString("local_action_route", "")) +
-                "\n  Last action category: " + (updated == 0L ? "none"
-                        : blankAs(d.getString("local_action_category", ""), "none")) +
-                "\n  Last validation result: " + (updated == 0L ? "none"
-                        : blankAs(d.getString("local_action_validation", ""), "none")) +
-                "\n  Last action model time: " + (updated == 0L ? "none"
-                        : d.getLong("local_action_ms", 0L) + " ms") +
-                (updated == 0L ? "" : "\n  Last action attempt at: "
-                        + DateFormat.getDateTimeInstance().format(new Date(updated))) +
-                "\n  Calculator route available: true" +
+        return "\n  Calculator route available: true" +
                 "\n  General conversion route available: true" +
                 "\n  Device status route available: true" +
                 "\n  Media control: "
@@ -920,68 +891,7 @@ public final class DiagnosticsActivity extends Activity {
         return value == null || value.trim().isEmpty() ? fallback : value.trim();
     }
 
-    private String orbitLocal(SharedPreferences d) {
-        OrbitLocalComponent.State componentState = OrbitLocalComponent.state(this);
-        String installedVersion = OrbitLocalComponent.installedVersionName(this);
-        long uninstallUpdated = d.getLong("local_uninstall_updated", 0L);
-        String uninstallDetail = d.getString("local_uninstall_detail", "");
 
-        // Read from the component's own last reported snapshot, so this never blocks this screen
-        // on a bind that may not be possible.
-        OrbitLocalStatus status = OrbitLocalProvider.cachedStatus(this);
-
-        return "\n  Component: " + OrbitLocalComponent.stateLabel(componentState) +
-                (installedVersion.isEmpty() ? "" : " · " + installedVersion
-                        + " (" + OrbitLocalComponent.installedVersionCode(this) + ")") +
-                "\n  Protocol GrokLink speaks: " + OrbitLocalComponent.PROTOCOL_VERSION +
-                (status == null ? "" : "\n  Protocol component speaks: " + status.protocol) +
-                "\n  Can request uninstall: "
-                        + OrbitLocalUninstaller.canRequestUninstall(this) +
-                "\n  Last uninstall stage: " + (uninstallUpdated == 0L ? "none"
-                        : d.getString("local_uninstall_stage", "")
-                                + (uninstallDetail.isEmpty() ? "" : " (" + uninstallDetail + ")")) +
-                (uninstallUpdated == 0L ? "" : "\n  Last uninstall at: "
-                        + DateFormat.getDateTimeInstance().format(new Date(uninstallUpdated))) +
-                "\n  Pending removal: " + (LocalAiActivity.pendingRemovalScope(this).isEmpty()
-                        ? "none" : LocalAiActivity.pendingRemovalScope(this)) +
-                (status == null
-                        ? "\n  Model: component not reachable"
-                        : "\n  Model state: " + status.modelState +
-                          "\n  Model bytes present: " + status.modelBytes
-                                  + " of " + status.modelSizeBytes +
-                          "\n  Model bytes on disk: " + status.modelTotalBytes +
-                          "\n  WorkManager state: " + (status.workState.isEmpty()
-                                  ? "not reported" : status.workState) +
-                          "\n  Explicit pause requested: " + status.pauseRequested +
-                          "\n  Last download failure: " + (status.lastFailure.isEmpty()
-                                  ? "none" : status.lastFailure)) +
-                "\n  Earlier GrokLink model data: " + LocalModelStore.legacyBytes(this) + " bytes" +
-                "\n  Chat model ready: " + (status != null && status.modelReady()) +
-                "\n  Action model ready: " + (status != null && status.actionModelReady()) +
-                "\n  Works locally now: " + OrbitLocalCapabilities.summary(
-                        OrbitLocalCapabilities.evaluate(this)) +
-                localRequest(d);
-    }
-
-    /**
-     * The last Orbit Local chat request: which path handled it, how much of each kind of context it
-     * carried, and how long it took. Counts, sizes, timings and closed tokens only.
-     */
-    private String localRequest(SharedPreferences d) {
-        long updated = d.getLong("local_request_updated", 0L);
-        if (updated == 0L) return "\n  Last local request: none";
-        long first = d.getLong("local_request_first_ms", -1L);
-        return "\n  Last local request path: " + blankAs(d.getString("local_request_path", ""), "none") +
-                "\n  Last local outcome: " + blankAs(d.getString("local_request_outcome", ""), "none") +
-                "\n  Context sources: " + blankAs(d.getString("local_request_sources", ""), "none") +
-                "\n  Estimated prompt: " + d.getInt("local_request_tokens", 0) + " of "
-                        + d.getInt("local_request_budget", 0) + " tokens" +
-                "\n  Evidence reduced to excerpts: " + d.getBoolean("local_request_trimmed", false) +
-                "\n  Time to first words: " + (first < 0L ? "none" : first + " ms") +
-                "\n  Total generation time: " + d.getLong("local_request_total_ms", 0L) + " ms" +
-                "\n  Last local request at: "
-                        + DateFormat.getDateTimeInstance().format(new Date(updated));
-    }
 
     /**
      * The last Create with Orbit planning attempt, as structure rather than content.
@@ -1190,7 +1100,6 @@ public final class DiagnosticsActivity extends Activity {
                         + " · backend summaries " + ReasoningSummarySupport.stateLabel(this)
                         + " · last source " + ReasoningSummarySupport.lastSource(this)
                         + " · " + ReasoningSummarySupport.updatesReceived(this) + " received" +
-                "\nOrbit Local: " + OrbitLocalComponent.stateLabel(OrbitLocalComponent.state(this)) +
                 "\nCalendar permission: "
                         + (OrbitCalendarStore.hasAccess(this) ? "granted" : "not granted") +
                 // One line, and only when there is one to give. The candidate-by-candidate detail

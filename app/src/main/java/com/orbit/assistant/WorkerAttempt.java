@@ -20,7 +20,7 @@ package com.orbit.assistant;
  *
  * <p>The running worker sees the value from before its own increment, so the first execution reads
  * 0, the second reads 1, and so on. "attempt 3" therefore means "this is the fourth time this work
- * has been started", not "Orbit has retried three times" — a distinction that matters, because
+ * has been started", not "GrokLink has retried three times" — a distinction that matters, because
  * {@link OrbitRequestWorker} only ever asks for one retry of its own. It is reported as a run
  * number for that reason.
  *

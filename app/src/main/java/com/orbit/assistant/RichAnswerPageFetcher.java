@@ -78,8 +78,7 @@ final class RichAnswerPageFetcher {
      * anonymous request being refused before it is even considered.
      */
     static final String USER_AGENT =
-            "OrbitAssistant/" + BuildConfig.VERSION_NAME
-                    + " (Android; +https://github.com/lpnovi/Orbit-Assistant)";
+            GrokLinkHttp.userAgent();
 
     /**
      * Everything one page read produced, including why it produced nothing.

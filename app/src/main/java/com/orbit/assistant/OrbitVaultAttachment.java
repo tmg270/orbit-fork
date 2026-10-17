@@ -125,7 +125,7 @@ public final class OrbitVaultAttachment {
 
         if (item.isLink()) {
             out.append("\nSaved address:\n").append(item.body)
-                    .append("\n\nOrbit has not opened or read this address, and this attachment "
+                    .append("\n\nGrokLink has not opened or read this address, and this attachment "
                             + "contains none of the page's contents.");
         } else if (item.isImage()) {
             out.append(imageAttached

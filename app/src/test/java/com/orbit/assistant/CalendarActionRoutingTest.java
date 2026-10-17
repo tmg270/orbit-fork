@@ -175,23 +175,6 @@ public final class CalendarActionRoutingTest {
 
     // ---- every schema that enumerates actions ------------------------------------------------------
 
-    @Test public void everyProviderSchemaKnowsTheAction() {
-        String chatGpt = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue("the ChatGPT allowlist must accept it",
-                chatGpt.contains("\"ADD_CALENDAR_EVENTS\""));
-        assertTrue("and the prompt must describe its parameters",
-                chatGpt.contains("ADD_CALENDAR_EVENTS {events:"));
-
-        String relay = read("app/src/main/java/com/orbit/assistant/RelayProvider.java");
-        assertTrue("the relay must announce it as a capability",
-                relay.contains("\"ADD_CALENDAR_EVENTS\""));
-
-        String server = read("server/app.py");
-        assertTrue("the relay server prompt must describe it",
-                server.contains("ADD_CALENDAR_EVENTS"));
-        assertTrue("and the server still filters to announced capabilities only",
-                server.contains("a.type in announced"));
-    }
 
     @Test public void theManifestDeclaresBothCalendarPermissions() {
         String manifest = read("app/src/main/AndroidManifest.xml");
@@ -205,18 +188,6 @@ public final class CalendarActionRoutingTest {
 
     // ---- deliberate absences ------------------------------------------------------------------------
 
-    /**
-     * Orbit Local cannot produce device actions, and this release does not change that. Declaring
-     * otherwise would make it claim a calendar write it has no way to request.
-     */
-    @Test public void orbitLocalStillDeclaresNoDeviceActions() {
-        AiProvider local = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        assertFalse("GrokLink Local must stay truthful about device actions",
-                local.capabilities().deviceActions);
-        String source = read("app/src/main/java/com/orbit/assistant/OrbitLocalProvider.java");
-        assertFalse("and its prompt must not describe calendar actions",
-                source.contains("ADD_CALENDAR_EVENTS"));
-    }
 
     /**
      * Routines replay saved actions later, without the user present. A calendar write is a
@@ -231,27 +202,6 @@ public final class CalendarActionRoutingTest {
 
     // ---- truthfulness in the prompts ------------------------------------------------------------------
 
-    /**
-     * The failure this release exists for: confident text saying the games were being added while
-     * nothing was written. The prompts now state that the model does not perform the write and
-     * cannot report its outcome.
-     */
-    @Test public void thePromptsForbidClaimingACalendarWriteSucceeded() {
-        String chatGpt = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue(chatGpt.contains("You do not perform the calendar write"));
-        assertTrue(chatGpt.contains("Never state that events were added"));
-        assertTrue("the pre-execution wording is shown as an example",
-                chatGpt.contains("can add them to your calendar"));
-        assertTrue("hosted research must not be confused with the device action",
-                chatGpt.contains("Web research is not the calendar action"));
-        assertTrue("and the mandatory source line survives",
-                chatGpt.contains("keep the mandatory Source line"));
-        assertTrue("one action per batch, never one per event",
-                chatGpt.contains("never one action per event"));
-
-        String server = read("server/app.py");
-        assertTrue(server.contains("Never claim events were added or saved"));
-    }
 
     /** Success wording exists in exactly one place, and that place has counted rows. */
     @Test public void onlyNativeExecutionCanProduceSuccessWording() throws IOException {

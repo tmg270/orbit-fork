@@ -66,34 +66,7 @@ public final class AnswerVariantRequestTest {
                 Collections.emptyList(), false, false, selection, false, "", target);
     }
 
-    @Test public void theRetryTargetIsFrozenWithTheRequestAndSurvivesARestart() {
-        String id = chat();
-        PendingRequestStore.Item item = variantRequest(id, ASTRA);
-        PendingRequestStore.Item reread = PendingRequestStore.load(context, item.id);
-        assertTrue(reread.isAnswerVariant());
-        assertEquals(1, reread.variantAt());
-        assertEquals(ASTRA, reread.selection);
-        PendingRequestStore.markRunning(context, item.id);
-        assertTrue("status changes keep the target", PendingRequestStore.load(context, item.id).isAnswerVariant());
-        assertFalse("an ordinary request is not a variant", PendingRequestStore.create(context, id, "Hi", "",
-                Collections.emptyList(), false, false, TERRA, false, "").isAnswerVariant());
-    }
 
-    @Test public void aFinishedRetryBecomesAVariantRecordingItsModel() {
-        String id = chat();
-        PendingRequestStore.Item item = variantRequest(id, ASTRA);
-        OrbitRequestWorker.completeProviderReply(context, item,
-                new AssistantReply("Answer B").withDetails(ResponseDetails.sentWith(ASTRA)),
-                WorkerAttempt.of(1, false));
-        ConversationStore.Conversation chat = ConversationStore.load(context, id);
-        assertEquals("the question is not repeated", 2, chat.messages.size());
-        assertEquals("Answer B", chat.messages.get(1).content);
-        assertEquals(item.id, chat.messages.get(1).replyRequestId);
-        assertEquals(OrbitModelCatalog.ASTRA, chat.messages.get(1).details.model);
-        assertEquals("Answer A", chat.forkAt(1).variants.get(0).messages.get(0).content);
-        assertEquals("Retry with never changes the chat's own AI", TERRA,
-                AiSelections.forConversation(context, id));
-    }
 
     @Test public void aRetryStoppedBeforeAnyTextChangesNothing() {
         String id = chat();
@@ -130,68 +103,10 @@ public final class AnswerVariantRequestTest {
         assertEquals(PendingRequestStore.FAILED, PendingRequestStore.load(context, item.id).status);
     }
 
-    @Test public void retryingAFailedRetryKeepsItAVariant() {
-        String id = chat();
-        PendingRequestStore.Item item = variantRequest(id, ASTRA);
-        PendingRequestStore.markFailed(context, item.id, "network");
-        // The durable record is written before the work is handed to WorkManager, so it is what is
-        // asserted here whether or not a WorkManager is running in this JVM.
-        try {
-            OrbitRequestManager.retry(context, item.id, null);
-        } catch (RuntimeException workManagerNotInitialized) {
-            // Only the hand-off can fail here; the record is already written.
-        }
-        boolean found = false;
-        for (PendingRequestStore.Item active : PendingRequestStore.activeForConversation(context, id)) {
-            if (active.isAnswerVariant() && active.selection.equals(ASTRA)) found = true;
-        }
-        assertTrue(found);
-    }
 
     // ---- send with -------------------------------------------------------------------------------
 
-    @Test public void aOneTurnSelectionIsFrozenWithItsRequestOnly() {
-        String id = chat();
-        AiSelection global = AiSelections.globalDefault(context);
-        PendingRequestStore.Item item = PendingRequestStore.create(context, id, "Deep question", "",
-                Collections.emptyList(), false, false, ASTRA, false, "");
-        assertEquals("the request goes to exactly what was chosen", ASTRA,
-                PendingRequestStore.load(context, item.id).selection);
-        assertEquals("the chat keeps its own AI", TERRA, AiSelections.forConversation(context, id));
-        assertEquals("the default is untouched", global, AiSelections.globalDefault(context));
-    }
 
-    @Test public void anIllegalOneTurnStrengthIsResolvedBeforeTheRequest() {
-        AiSelection none = AiSelection.of(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.ASTRA, AiStrength.NONE);
-        PendingRequestStore.Item item = PendingRequestStore.create(context, "chat", "Q", "",
-                Collections.emptyList(), false, false, none, false, "");
-        assertNotNull(item.selection.strength);
-        assertTrue(OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.ASTRA)
-                .supports(item.selection.strength));
-    }
 
-    @Test public void sendWithClaudeIsOneTurnAndTheNextTurnReturnsToChatGpt() {
-        String id = chat();
-        PendingRequestStore.Item oneTurn = PendingRequestStore.create(context, id, "Use Claude", "",
-                Collections.emptyList(), false, false, CLAUDE, false, "");
-        assertEquals(CLAUDE, oneTurn.selection);
-        assertEquals(TERRA, AiSelections.forConversation(context, id));
-        PendingRequestStore.Item normal = PendingRequestStore.create(context, id, "Back to default", "",
-                Collections.emptyList(), false, false,
-                AiSelections.forConversation(context, id), false, "");
-        assertEquals(TERRA, normal.selection);
-    }
 
-    @Test public void retryWithGrokKeepsBothProviderVariantsAndChatDefault() {
-        String id = chat();
-        PendingRequestStore.Item item = variantRequest(id, GROK);
-        OrbitRequestWorker.completeProviderReply(context, item,
-                new AssistantReply("Grok answer").withDetails(ResponseDetails.sentWith(GROK)),
-                WorkerAttempt.of(1, false));
-        ConversationStore.Conversation stored = ConversationStore.load(context, id);
-        assertEquals(Prefs.PROVIDER_XAI, stored.messages.get(1).details.provider);
-        assertEquals(OrbitModelCatalog.GROK_4_7, stored.messages.get(1).details.model);
-        assertEquals("Answer A", stored.forkAt(1).variants.get(0).messages.get(0).content);
-        assertEquals(TERRA, AiSelections.forConversation(context, id));
-    }
 }

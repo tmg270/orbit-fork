@@ -46,7 +46,7 @@ public final class OrbitThemeFileCodec {
             "application/json", "text/plain", "application/octet-stream"};
 
     /** The tail of an exported filename. Recognisable to a person; not evidence to the parser. */
-    public static final String FILE_SUFFIX = ".orbit-theme.json";
+    public static final String FILE_SUFFIX = ".groklink-theme.json";
 
     /**
      * The largest external file Orbit will look inside.
@@ -148,7 +148,7 @@ public final class OrbitThemeFileCodec {
             out.deleteCharAt(out.length() - 1);
         }
         String stem = out.toString();
-        if (stem.isEmpty()) stem = "Orbit-theme";
+        if (stem.isEmpty()) stem = "GrokLink-theme";
         return stem + FILE_SUFFIX;
     }
 

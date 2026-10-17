@@ -172,20 +172,6 @@ public final class ConversationControlChatTest {
         return n;
     }
 
-    @Test public void aRetryRunsAsAVariantAndLeavesTheChatsAiAlone() {
-        seed("r", "Explain tides", "Answer A");
-        ChatActivity chat = open("r").get();
-        chat.retryLastResponse(ASTRA);
-        PendingRequestStore.Item item = PendingRequestStore.activeForConversation(context, "r").get(0);
-        assertTrue(item.isAnswerVariant());
-        assertEquals(ASTRA, item.selection);
-        assertEquals("nothing is removed while the retry runs", 2,
-                ConversationStore.load(context, "r").messages.size());
-        assertFalse("the answer being retried steps aside on screen",
-                shows(chat.messagesForTest(), "Answer A"));
-        assertEquals(TERRA, chat.currentSelectionForTest());
-        assertEquals(TERRA, AiSelections.forConversation(context, "r"));
-    }
 
     // ---- edit makes a branch -----------------------------------------------------------------------
 
@@ -225,22 +211,6 @@ public final class ConversationControlChatTest {
 
     // ---- send with --------------------------------------------------------------------------------
 
-    @Test public void sendWithUsesItsAiForOneMessageOnly() {
-        seed("s", "q", "a");
-        ChatActivity chat = open("s").get();
-        chat.setDraftForTest("Think hard about this");
-        chat.submitWithForTest(ASTRA);
-        PendingRequestStore.Item first = PendingRequestStore.activeForConversation(context, "s").get(0);
-        assertEquals(ASTRA, first.selection);
-        assertEquals("the chat keeps its own AI", TERRA, chat.currentSelectionForTest());
-        assertEquals(TERRA, AiSelections.forConversation(context, "s"));
-
-        PendingRequestStore.markDone(context, first.id);
-        chat.setDraftForTest("And now an easy one");
-        chat.submitForTest();
-        PendingRequestStore.Item second = PendingRequestStore.activeForConversation(context, "s").get(0);
-        assertEquals("the next ordinary Send uses the chat's AI again", TERRA, second.selection);
-    }
 
     // ---- keep in this chat ----------------------------------------------------------------------
 
@@ -293,16 +263,6 @@ public final class ConversationControlChatTest {
 
     // ---- the context window ----------------------------------------------------------------------
 
-    @Test public void theMeterReflectsTheChatAndRecedesAtLowUsage() {
-        seed("m", "Hi", "Hello");
-        ChatActivity chat = open("m").get();
-        chat.measureContextForTest();
-        ContextEstimate estimate = chat.latestEstimateForTest();
-        assertNotNull(estimate);
-        assertEquals(ContextEstimate.Level.NORMAL, estimate.level());
-        assertTrue(chat.contextMeterForTest().getAlpha() < 1f);
-        assertTrue(chat.contextMeterForTest().getContentDescription().toString().contains("percent"));
-    }
 
     @Test public void theNearFullNoticeAppearsOnlyNearTheTopAndStaysDismissed() {
         seed("n", "Hi", "Hello");

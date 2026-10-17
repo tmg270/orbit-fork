@@ -33,41 +33,9 @@ public final class AiModelCatalogTest {
         return out;
     }
 
-    @Test public void chatGptOffersExactlyTheCurrentModelsInOrder() {
-        assertEquals(Arrays.asList("gpt-6-luna", "gpt-6.1-sol", "gpt-6-astra",
-                        "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"),
-                ids(OrbitModelCatalog.modelsFor(Prefs.PROVIDER_CHATGPT)));
-        assertEquals("gpt-6-luna", OrbitModelCatalog.LUNA);
-        assertEquals("gpt-6.1-sol", OrbitModelCatalog.SOL);
-        assertEquals("gpt-6-astra", OrbitModelCatalog.ASTRA);
-    }
 
-    @Test public void friendlyNamesAreExact() {
-        assertEquals("GPT-6 Luna", OrbitModelCatalog.displayName("gpt-6-luna"));
-        assertEquals("GPT-6.1 Sol", OrbitModelCatalog.displayName("gpt-6.1-sol"));
-        assertEquals("GPT-6 Astra", OrbitModelCatalog.displayName("gpt-6-astra"));
-        assertEquals("GPT-5.6 Luna", OrbitModelCatalog.displayName("gpt-5.6-luna"));
-        assertEquals("GPT-5.6 Terra", OrbitModelCatalog.displayName("gpt-5.6-terra"));
-        assertEquals("GPT-5.6 Sol", OrbitModelCatalog.displayName("gpt-5.6-sol"));
-        assertEquals("GrokLink Local", OrbitModelCatalog.displayName(OrbitModelCatalog.ORBIT_LOCAL));
-    }
 
-    @Test public void lunaAcceptsEveryStrengthIncludingNone() {
-        AiModelSpec luna = OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.LUNA);
-        assertEquals(Arrays.asList(AiStrength.NONE, AiStrength.LOW, AiStrength.MEDIUM,
-                AiStrength.HIGH, AiStrength.XHIGH, AiStrength.MAX), luna.strengths);
-        assertEquals(AiStrength.NONE, luna.resolveStrength(AiStrength.NONE));
-    }
 
-    @Test public void solAndAstraRefuseNoneAndRemapItToLow() {
-        for (String model : new String[]{OrbitModelCatalog.SOL, OrbitModelCatalog.ASTRA}) {
-            AiModelSpec spec = OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, model);
-            assertEquals(model, Arrays.asList(AiStrength.LOW, AiStrength.MEDIUM, AiStrength.HIGH,
-                    AiStrength.XHIGH, AiStrength.MAX), spec.strengths);
-            assertFalse(model, spec.supports(AiStrength.NONE));
-            assertEquals(model, AiStrength.LOW, spec.resolveStrength(AiStrength.NONE));
-        }
-    }
 
     @Test public void backendEffortIdsAreExact() {
         assertEquals("none", AiStrength.NONE.id);
@@ -93,99 +61,12 @@ public final class AiModelCatalogTest {
         }
     }
 
-    @Test public void providerFallbackCatalogsAreCapabilityAwareAndOrdered() {
-        List<AiModelSpec> claude = OrbitModelCatalog.modelsFor(Prefs.PROVIDER_ANTHROPIC);
-        assertEquals(OrbitModelCatalog.CLAUDE_OPUS_5_5, claude.get(0).id);
-        assertEquals(1_000_000, claude.get(0).contextWindowTokens);
-        assertTrue(claude.get(0).vision);
-        assertTrue(claude.get(0).nativeFiles);
-        assertTrue(claude.get(0).tools);
-        assertEquals(200_000, OrbitModelCatalog.spec(Prefs.PROVIDER_ANTHROPIC,
-                OrbitModelCatalog.CLAUDE_HAIKU_4_5).contextWindowTokens);
-        assertFalse(OrbitModelCatalog.spec(Prefs.PROVIDER_ANTHROPIC,
-                OrbitModelCatalog.CLAUDE_HAIKU_4_5).hasStrengths());
 
-        AiModelSpec grok = OrbitModelCatalog.spec(Prefs.PROVIDER_XAI,
-                OrbitModelCatalog.GROK_4_7);
-        assertEquals(500_000, grok.contextWindowTokens);
-        assertTrue(grok.vision);
-        assertEquals(Arrays.asList(AiStrength.LOW, AiStrength.MEDIUM,
-                AiStrength.HIGH, AiStrength.XHIGH), grok.strengths);
-        assertEquals("static_official", grok.metadataSource);
-    }
 
-    @Test public void everyGpt56ModelAcceptsNoneThroughMaxAndDefaultsToMedium() {
-        for (String id : new String[]{OrbitModelCatalog.GPT_5_6_LUNA,
-                OrbitModelCatalog.GPT_5_6_TERRA, OrbitModelCatalog.GPT_5_6_SOL}) {
-            AiModelSpec spec = OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, id);
-            assertNotNull(id, spec);
-            assertEquals(id, Arrays.asList(AiStrength.values()), spec.strengths);
-            assertEquals(id, AiStrength.MEDIUM, spec.defaultStrength);
-        }
-    }
 
-    @Test public void availabilityIsCatalogDataNotScreenLogic() {
-        assertTrue(OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.ASTRA).availabilityVaries);
-        assertFalse(OrbitModelCatalog.spec(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.LUNA).availabilityVaries);
-        for (String file : new String[]{"ChatActivity.java", "OrbitSession.java", "SettingsActivity.java",
-                "AiSelectorDialog.java", "ChatGptClient.java", "AssistantClient.java"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(
-                    "app/src/main/java/com/orbit/assistant/" + file);
-            assertFalse(file + " must not special-case a model by name",
-                    source.contains("isAstra(") || source.contains("contains(\"astra\")")
-                            || source.contains("OrbitModelCatalog.ASTRA.equals"));
-        }
-    }
 
-    @Test public void orbitLocalExposesNoStrength() {
-        AiModelSpec local = OrbitModelCatalog.spec(Prefs.PROVIDER_LOCAL, OrbitModelCatalog.ORBIT_LOCAL);
-        assertNotNull(local);
-        assertFalse(local.hasStrengths());
-        assertNull(local.resolveStrength(AiStrength.HIGH));
-    }
 
-    @Test public void gpt56IsFirstClassForChatGptAndStoredIdsStayExact() {
-        List<String> offered = ids(OrbitModelCatalog.modelsFor(Prefs.PROVIDER_CHATGPT));
-        assertTrue(offered.contains(OrbitModelCatalog.GPT_5_6_LUNA));
-        assertTrue(offered.contains(OrbitModelCatalog.GPT_5_6_TERRA));
-        assertTrue(offered.contains(OrbitModelCatalog.GPT_5_6_SOL));
-        assertEquals(OrbitModelCatalog.GPT_5_6_LUNA,
-                OrbitModelCatalog.successorOf(OrbitModelCatalog.GPT_5_6_LUNA));
-        assertEquals(OrbitModelCatalog.GPT_5_6_TERRA,
-                OrbitModelCatalog.successorOf(OrbitModelCatalog.GPT_5_6_TERRA));
-        assertEquals(OrbitModelCatalog.GPT_5_6_SOL,
-                OrbitModelCatalog.successorOf(OrbitModelCatalog.GPT_5_6_SOL));
-    }
 
-    @Test public void unknownModelsResolveSafelyAndAreNeverNamed() {
-        assertEquals("", OrbitModelCatalog.displayName("gpt-9-mystery"));
-        assertEquals("", OrbitModelCatalog.displayName(null));
-        AiSelection resolved = AiSelections.resolve(
-                AiSelection.of(Prefs.PROVIDER_CHATGPT, "gpt-9-mystery", AiStrength.HIGH));
-        assertEquals(OrbitModelCatalog.LUNA, resolved.model);
-        assertEquals(AiStrength.HIGH, resolved.strength);
-        assertTrue(AiSelections.isValid(resolved));
-    }
-
-    /** 0.8.3.0-beta.6: OpenRouter is a real provider with a trusted offline baseline. */
-    @Test public void openRouterHasABaselineAndKeepsItsOwnSelections() {
-        List<AiModelSpec> models = OrbitModelCatalog.modelsFor(Prefs.PROVIDER_OPENROUTER);
-        assertFalse(models.isEmpty());
-        assertEquals("choosing OpenRouter starts on a known model, never the router",
-                OrbitModelCatalog.OR_GPT_6_LUNA, OrbitModelCatalog.defaultModel(
-                        Prefs.PROVIDER_OPENROUTER).id);
-        assertTrue(OrbitModelCatalog.supports(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OPENROUTER_AUTO));
-        AiSelection exact = AiSelections.resolve(AiSelection.of(Prefs.PROVIDER_OPENROUTER,
-                OrbitModelCatalog.OR_CLAUDE_SONNET_5_5, AiStrength.HIGH));
-        assertEquals(Prefs.PROVIDER_OPENROUTER, exact.provider);
-        assertEquals(OrbitModelCatalog.OR_CLAUDE_SONNET_5_5, exact.model);
-        // A slug the current catalog does not list is kept, so it can be reported unavailable
-        // rather than silently becoming another model.
-        AiSelection unknown = AiSelections.resolve(
-                AiSelection.of(Prefs.PROVIDER_OPENROUTER, "maker/retired-model", null));
-        assertEquals(Prefs.PROVIDER_OPENROUTER, unknown.provider);
-        assertEquals("maker/retired-model", unknown.model);
-    }
 
     // ---- availability --------------------------------------------------------------------------
 
@@ -214,26 +95,10 @@ public final class AiModelCatalogTest {
                 OrbitModelCatalog.looksUnavailable(OrbitModelCatalog.SOL, "Rate limit reached. Try again later."));
     }
 
-    @Test public void theUnavailableMessageNamesTheModelAndKeepsTheChoice() {
-        String message = OrbitModelCatalog.unavailableMessage(OrbitModelCatalog.ASTRA);
-        assertTrue(message.startsWith("GPT-6 Astra is not available through this ChatGPT account"));
-        assertTrue(message.contains("Your selection has not been changed"));
-        assertFalse("never claims another model answered", message.contains("used Sol"));
-    }
 
-    @Test public void nothingSubstitutesAnUnavailableModel() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertFalse(client.contains("astraFallback"));
-        assertFalse(client.contains("fallbackNotice"));
-        assertTrue(client.contains("cb.onError(OrbitModelCatalog.unavailableMessage(model))"));
-        String worker = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/OrbitRequestWorker.java");
-        assertFalse("the overload retry may not move to a lighter model", worker.contains("MODE_FAST"));
-    }
 
     @Test public void nothingPollsForAnAllowance() {
-        String catalog = ComponentUninstallTest.readRepositoryFile(
+        String catalog = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitModelCatalog.java");
         for (String forbidden : new String[]{"HttpURLConnection", "quota", "remaining", "usage"}) {
             assertFalse(forbidden, catalog.contains(forbidden));
@@ -243,17 +108,11 @@ public final class AiModelCatalogTest {
     @Test public void modelIdentifiersLiveOnlyInTheCatalog() {
         for (String file : new String[]{"Prefs.java", "ThinkingUpdate.java", "SettingsActivity.java",
                 "ChatActivity.java", "OrbitSession.java"}) {
-            String source = ComponentUninstallTest.readRepositoryFile(
+            String source = RepoFiles.readRepositoryFile(
                     "app/src/main/java/com/orbit/assistant/" + file);
             assertFalse(file, source.contains("\"gpt-6-luna\"") || source.contains("\"gpt-6.1-sol\"")
                     || source.contains("\"gpt-6-astra\"") || source.contains("\"gpt-5.6-terra\""));
         }
     }
 
-    @Test public void thinkingUpdatesNameTheModelActuallySent() {
-        assertEquals("Reasoning with GPT-6.1 Sol…",
-                ThinkingUpdate.modelReasoning(OrbitModelCatalog.SOL).text);
-        assertNull("an unknown id is never given a guessed name",
-                ThinkingUpdate.modelReasoning("gpt-9-mystery"));
-    }
 }

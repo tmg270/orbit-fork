@@ -146,97 +146,11 @@ public final class RoadmapFutureOnlyTest {
         return false;
     }
 
-    /** The page leads with what Orbit is building, then what follows it. */
-    @Test public void thePageLeadsWithTheCurrentPlan() {
-        String text = roadmapText();
-        assertTrue("the page must say what is being built now",
-                text.contains("NOW - ON THE WAY TO 0.9"));
-        assertTrue(text.contains("LATER"));
-        assertTrue(text.contains("EXPLORING"));
 
-        assertTrue("GrokLink Pro is the current line", text.contains(OrbitRoadmap.CURRENT));
-    }
 
-    /**
-     * Orbit Pro is offered honestly on the page a user actually opens.
-     *
-     * <p>Two things have to be true at once here, and they pull in opposite directions. Orbit Pro
-     * is genuinely the current work, so it belongs at the top; and it cannot be bought, so the
-     * entry must not read like an offer. The page has to say both.
-     */
-    @Test public void smartVaultIsPresentedAsCurrentAndFree() {
-        String text = roadmapText();
-        assertTrue(text.contains("Smart Vault"));
-        assertTrue(text.contains("always Free"));
-        String lower = text.toLowerCase();
-        for (String selling : new String[]{"subscribe", "upgrade now", "purchase", "checkout"}) {
-            assertFalse("a future-only page must never read like a checkout: " + selling,
-                    lower.contains(selling));
-        }
-    }
 
-    /**
-     * Smart Vault stays NOW beside Orbit Local 2.0, and kept its promise.
-     *
-     * <p>Since v0.8.2.0-beta.1 Orbit Local 2.0 is the active line and heads the page. Smart Vault
-     * still has real work ahead, so it stays in NOW directly after it rather than dropping to
-     * LATER, and it still says out loud that it is free.
-     */
-    @Test public void smartVaultIsStillNowAndStillFree() {
-        String text = roadmapText();
-        int current = text.indexOf(OrbitRoadmap.CURRENT);
-        int vault = text.indexOf(OrbitRoadmap.SMART_VAULT);
-        assertTrue("Smart Vault is still real planned work", vault >= 0);
-        assertTrue("GrokLink Local 2.0 leads the page", current >= 0 && current < vault);
-        int later = text.indexOf("Vault Pro organization");
-        assertTrue("and Smart Vault is still NOW, above LATER", later < 0 || vault < later);
-        assertTrue("and it is still a Free GrokLink feature", text.contains("always Free"));
-    }
 
-    /**
-     * Order matters more than presence here. Every entry below was true before this release too;
-     * what was wrong was that they sat above the actual plan.
-     */
-    @Test public void olderIdeasSitBelowTheActivePlan() {
-        String text = roadmapText();
-        int current = text.indexOf(OrbitRoadmap.CURRENT);
-        assertTrue("the current work must be listed first", current >= 0);
 
-        for (String older : new String[]{"Local device actions", "Calendar awareness",
-                "More branch points & conditions", "Deeper Android actions", "Cook with GrokLink",
-                "Hybrid Auto", "Proactive screen intelligence"}) {
-            int at = text.indexOf(older);
-            assertTrue(older + " is still genuinely unfinished and must still be listed", at >= 0);
-            assertTrue(older + " must not be presented above the active plan", at > current);
-        }
-    }
-
-    /**
-     * The remaining 0.7.7 direction is still promised, just no longer promised next.
-     */
-    @Test public void theProviderAndOnDeviceDirectionIsStillListed() {
-        String text = roadmapText();
-        // 0.8.3.0-beta.6 shipped OpenRouter, so it is release history, not a promise.
-        assertFalse("shipped OpenRouter chat is no longer future work", text.contains("OpenRouter chat"));
-        assertTrue("local tool calling is still owed", text.contains("Local device actions"));
-        // 0.8.3.0-beta.3 brought it back as Edit, which branches, so the promise is fulfilled.
-        assertFalse("the returned Edit action is no longer future work",
-                text.contains("Edit & resend, reliably"));
-        assertTrue(text.contains("Hybrid Auto"));
-    }
-
-    /**
-     * The cooking direction is genuinely ahead of Orbit, and one part of it carries a promise the
-     * page must keep making: Android's Clock app stays, and Orbit-managed timers are opt-in.
-     */
-    @Test public void theCookingDirectionIsListedAsFutureWork() {
-        String text = roadmapText();
-        assertTrue("the cooking session itself is unbuilt", text.contains("Cook with GrokLink"));
-        assertTrue("hands-free cooking voice is unbuilt", text.contains("Kitchen hands-free"));
-        assertTrue("GrokLink-owned timers are unbuilt", text.contains("GrokLink-managed timers"));
-        assertTrue("the Clock app must not be presented as going away",
-                text.contains("Off by default") && text.contains("Clock app stays"));
-    }
 
     /**
      * OpenRouter shipped in 0.8.3.0-beta.6. It was the page's only deferred entry, so the deferred

@@ -361,7 +361,7 @@ public final class RichAnswerPersistenceTest {
      * stopped or superseded execution could start a lookup for an answer that was never written.
      */
     @Test public void discoveryIsStartedOnlyInsideTheCompletionGate() {
-        String worker = ComponentUninstallTest.readRepositoryFile(
+        String worker = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRequestWorker.java");
         int gate = worker.indexOf("CompletionSource.WORKER_RESPONSE");
         int discover = worker.indexOf("RichAnswerCoordinator.discover(");
@@ -370,7 +370,7 @@ public final class RichAnswerPersistenceTest {
         assertEquals("started in exactly one place", discover,
                 worker.lastIndexOf("RichAnswerCoordinator.discover("));
 
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         assertTrue("a Stop landing mid-fetch must still be honoured",
                 coordinator.contains("OrbitRequestManager.isCancelled"));
@@ -380,7 +380,7 @@ public final class RichAnswerPersistenceTest {
 
     /** Nothing in the Rich Answer path touches the request lifecycle it runs beside. */
     @Test public void discoveryNeverTouchesRequestOwnership() {
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         for (String forbidden : new String[]{
                 "completeIfNotCancelled", "claimCompletion", "markDone", "markFailed",
@@ -393,7 +393,7 @@ public final class RichAnswerPersistenceTest {
 
     /** And it sends nothing of the user's anywhere. */
     @Test public void discoverySendsNoUserContentOutward() {
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
+        String coordinator = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
         for (String forbidden : new String[]{
                 "OrbitVaultStore", "MemoryStore", "NotificationStore", "AttachmentStore",
@@ -403,7 +403,7 @@ public final class RichAnswerPersistenceTest {
         }
         // Asserted on the API surface rather than on English, because the javadoc here legitimately
         // discusses prompts and answers while the code deliberately never touches either.
-        String fetcher = ComponentUninstallTest.readRepositoryFile(
+        String fetcher = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/RichAnswerPageFetcher.java");
         for (String forbidden : new String[]{
                 "ConversationStore", "AssistantClient", "MemoryStore", "OrbitVaultStore",
@@ -413,23 +413,6 @@ public final class RichAnswerPersistenceTest {
         }
     }
 
-    /** Rich Answers is a declared provider capability, not something welded to one client. */
-    @Test public void richMediaIsGatedOnAProviderCapability() {
-        assertTrue("the ChatGPT path reports its sources and may offer rich media",
-                new ChatGptProvider().capabilities().richWebMedia);
-        for (AiProvider provider : AiProviders.all()) {
-            if (provider.capabilities().richWebMedia) {
-                assertTrue(provider.displayName()
-                                + " cannot report sources it never searched for",
-                        provider.capabilities().hostedWebSearch);
-            }
-        }
-        String coordinator = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/RichAnswerCoordinator.java");
-        assertTrue(coordinator.contains("capabilities().richWebMedia"));
-        assertFalse("and it must not be gated on a provider id",
-                coordinator.contains("PROVIDER_CHATGPT"));
-    }
 
     /** The user can turn it off, and off means Orbit contacts nothing. */
     @Test public void richAnswersCanBeTurnedOff() {

@@ -131,7 +131,7 @@ public final class ReplyDraftClarificationTest {
 
     /** The stored conversation carries the reply, not Orbit's bookkeeping. */
     @Test public void markersAreNotPersistedIntoTheConversation() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the reply is parsed before it is stored",
                 session.contains("ReplyDraftOutcome.parse(text)"));
@@ -210,7 +210,7 @@ public final class ReplyDraftClarificationTest {
      * VoiceInteractionSession, not constructible in a unit test — is pinned elsewhere in this suite.
      */
     @Test public void onlyASendableDraftEverOffersAnInsertControl() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the insert control requires a known draft on an insertable surface",
                 session.contains(
@@ -219,7 +219,7 @@ public final class ReplyDraftClarificationTest {
 
     /** The visible Regenerate control in the overlay stays, on every kind of reply-draft turn. */
     @Test public void theVisibleRegenerateControlIsPreserved() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("the small Regenerate button must still be built",
                 session.contains("regen.setContentDescription(\"Regenerate response\")"));
@@ -235,7 +235,7 @@ public final class ReplyDraftClarificationTest {
 
     /** Controls belong to a turn, and a stale row cannot act once a newer turn arrives. */
     @Test public void controlsAreBoundToTheTurnTheyBelongTo() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("a row knows its turn", session.contains("private boolean ownsDraftTurn("));
         assertTrue("the previous row is detached when a new turn arrives",
@@ -252,7 +252,7 @@ public final class ReplyDraftClarificationTest {
 
     /** Only the newest assistant turn can own the controls after a conversation is redrawn. */
     @Test public void aRebuiltConversationGivesControlsOnlyToTheNewestTurn() {
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue(session.contains("boolean draftReply = newest && i > 0"));
         assertTrue("and the clarification state decides the kind, not the text",

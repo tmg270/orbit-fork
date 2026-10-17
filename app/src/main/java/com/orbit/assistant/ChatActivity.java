@@ -2688,7 +2688,7 @@ public class ChatActivity extends Activity {
         try {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME,
-                    "Orbit_" + System.currentTimeMillis() + ".jpg");
+                    "GrokLink_" + System.currentTimeMillis() + ".jpg");
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             pendingCameraUri = getContentResolver().insert(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -3269,13 +3269,13 @@ public class ChatActivity extends Activity {
         retry.setOnClickListener(v -> retryFailed(failed));
         row.addView(retry, new LinearLayout.LayoutParams(UiKit.dp(this, 82), UiKit.dp(this, 38)));
         String failure = history.isEmpty() ? null : history.get(history.size() - 1).content;
-        if (ChatGptAuth.needsSignIn(this, failure)) {
+        if (SuperGrokAuth.needsSignIn(this, failure)) {
             Button signIn = new Button(this);
             signIn.setText("Sign in again"); signIn.setAllCaps(false); signIn.setTextSize(12); signIn.setTextColor(UiKit.accent(this));
             signIn.setMinHeight(0); signIn.setMinimumHeight(0); signIn.setStateListAnimator(null);
             signIn.setBackground(UiKit.rippleOutlined(UiKit.SURFACE_2, UiKit.accent(this), UiKit.accent(this), 14, this));
             UiKit.pressScale(signIn);
-            signIn.setOnClickListener(v -> startActivity(SettingsActivity.chatGptAccountIntent(this)));
+            signIn.setOnClickListener(v -> startActivity(SettingsActivity.xaiAccountIntent(this)));
             LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(this, 38));
             slp.setMargins(UiKit.dp(this, 8), 0, 0, 0);
             row.addView(signIn, slp);

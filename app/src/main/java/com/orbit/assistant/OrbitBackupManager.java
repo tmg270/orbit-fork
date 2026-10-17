@@ -77,7 +77,7 @@ public final class OrbitBackupManager {
     }
 
     public static String defaultFileName() {
-        return "Orbit-Backup-" + LocalDate.now() + ".orbitbackup";
+        return "GrokLink-Backup-" + LocalDate.now() + ".groklinkbackup";
     }
 
     public static void exportTo(Context context, Uri uri) throws Exception {

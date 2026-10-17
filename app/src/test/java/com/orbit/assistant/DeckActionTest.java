@@ -241,7 +241,7 @@ public final class DeckActionTest {
      * permission hand-off and run history. Everything must go through the shared runner.
      */
     @Test public void deckHasNoActionEngineOfItsOwn() {
-        String executor = ComponentUninstallTest.readRepositoryFile(
+        String executor = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/DeckActionExecutor.java");
 
         assertTrue("Routines must go through the shared runner",
@@ -253,23 +253,13 @@ public final class DeckActionTest {
         assertFalse("nor execute a device action directly",
                 executor.contains("DeviceActionExecutor.execute"));
 
-        String view = ComponentUninstallTest.readRepositoryFile(
+        String view = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/DeckTileView.java");
         assertFalse("the tile view must hold no business logic",
                 view.contains("OrbitWidgetExecutor") || view.contains("RoutineStore")
                         || view.contains("startActivity"));
     }
 
-    /** Suggested is computed locally, so nothing in it may reach a provider. */
-    @Test public void suggestionsNeverReachAProvider() {
-        String engine = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/DeckSuggestionEngine.java");
-        for (String forbidden : new String[]{
-                "AssistantClient", "AiProviders", "ChatGptClient", "OrbitRequestManager",
-                "HttpURLConnection", "URL("}) {
-            assertFalse("Suggested must not use " + forbidden, engine.contains(forbidden));
-        }
-    }
 
     // ---- app tiles ---------------------------------------------------------------------------------
 

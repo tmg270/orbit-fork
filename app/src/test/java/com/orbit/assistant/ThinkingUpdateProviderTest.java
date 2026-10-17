@@ -148,36 +148,7 @@ public final class ThinkingUpdateProviderTest {
         }
     }
 
-    /**
-     * Asking for a summary must not change what the model is asked to do.
-     *
-     * <p>Auto's calibration was validated on a real device, and a status line is not a reason to
-     * disturb it: the summary is requested alongside the effort the router already chose, never
-     * instead of it and never above it.
-     */
-    @Test public void requestingASummaryNeverRaisesTheReasoningEffort() {
-        String client = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        int at = client.indexOf("if (askForSummary) reasoning.put(\"summary\"");
-        assertTrue("the summary must be requested on the existing reasoning object", at > 0);
-        String around = client.substring(Math.max(0, at - 700), at);
-        // The effort is the validated selection's, resolved once by AiSelections. The summary
-        // request is still a separate key on the same object and still changes nothing about it.
-        assertTrue("the effort must come from the validated selection",
-                around.contains("AiSelections.resolve(selection).effortId()"));
-        assertFalse("the summary request must not overwrite the effort",
-                client.contains("reasoning.put(\"effort\", \"high\")"));
-    }
 
-    /** The selection decides the model and effort; Thinking updates change neither. */
-    @Test public void theSelectionAloneDecidesModelAndEffort() {
-        AiSelection sol = AiSelection.of(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.SOL, AiStrength.HIGH);
-        AiRequest off = AiRequest.builder().prompt("hi").selection(sol).build();
-        Prefs.get(context).edit().putBoolean(Prefs.THINKING_UPDATES, true).commit();
-        AiRequest on = AiRequest.builder().prompt("hi").selection(sol).thinkingUpdates(true).build();
-        assertEquals(OrbitModelCatalog.SOL, off.selection.model);
-        assertEquals(off.selection, on.selection);
-        assertEquals("high", on.selection.effortId());
-    }
 
     /** The flag is frozen onto the request rather than read again later. */
     @Test public void theRequestCarriesTheSettingItWasSubmittedWith() {
@@ -188,38 +159,9 @@ public final class ThinkingUpdateProviderTest {
                 off.thinkingUpdates);
     }
 
-    /** Requesting summaries is gated on the user's choice, not on the provider being capable. */
-    @Test public void aSummaryIsOnlyRequestedWhenTheUserAskedForOne() {
-        String client = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue("the request must be gated on both the setting and the observed support",
-                client.contains("thinkingUpdates && ReasoningSummarySupport.mayRequest(context)"));
-    }
 
     // ---- the fallback still answers ----------------------------------------------------------------
 
-    /**
-     * A provider Orbit cannot reach must still fail in plain language, exactly as it did before.
-     * A status feature is not allowed to change what an unconfigured provider says.
-     */
-    @Test public void anUnavailableProviderStillFailsCleanlyWithTheFeatureOn() {
-        Prefs.get(context).edit().putBoolean(Prefs.THINKING_UPDATES, true).commit();
-        AtomicReference<String> error = new AtomicReference<>();
-        AiRequest request = AiRequest.builder()
-                .prompt("Compare these architectures.")
-                .history(new ArrayList<>())
-                .selection(AiSelections.FALLBACK)
-                .thinkingUpdates(true)
-                .build();
-        AiProviders.byId(Prefs.PROVIDER_RELAY).send(context, request, new AssistantClient.Callback() {
-            @Override public void onThinking(ThinkingUpdate update) {
-                fail("a provider that cannot run must not narrate progress");
-            }
-            @Override public void onSuccess(AssistantReply reply) { fail("no reply was possible"); }
-            @Override public void onError(String message) { error.set(message); }
-        });
-        assertNotNull(error.get());
-        assertEquals(RelayProvider.NOT_CONFIGURED_ERROR, error.get());
-    }
 
     @Test public void unconnectedOpenRouterRefusesChatWithTheFeatureOn() {
         Prefs.get(context).edit().putBoolean(Prefs.THINKING_UPDATES, true).commit();

@@ -122,7 +122,7 @@ public final class RecentActionContext {
     /**
      * Records a ringer change Orbit performed.
      *
-     * @param previousMode "normal", "vibrate" or "silent" as Orbit read it before the change, or ""
+     * @param previousMode "normal", "vibrate" or "silent" as GrokLink read it before the change, or ""
      *                     when it could not, in which case the change cannot be put back.
      */
     public static synchronized void recordRinger(String previousMode) {

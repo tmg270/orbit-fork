@@ -173,12 +173,12 @@ public final class RichAnswerMarkdownSuppressionTest {
 
     /** Both surfaces redraw the whole message, so no old view can survive the transition. */
     @Test public void bothSurfacesRebuildTheMessageRatherThanPatchingIt() {
-        String chat = ComponentUninstallTest.readRepositoryFile(
+        String chat = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/ChatActivity.java");
         assertTrue("the chat list is cleared before it is redrawn",
                 chat.contains("messages.removeAllViews();"));
         assertTrue(chat.contains("RichAnswerCoordinator.addListener(richImageListener)"));
-        String session = ComponentUninstallTest.readRepositoryFile(
+        String session = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitSession.java");
         assertTrue("and so is the overlay", session.contains("renderConversation();"));
     }
@@ -188,7 +188,7 @@ public final class RichAnswerMarkdownSuppressionTest {
     /** Suppression is a skipped draw. The answer's own text keeps every character. */
     @Test public void theStoredAnswerIsNeverRewritten() {
         assertTrue("the fixture itself still carries the Markdown", ANSWER.contains("!["));
-        String renderer = ComponentUninstallTest.readRepositoryFile(
+        String renderer = RepoFiles.readRepositoryFile(
                 "app/src/main/java/com/orbit/assistant/OrbitRichResponseRenderer.java");
         for (String rewrite : new String[]{
                 "source = source.replace", "rawText.replace(\"![\"", "stripMarkdownImages"}) {
@@ -242,7 +242,7 @@ public final class RichAnswerMarkdownSuppressionTest {
      */
     @Test public void theModelIsToldNotToWriteImagesWhenRichAnswersIsOn() {
         Prefs.get(context).edit().putBoolean(Prefs.RICH_ANSWERS, true).commit();
-        String policy = ChatGptClient.imagePolicy(context);
+        String policy = ActionPromptBuilder.imagePolicy(context);
         assertTrue(policy.contains("Do not emit Markdown image syntax"));
         assertTrue("ordinary links must stay explicitly allowed",
                 policy.contains("Ordinary Markdown links"));
@@ -253,7 +253,7 @@ public final class RichAnswerMarkdownSuppressionTest {
     /** With Rich Answers off, the model keeps the permission it has always had. */
     @Test public void theModelKeepsItsImagePermissionWhenRichAnswersIsOff() {
         Prefs.get(context).edit().putBoolean(Prefs.RICH_ANSWERS, false).commit();
-        String policy = ChatGptClient.imagePolicy(context);
+        String policy = ActionPromptBuilder.imagePolicy(context);
         assertTrue(policy.contains("Only use Markdown image syntax"));
         assertFalse(policy.contains("Do not emit Markdown image syntax"));
     }
@@ -267,20 +267,13 @@ public final class RichAnswerMarkdownSuppressionTest {
      */
     @Test public void theModelIsToldNotToCountOrCompareThePictures() {
         Prefs.get(context).edit().putBoolean(Prefs.RICH_ANSWERS, true).commit();
-        String policy = ChatGptClient.imagePolicy(context);
+        String policy = ActionPromptBuilder.imagePolicy(context);
         assertTrue(policy.contains("never promise a number of pictures"));
         assertTrue(policy.contains("never claim the pictures are different from each other"));
         assertTrue("and it is given wording that works instead",
                 policy.contains("Here are some useful visual references"));
     }
 
-    /** The instruction is one or the other, never both, and is chosen per request. */
-    @Test public void theTwoPoliciesAreMutuallyExclusiveAndReadAtRequestTime() {
-        String client = ComponentUninstallTest.readRepositoryFile(
-                "app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue(client.contains("SYSTEM + imagePolicy(context)"));
-        assertTrue(client.contains("RichAnswerCoordinator.enabled(context) ? RICH_ANSWERS_SYSTEM : MARKDOWN_IMAGES_SYSTEM"));
-    }
 
     // ---- fixtures kept honest ----------------------------------------------------------------------
 

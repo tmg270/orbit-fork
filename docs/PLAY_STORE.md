@@ -12,7 +12,7 @@ Orbit is one Android application, `com.orbit.assistant`, distributed two ways as
 | --- | --- | --- |
 | Artifact | Signed APK on GitHub Releases | Android App Bundle (AAB) uploaded to Play |
 | Gradle build type | `debug`, `release` (unchanged) | `play` |
-| Built by | `release.yml` / `candidate.yml` / `build-apk.yml`, `tools/build_orbit.ps1` | `gradlew bundlePlay`, locally for now |
+| Built by | `release.yml` / `candidate.yml` / `build-apk.yml`, `tools/build_groklink.ps1` | `gradlew bundlePlay`, locally for now |
 | App signing key | Orbit's permanent GitHub release key | Google-generated Play app signing key, held by Google |
 | Uploads signed with | Not applicable | A separate Play upload key (section 5.1) |
 | Can update the other edition | No | No |
@@ -72,7 +72,7 @@ Orbit now compiles against and targets API 36 in both `:app` and `:local`. `minS
 Build-tool changes, and only these:
 
 - Android Gradle Plugin 8.9.2 to 8.10.1. AGP 8.9 supports at most API 35; 8.10 is the first line that supports API 36, with the same Gradle 8.11.1, JDK 17, and Build Tools 35.0.0 Orbit already uses.
-- The `platforms;android-36` SDK package, installed by `tools/build_orbit.ps1` and all three workflows.
+- The `platforms;android-36` SDK package, installed by `tools/build_groklink.ps1` and all three workflows.
 
 Android 16 behaviour changes for apps targeting API 36, and what they mean for Orbit:
 

@@ -118,7 +118,7 @@ public final class RoutineCommandRouter {
         // Accept polite wrappers while keeping execution gated behind an explicit
         // run/start/execute/activate verb.
         String lower;
-        String[] polite = {"please ", "can you ", "could you ", "would you ", "will you ", "orbit "};
+        String[] polite = {"please ", "can you ", "could you ", "would you ", "will you ", "groklink ", "grok ", "orbit "};
         boolean stripped;
         do {
             stripped = false;

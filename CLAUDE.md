@@ -22,8 +22,8 @@ Both surfaces share conversation history, appearance, preferences, and the actio
 | `app/src/main/res/` | Layouts, drawables, values, `xml/` (widget info, voice interaction service, file paths) |
 | `app/src/main/assets/orbit-extensions/` | Bundled first-party `.orbitext` manifests |
 | `app/src/test/`, `app/src/androidTest/` | Robolectric unit tests and instrumented tests |
-| `tools/build_orbit.ps1` | The real local build entry point (bootstraps JDK 17, Android SDK, Gradle) |
-| `BUILD_ORBIT.cmd` | Double-clickable wrapper around the above |
+| `tools/build_groklink.ps1` | The real local build entry point (bootstraps JDK 17, Android SDK, Gradle) |
+| `BUILD_GROKLINK.cmd` | Double-clickable wrapper around the above |
 | `.github/workflows/build-apk.yml` | Debug APK CI on push to `main` |
 | `.github/workflows/release.yml` | Tag-triggered signed release + verification + GitHub Release |
 | `CHANGELOG.md` | Canonical version-by-version history (also the source of release notes) |
@@ -36,10 +36,10 @@ Both surfaces share conversation history, appearance, preferences, and the actio
 
 ## Build
 
-Local build (produces `Orbit-Assistant-v<version>-debug.apk` in the repo root plus a `.sha256.txt`):
+Local build (produces `GrokLink-v<version>-debug.apk` in the repo root plus a `.sha256.txt`):
 
 ```bash
-powershell -NoProfile -ExecutionPolicy Bypass -File "tools/build_orbit.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "tools/build_groklink.ps1"
 ```
 
 The script reads `versionName` from `app/build.gradle`, deletes stale root APKs, writes
@@ -48,11 +48,11 @@ The script reads `versionName` from `app/build.gradle`, deletes stale root APKs,
 Direct Gradle (for tests or targeted tasks) needs the environment set manually — there is no
 `local.properties` and `JAVA_HOME` is normally unset:
 
-- `JAVA_HOME` — a JDK 17; the build script's own lookup order in `tools/build_orbit.ps1` is the
+- `JAVA_HOME` — a JDK 17; the build script's own lookup order in `tools/build_groklink.ps1` is the
   authoritative list of where to find one on this machine
 - `ANDROID_HOME` / `ANDROID_SDK_ROOT` — `%LOCALAPPDATA%\Android\Sdk`
 - Gradle — `%LOCALAPPDATA%\OrbitAssistant\BuildTools\gradle-<version>\bin\gradle.bat`, at the version
-  pinned in `tools/build_orbit.ps1`
+  pinned in `tools/build_groklink.ps1`
 
 Useful tasks: `assembleDebug`, `testDebugUnitTest`. `assembleRelease` deliberately fails unless all
 four `ORBIT_RELEASE_*` values are present. `bundlePlay` builds the Google Play App Bundle

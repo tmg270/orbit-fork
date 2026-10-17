@@ -83,9 +83,6 @@ final class ConversationSheets {
             if (estimate.auto) {
                 notes.append(" Auto picks the model when you send, so no limit is shown here. "
                         + "Each request only goes to a model whose context window fits it.");
-            } else if (estimate.fittedByProvider) {
-                notes.append(" GrokLink Local fits each request into its own small on-device window, "
-                        + "keeping your newest messages and the most relevant parts of attachments.");
             } else if (!estimate.knowsLimit()) {
                 notes.append(" GrokLink does not know this model's context window, so no percentage "
                         + "is shown.");

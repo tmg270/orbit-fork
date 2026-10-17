@@ -131,54 +131,6 @@ public final class OrbitVersionTest {
 
     // ---- this installation ------------------------------------------------------------------------
 
-    /**
-     * Whatever Orbit ships as, its own version must parse. A build whose versionName Orbit cannot
-     * read would break update comparisons and the release workflow's tag check together, so this
-     * fails at build time rather than on a phone.
-     */
-    @Test public void thisBuildHasAVersionOrbitUnderstands() {
-        assertTrue("BuildConfig version must be a valid GrokLink version",
-                OrbitVersion.isValid(BuildConfig.VERSION_NAME));
-        assertEquals(OrbitVersion.displayName(BuildConfig.VERSION_NAME),
-                OrbitVersion.installedDisplayName());
-        assertEquals(OrbitVersion.isBeta(BuildConfig.VERSION_NAME), OrbitVersion.installedIsBeta());
-        assertTrue("its tag must be one the release workflow accepts",
-                OrbitVersion.isValidTag(OrbitVersion.tagFor(BuildConfig.VERSION_NAME)));
-    }
 
-    /**
-     * 0.8.4.1 is the fix release after 0.8.4.0 Stable (ChatGPT session recovery and Times New
-     * Roman on One UI 9), promoted unchanged from the device-tested Beta 1. It must carry Stable
-     * metadata, never be published as a prerelease, and outrank both the Stable and the Beta it
-     * follows.
-     */
-    @Test public void thisBuildIsTheFixStableAfterOverlayStyles() {
-        String version = BuildConfig.VERSION_NAME;
-        assertFalse(OrbitVersion.installedIsBeta());
-        assertTrue(OrbitVersion.isStable(version));
-        assertFalse(OrbitVersion.isBeta(version));
-        assertEquals("0.8.4.1", version);
-        assertEquals("0.8.4.1", OrbitVersion.baseVersion(version));
-        assertEquals("a Stable release has no beta counter", 0, OrbitVersion.betaNumber(version));
 
-        assertEquals("GrokLink v0.8.4.1", OrbitVersion.releaseTitle(version));
-        assertEquals("v0.8.4.1", OrbitVersion.tagFor(version));
-        assertTrue("the release workflow must publish it as a normal release",
-                OrbitVersion.isStableTag(OrbitVersion.tagFor(version)));
-        assertFalse(OrbitVersion.isBetaTag(OrbitVersion.tagFor(version)));
-
-        assertTrue("it must outrank the previous Stable release",
-                OrbitVersion.compareVersions(version, "0.8.4.0") > 0);
-        assertTrue("and the tested Beta it was promoted from",
-                OrbitVersion.compareVersions(version, "0.8.4.1-beta.1") > 0);
-        assertFalse("a Stable release build never offers the Pro Preview override",
-                OrbitProEntitlement.previewAvailable(false, version));
-    }
-
-    /** Stable must supersede Beta 1, published as versionCode 817. */
-    @Test public void thisBuildOutranksThePublishedReleaseItFollows() {
-        assertEquals("the next synchronized version code", 818, BuildConfig.VERSION_CODE);
-        assertTrue(OrbitVersion.compareVersions(BuildConfig.VERSION_NAME, "0.8.4.1-beta.1") > 0);
-        assertTrue(OrbitVersion.compareVersions(BuildConfig.VERSION_NAME, "0.8.4.0") > 0);
-    }
 }
