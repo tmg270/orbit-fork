@@ -1,0 +1,30 @@
+name: Apply GrokLink patch (one-shot)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ groklink ]
+    paths: [ '.github/workflows/apply-groklink.yml' ]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: groklink
+          fetch-depth: 0
+      - name: Apply patch as its own commit, then remove the one-shot files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "GrokLink Bot"
+          git config user.email "tmg270@users.noreply.github.com"
+          base64 -d ci/groklink.patch.gz.b64 | gunzip > /tmp/groklink.patch
+          git rm -q ci/groklink.patch.gz.b64 .github/workflows/apply-groklink.yml
+          git commit -qm "Remove one-shot GrokLink patch carrier"
+          git am --3way /tmp/groklink.patch
+          git push origin HEAD:groklink
