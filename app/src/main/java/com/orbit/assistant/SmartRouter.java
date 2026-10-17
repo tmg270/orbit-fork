@@ -113,20 +113,8 @@ public final class SmartRouter {
      * for explicit choice), and the relay (it spends an operator's metered key).
      */
     static final List<Candidate> CANDIDATES = Collections.unmodifiableList(Arrays.asList(
-            new Candidate(Prefs.PROVIDER_LOCAL, OrbitModelCatalog.ORBIT_LOCAL, 0, -1, -1, -1),
-            new Candidate(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.LUNA, 0, 0, 2, 3),
-            new Candidate(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.SOL, 3, 2, 0, 0),
-            new Candidate(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.GPT_5_6_LUNA, 0, 0, 2, 3),
-            new Candidate(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.GPT_5_6_TERRA, 1, 0, 1, 1),
-            new Candidate(Prefs.PROVIDER_CHATGPT, OrbitModelCatalog.GPT_5_6_SOL, 3, 2, 0, 0),
-            new Candidate(Prefs.PROVIDER_ANTHROPIC, OrbitModelCatalog.CLAUDE_HAIKU_4_5, 0, 1, 3, 3),
-            new Candidate(Prefs.PROVIDER_ANTHROPIC, OrbitModelCatalog.CLAUDE_SONNET_5_5, 2, 0, 1, 2),
-            new Candidate(Prefs.PROVIDER_ANTHROPIC, OrbitModelCatalog.CLAUDE_OPUS_5_5, 3, 2, 0, 0),
-            new Candidate(Prefs.PROVIDER_XAI, OrbitModelCatalog.GROK_4_7, 1, 0, 0, 1),
-            new Candidate(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OR_GPT_6_LUNA, 0, 0, 2, 3),
-            new Candidate(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OR_GPT_6_1_SOL, 3, 2, 0, 0),
-            new Candidate(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OR_CLAUDE_SONNET_5_5, 2, 0, 1, 2),
-            new Candidate(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OR_CLAUDE_OPUS_5_5, 3, 2, 0, 0)));
+            // GrokLink: xAI / Grok only.
+            new Candidate(Prefs.PROVIDER_XAI, OrbitModelCatalog.GROK_4_7, 1, 0, 0, 1)));
 
     /** True when this exact model is in Auto's curated set. */
     public static boolean isCandidate(String provider, String model) {

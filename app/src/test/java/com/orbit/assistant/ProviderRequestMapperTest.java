@@ -37,7 +37,7 @@ public final class ProviderRequestMapperTest {
         JSONObject root = ProviderRequestMapper.anthropic(null, request, true);
         assertEquals(OrbitModelCatalog.CLAUDE_OPUS_5_5, root.getString("model"));
         assertTrue(root.getBoolean("stream"));
-        assertTrue(root.getString("system").startsWith("You are Orbit"));
+        assertTrue(root.getString("system").startsWith("You are GrokLink"));
         assertEquals("adaptive", root.getJSONObject("thinking").getString("type"));
         assertEquals("medium", root.getJSONObject("output_config").getString("effort"));
         JSONArray messages = root.getJSONArray("messages");

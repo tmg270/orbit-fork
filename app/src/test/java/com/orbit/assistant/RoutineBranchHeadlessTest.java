@@ -148,7 +148,7 @@ public final class RoutineBranchHeadlessTest {
      * to defer instead of completing.
      */
     @Test public void aForegroundOnlyStepOnTheTakenPathStillDefersTheRun() {
-        RoutineStore.Routine routine = save("Needs Orbit",
+        RoutineStore.Routine routine = save("Needs GrokLink",
                 chain(lockedCondition(true, 1, 1), timer(11), volume(30), volume(40)));
 
         List<Integer> timers = runAutomatically(routine);

@@ -127,7 +127,7 @@ public final class CapabilityAccessHelper {
                 String option = RoutineLocationTriggerScheduler.backgroundPermissionLabel(activity);
                 AlertDialog dialog = new AlertDialog.Builder(activity)
                         .setTitle("Allow background location")
-                        .setMessage("For arrive/leave Routines to work while Orbit is closed, open Orbit's app permissions, choose Location, then select \"" + option + "\".")
+                        .setMessage("For arrive/leave Routines to work while GrokLink is closed, open GrokLink's app permissions, choose Location, then select \"" + option + "\".")
                         .setNegativeButton("Not now", null)
                         .setPositiveButton("Open settings", (d, w) ->
                                 RoutineLocationTriggerScheduler.openAppLocationSettings(activity))

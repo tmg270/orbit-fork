@@ -167,7 +167,7 @@ public final class DeviceStatusTest {
         assertEquals("mains", DeviceStatusReader.plugSource(BatteryManager.BATTERY_PLUGGED_AC));
         assertEquals("USB", DeviceStatusReader.plugSource(BatteryManager.BATTERY_PLUGGED_USB));
         assertEquals("wireless", DeviceStatusReader.plugSource(BatteryManager.BATTERY_PLUGGED_WIRELESS));
-        assertEquals("a plug Orbit has no word for is left unnamed rather than guessed",
+        assertEquals("a plug GrokLink has no word for is left unnamed rather than guessed",
                 "", DeviceStatusReader.plugSource(64));
     }
 

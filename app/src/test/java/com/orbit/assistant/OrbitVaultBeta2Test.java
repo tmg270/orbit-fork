@@ -177,7 +177,7 @@ public final class OrbitVaultBeta2Test {
                 + "\"body\":\"Charger\",\"source\":\"Quick Capture\",\"mediaPath\":\"\","
                 + "\"createdAt\":1000,\"modifiedAt\":1000},"
                 + "{\"id\":\"b1-link\",\"type\":\"link\",\"title\":\"\","
-                + "\"body\":\"https://example.com/a\",\"source\":\"Shared to Orbit\","
+                + "\"body\":\"https://example.com/a\",\"source\":\"Shared to GrokLink\","
                 + "\"mediaPath\":\"\",\"createdAt\":2000,\"modifiedAt\":2000}]";
         assertTrue(OrbitVaultStore.prefs(context).edit().putString("items_v1", beta1).commit());
 
@@ -250,7 +250,7 @@ public final class OrbitVaultBeta2Test {
         assertNull("no picture either",
                 OrbitVaultStore.saveImage(context, picture(), "", "Photo"));
         assertNull("and no saved answer either",
-                OrbitVaultStore.saveOrbitReply(context, "Orbit said something."));
+                OrbitVaultStore.saveOrbitReply(context, "GrokLink said something."));
 
         assertEquals("nothing already saved is touched", 2, OrbitVaultStore.count(context));
         assertTrue("and no picture file is removed", new File(image.mediaPath).isFile());
@@ -309,7 +309,7 @@ public final class OrbitVaultBeta2Test {
         assertTrue("the share destination choice is conditional",
                 source("ShareToOrbitActivity")
                         .contains("Prefs.vaultEnabled(this) && vaultCanHold("));
-        assertTrue("and Ask Orbit through a share still works either way",
+        assertTrue("and Ask GrokLink through a share still works either way",
                 source("ShareToOrbitActivity").contains("openConversation(chat)"));
         assertFalse("the share receiver itself is never disabled",
                 source("ShareToOrbitActivity").contains("setComponentEnabledSetting"));
@@ -342,7 +342,7 @@ public final class OrbitVaultBeta2Test {
 
         assertEquals("every saved item is gone", 0, OrbitVaultStore.count(context));
         assertTrue("and so is every Vault picture", !new File(image.mediaPath).exists());
-        assertFalse("Orbit Memory is untouched", MemoryStore.list(context).isEmpty());
+        assertFalse("GrokLink Memory is untouched", MemoryStore.list(context).isEmpty());
         assertEquals("chats are untouched", 1,
                 ConversationStore.load(context, "vault-delete-test").messages.size());
         assertTrue("and a file the Vault does not own is untouched", outsider.isFile());
@@ -371,7 +371,7 @@ public final class OrbitVaultBeta2Test {
                                 "UiKit.styleOrbitDialog(dialog, this, true)"));
         assertEquals("Delete all Vault data?", SettingsActivity.VAULT_DELETE_TITLE);
         assertTrue("the confirmation says what survives",
-                SettingsActivity.VAULT_DELETE_MESSAGE.contains("Orbit Memory")
+                SettingsActivity.VAULT_DELETE_MESSAGE.contains("GrokLink Memory")
                         && SettingsActivity.VAULT_DELETE_MESSAGE.contains("cannot be undone"));
     }
 
@@ -517,7 +517,7 @@ public final class OrbitVaultBeta2Test {
     /** The item screen builds the Intent and stops: no request machinery is reachable from it. */
     @Test public void theItemScreenStagesRatherThanSends() {
         String screen = source("OrbitVaultItemActivity");
-        assertTrue("Ask Orbit hands the id to the ordinary chat screen",
+        assertTrue("Ask GrokLink hands the id to the ordinary chat screen",
                 screen.contains("ChatActivity.EXTRA_VAULT_ITEM_ID"));
         for (String forbidden : new String[]{"AssistantClient", "AiProviders", "AutoRouter",
                 "OrbitRequestManager", "PendingRequestStore", "OrbitRequestWorker",
@@ -681,7 +681,7 @@ public final class OrbitVaultBeta2Test {
         View open = findClickableWithDescription(screen.getWindow().getDecorView(),
                 OrbitVaultItemActivity.ACTION_OPEN_LINK);
         if (open != null) open.performClick();
-        assertNull("no Intent may leave Orbit for a scheme it does not open",
+        assertNull("no Intent may leave GrokLink for a scheme it does not open",
                 Shadows.shadowOf(screen).getNextStartedActivity());
     }
 
@@ -714,7 +714,7 @@ public final class OrbitVaultBeta2Test {
                         .contains("filledAction(ACTION_OPEN_LINK"));
         assertTrue("the utilities are compact rather than full-width buttons",
                 source("OrbitVaultItemActivity").contains("compactAction(ACTION_COPY"));
-        assertTrue("and Delete keeps Orbit's destructive treatment",
+        assertTrue("and Delete keeps GrokLink's destructive treatment",
                 source("OrbitVaultItemActivity").contains("delete.setTextColor(UiKit.DANGER)"));
     }
 
@@ -765,7 +765,7 @@ public final class OrbitVaultBeta2Test {
         Activity picker = Robolectric.buildActivity(OrbitVaultPickerActivity.class).setup().get();
         assertNull("opening the picker sends nothing either",
                 Shadows.shadowOf(picker).getNextStartedActivity());
-        assertTrue("and none of it teaches Orbit anything",
+        assertTrue("and none of it teaches GrokLink anything",
                 MemoryStore.list(context).isEmpty());
     }
 

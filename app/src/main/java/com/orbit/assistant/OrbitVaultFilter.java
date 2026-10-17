@@ -13,7 +13,7 @@ import java.util.Locale;
  *
  * <p><b>Everything here is decided on the item's canonical fields.</b> The type is matched against
  * the stable ids in {@link OrbitVaultItem}, never against the word a card happens to draw, so
- * rewording "Orbit answer" tomorrow cannot silently empty a filter. The source is matched through
+ * rewording "GrokLink answer" tomorrow cannot silently empty a filter. The source is matched through
  * {@link OrbitVaultSource}, which is a closed vocabulary Orbit writes itself, so no filter can ever
  * be steered by a string another app chose.
  *
@@ -30,7 +30,7 @@ public final class OrbitVaultFilter {
      *
      * <p>The labels are what a selector draws, and Beta 5 changed two of them. "All" became "All
      * items" so the closed selector states what it is showing rather than only that nothing is
-     * chosen, and "Orbit" became "Orbit answers" because "Orbit" beside a source list that also
+     * chosen, and "GrokLink" became "GrokLink answers" because "GrokLink" beside a source list that also
      * contains Orbit's own surfaces named the app rather than the kind of thing. The ids under
      * both are stored and are unchanged, so a filter somebody left in force before this release is
      * still the same filter afterwards.
@@ -42,7 +42,7 @@ public final class OrbitVaultFilter {
         LINKS("links", "Links"),
         IMAGES("images", "Images"),
         DOCUMENTS("documents", "Documents"),
-        ORBIT("orbit", "Orbit answers");
+        ORBIT("orbit", "GrokLink answers");
 
         /** Stored identity: never rename. */
         public final String id;

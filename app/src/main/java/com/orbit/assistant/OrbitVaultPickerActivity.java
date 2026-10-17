@@ -63,7 +63,7 @@ public final class OrbitVaultPickerActivity extends Activity {
 
     static final String EMPTY_TITLE = "Nothing saved yet";
     static final String EMPTY_BODY =
-            "Items you save to Orbit Vault can be attached to a message from here.";
+            "Items you save to GrokLink Vault can be attached to a message from here.";
 
     private LinearLayout list;
     private EditText searchInput;

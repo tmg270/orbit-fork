@@ -76,7 +76,7 @@ public final class OrbitNavigation {
         put(DeckActivity.class, Policy.PREDICTIVE, "Deck");
         put(DiagnosticsActivity.class, Policy.PREDICTIVE, "Diagnostics");
         put(AiProvidersActivity.class, Policy.PREDICTIVE, "AI providers");
-        put(LocalAiActivity.class, Policy.PREDICTIVE, "Orbit Local");
+        put(LocalAiActivity.class, Policy.PREDICTIVE, "GrokLink Local");
         put(CapabilitiesActivity.class, Policy.PREDICTIVE, "Capabilities");
         put(MemoryActivity.class, Policy.PREDICTIVE, "Memory");
         // Vault and one saved item are two ordinary pages: Chats is under the Vault, and the Vault
@@ -133,12 +133,12 @@ public final class OrbitNavigation {
         // another app, draws nothing, and finishes as soon as it has opened the conversation, so
         // there is no Orbit screen underneath it for a page gesture to reveal. The conversation it
         // opens has a real Chats stack behind it and keeps the ordinary predictive Back.
-        put(ShareToOrbitActivity.class, Policy.LOCAL, "Share to Orbit");
+        put(ShareToOrbitActivity.class, Policy.LOCAL, "Share to GrokLink");
         // The external selected-text doorway. Exactly the same shape as the share bridge above:
         // it arrives from another app, draws nothing, and finishes once it has opened a
         // conversation, so there is no Orbit page beneath it for a gesture to reveal.
-        put(ProcessTextToOrbitActivity.class, Policy.LOCAL, "Ask Orbit from text");
-        // The browser's "Return to Orbit" after ChatGPT sign-in. Another doorway of the same shape:
+        put(ProcessTextToOrbitActivity.class, Policy.LOCAL, "Ask GrokLink from text");
+        // The browser's "Return to GrokLink" after ChatGPT sign-in. Another doorway of the same shape:
         // it draws nothing and only brings forward the screen that started the sign-in.
         put(ChatGptSignInReturnActivity.class, Policy.LOCAL, "ChatGPT sign-in return");
         // The full-screen attachment viewer. Not a page in the hierarchy but a detail surface laid
@@ -186,7 +186,7 @@ public final class OrbitNavigation {
         return screen == null ? "Unknown" : screen.label;
     }
 
-    /** True when this screen's Back means "return to the Orbit screen underneath". */
+    /** True when this screen's Back means "return to the GrokLink screen underneath". */
     public static boolean usesPredictive(Class<?> type) {
         Policy policy = policyFor(type);
         return policy == Policy.PREDICTIVE || policy == Policy.GUARDED;

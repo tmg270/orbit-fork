@@ -13,7 +13,7 @@ public final class OrbitRoutineTileService extends TileService {
         Tile tile = getQsTile();
         if (tile == null) return;
         RoutineStore.Routine routine = QuickSettingsTiles.assignedRoutine(this);
-        tile.setLabel("Orbit Routine");
+        tile.setLabel("GrokLink Routine");
         tile.setState(routine == null ? Tile.STATE_INACTIVE : Tile.STATE_ACTIVE);
         if (Build.VERSION.SDK_INT >= 29) {
             tile.setSubtitle(routine == null ? "Choose a Routine" : routine.name);

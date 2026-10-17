@@ -39,7 +39,7 @@ public final class RoutineTriggerNotifier {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(c, CHANNEL)
                 : new Notification.Builder(c);
-        b.setSmallIcon(R.drawable.ic_orbit)
+        b.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(routine.name + " needs you")
                 .setContentText(body)
                 .setStyle(new Notification.BigTextStyle().bigText(body))
@@ -68,7 +68,7 @@ public final class RoutineTriggerNotifier {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(c, CHANNEL)
                 : new Notification.Builder(c);
-        b.setSmallIcon(R.drawable.ic_orbit)
+        b.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(routine.name + " stopped")
                 .setContentText(body)
                 .setStyle(new Notification.BigTextStyle().bigText(body))

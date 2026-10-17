@@ -95,7 +95,7 @@ public final class PlayEditionTest {
     @Test public void anUpdateCheckRefusesBeforeReachingTheNetwork() {
         try {
             OrbitUpdater.checkNow(context);
-            fail("the Play edition must not check GitHub for Orbit updates");
+            fail("the Play edition must not check GitHub for GrokLink updates");
         } catch (Exception e) {
             assertEquals(OrbitDistribution.PLAY_REFUSAL, e.getMessage());
         }
@@ -173,7 +173,7 @@ public final class PlayEditionTest {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         try {
             OrbitLocalInstaller.launchInstaller(activity, apk);
-            fail("the Play edition must never install Orbit Local from an APK");
+            fail("the Play edition must never install GrokLink Local from an APK");
         } catch (Exception e) {
             assertEquals(OrbitDistribution.PLAY_REFUSAL, e.getMessage());
         }
@@ -184,7 +184,7 @@ public final class PlayEditionTest {
         ActivityController<LocalAiActivity> local = Robolectric.buildActivity(LocalAiActivity.class);
         controller = local.setup();
         View root = local.get().getWindow().getDecorView();
-        assertNull(findText(root, "Set up Orbit Local"));
+        assertNull(findText(root, "Set up GrokLink Local"));
         assertNull(findText(root, "Install component"));
         assertNull(findText(root, "Update component"));
         assertNotNull(findContainingText(root, LocalAiActivity.PLAY_UNAVAILABLE));
@@ -203,13 +203,13 @@ public final class PlayEditionTest {
                 findText(root, "Update channel"));
         assertNull(findText(root, "Update notifications"));
         assertNull(findText(root, "Check for updates"));
-        assertNull(findContainingText(root, "lpnovi/Orbit-Assistant releases"));
+        assertNull(findContainingText(root, "lpnovi/GrokLink-Assistant releases"));
 
         TextView open = findText(root, "Open in Google Play");
         assertNotNull(open);
         open.performClick();
         Intent started = shadowOf(activity).getNextStartedActivity();
-        assertNotNull("the one action opens Orbit's Play listing", started);
+        assertNotNull("the one action opens GrokLink's Play listing", started);
         assertEquals(Intent.ACTION_VIEW, started.getAction());
         String target = String.valueOf(started.getData());
         assertTrue(target, target.equals("market://details?id=com.orbit.assistant")
@@ -227,7 +227,7 @@ public final class PlayEditionTest {
     }
 
     @Test public void playProMessagingNeverMentionsProPreview() {
-        assertEquals("Orbit Pro isn't available for purchase yet.",
+        assertEquals("GrokLink Pro isn't available for purchase yet.",
                 OrbitProEntitlement.lockedGuidance("Enable Pro Preview in Diagnostics."));
 
         ActivityController<DeckActivity> deck = Robolectric.buildActivity(DeckActivity.class);
@@ -235,8 +235,8 @@ public final class PlayEditionTest {
         DeckLayoutStore.createBlankLayout(context, "Work");
         deck.get().openLayoutManagerForTest();
         View root = deck.get().getWindow().getDecorView();
-        assertNotNull(findText(root, "Deck layouts · Orbit Pro"));
-        assertNotNull(findContainingText(root, "Orbit Pro isn't available for purchase yet."));
+        assertNotNull(findText(root, "Deck layouts · GrokLink Pro"));
+        assertNotNull(findContainingText(root, "GrokLink Pro isn't available for purchase yet."));
         assertNull("Play and Stable have no Pro Preview to enable",
                 findContainingText(root, "Pro Preview"));
         assertNull(findContainingText(root, "Diagnostics"));
@@ -265,7 +265,7 @@ public final class PlayEditionTest {
                 .put("tag", "v0.9.0.0")
                 .put("versionName", "0.9.0.0")
                 .put("versionCode", 900)
-                .put("apkAssetName", "Orbit-Assistant-v0.9.0.0.apk")
+                .put("apkAssetName", "GrokLink-Assistant-v0.9.0.0.apk")
                 .put("apkSha256", "0000000000000000000000000000000000000000000000000000000000000000")
                 .put("certificateSha256", CERT)
                 .put("apkSize", 1000)
@@ -275,7 +275,7 @@ public final class PlayEditionTest {
 
     private static OrbitUpdater.Release release() {
         return new OrbitUpdater.Release("v0.9.0.0", "0.9.0.0", 900L,
-                "Orbit-Assistant-v0.9.0.0.apk",
+                "GrokLink-Assistant-v0.9.0.0.apk",
                 "0000000000000000000000000000000000000000000000000000000000000000",
                 CERT, 1000L, "");
     }

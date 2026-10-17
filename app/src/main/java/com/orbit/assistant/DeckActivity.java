@@ -283,7 +283,7 @@ public final class DeckActivity extends Activity {
 
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
-        titles.addView(UiKit.text(this, "Orbit Deck", 26, UiKit.TEXT, true));
+        titles.addView(UiKit.text(this, "GrokLink Deck", 26, UiKit.TEXT, true));
         headerSubtitle = UiKit.text(this, "Your shortcuts", 12, UiKit.MUTED, false);
         titles.addView(headerSubtitle);
         header.addView(titles, new LinearLayout.LayoutParams(
@@ -349,7 +349,7 @@ public final class DeckActivity extends Activity {
         title.setGravity(Gravity.CENTER);
         block.addView(title);
 
-        TextView note = UiKit.text(this, "Add the Orbit tools you want one tap away.",
+        TextView note = UiKit.text(this, "Add the GrokLink tools you want one tap away.",
                 13.5f, UiKit.MUTED, false);
         note.setGravity(Gravity.CENTER);
         note.setPadding(0, UiKit.dp(this, 8), 0, UiKit.dp(this, 20));
@@ -637,8 +637,8 @@ public final class DeckActivity extends Activity {
 
     private void openLayoutManager() {
         if (!OrbitProEntitlement.hasPro(this)) {
-            LinearLayout column = openSheet("Deck layouts · Orbit Pro",
-                    "Multiple saved Decks and layout templates are part of Orbit Pro.");
+            LinearLayout column = openSheet("Deck layouts · GrokLink Pro",
+                    "Multiple saved Decks and layout templates are part of GrokLink Pro.");
             column.addView(emptyNote("Your active Deck and all Free organization tools remain fully available. "
                     + OrbitProEntitlement.lockedGuidance(
                             "Enable Pro Preview in Diagnostics to try saved layouts.")));
@@ -745,7 +745,7 @@ public final class DeckActivity extends Activity {
                 "Copy " + active.name + " with independent items", null,
                 () -> duplicateLayout(active)), rowLp());
         column.addView(pickerRow(R.drawable.ic_deck_sparkle, "Template",
-                "Start from a curated Orbit layout", null, this::openTemplateSheet), rowLp());
+                "Start from a curated GrokLink layout", null, this::openTemplateSheet), rowLp());
     }
 
     private void duplicateLayout(DeckLayout source) {
@@ -823,7 +823,7 @@ public final class DeckActivity extends Activity {
     private void confirmDeleteLayout(DeckLayout layout) {
         android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
                 .setTitle("Delete " + layout.name + "?")
-                .setMessage("This permanently deletes only this saved Deck. Other Orbit data is not affected.")
+                .setMessage("This permanently deletes only this saved Deck. Other GrokLink data is not affected.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Delete", (d, w) -> {
                     cancelActiveDrag();
@@ -1507,8 +1507,8 @@ public final class DeckActivity extends Activity {
     private void openAppearanceEditor(DeckTile tile, String expectedLayoutId) {
         if (!expectedLayoutId.equals(activeLayoutId)) return;
         if (!OrbitProEntitlement.hasPro(this)) {
-            LinearLayout column = openSheet("Tile appearance · Orbit Pro",
-                    "Per-tile accent, material, icon, and label choices are part of Orbit Pro.");
+            LinearLayout column = openSheet("Tile appearance · GrokLink Pro",
+                    "Per-tile accent, material, icon, and label choices are part of GrokLink Pro.");
             column.addView(emptyNote(OrbitProEntitlement.lockedGuidance(
                     "Enable Pro Preview in Diagnostics to try these controls.")
                     + " Your Deck organization remains Free."));

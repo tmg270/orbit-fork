@@ -103,7 +103,7 @@ public final class DeckSuggestionEngineTest {
     @Test public void orbitItselfNeverBecomesASuggestion() {
         recordForeground(context.getPackageName(), NOW - 1000L);
         List<DeckSuggestionEngine.Suggestion> suggestions = suggest(nothing(), Collections.emptyList());
-        assertTrue("Orbit must not suggest opening Orbit", suggestions.isEmpty());
+        assertTrue("GrokLink must not suggest opening GrokLink", suggestions.isEmpty());
     }
 
     /** A fresh record for an app that is not installed cannot become a shortcut to nothing. */

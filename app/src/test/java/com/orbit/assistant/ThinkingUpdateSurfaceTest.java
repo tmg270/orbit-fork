@@ -224,9 +224,9 @@ public final class ThinkingUpdateSurfaceTest {
         android.widget.LinearLayout row = new android.widget.LinearLayout(context);
         ThinkingStatusView status = new ThinkingStatusView(context, UiKit.SURFACE);
         row.addView(status);
-        status.attachTo(row, "Orbit is thinking");
+        status.attachTo(row, "GrokLink is thinking");
 
-        assertEquals("Orbit is thinking", row.getContentDescription());
+        assertEquals("GrokLink is thinking", row.getContentDescription());
         assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, status.getImportantForAccessibility());
 
         status.setStatus(ThinkingUpdate.providerSummary("Comparing the approaches"));
@@ -236,7 +236,7 @@ public final class ThinkingUpdateSurfaceTest {
         status.clearStatus();
         assertEquals("clearing the line must not itself be announced",
                 View.ACCESSIBILITY_LIVE_REGION_NONE, row.getAccessibilityLiveRegion());
-        assertEquals("Orbit is thinking", row.getContentDescription());
+        assertEquals("GrokLink is thinking", row.getContentDescription());
         assertEquals("", status.getText().toString());
     }
 
@@ -249,7 +249,7 @@ public final class ThinkingUpdateSurfaceTest {
         boolean found = false;
         for (View v : descendants(controller.get().getWindow().getDecorView())) {
             CharSequence description = v.getContentDescription();
-            if (description != null && "Orbit is thinking".contentEquals(description)) found = true;
+            if (description != null && "GrokLink is thinking".contentEquals(description)) found = true;
         }
         assertTrue("the thinking indicator must stay described for accessibility", found);
 

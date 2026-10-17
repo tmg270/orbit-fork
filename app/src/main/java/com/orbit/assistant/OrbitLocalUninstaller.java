@@ -14,7 +14,7 @@ import android.util.Log;
  *
  * <h2>Why this class exists</h2>
  *
- * <p>In v0.7.7.5 "Remove Orbit Local" did nothing at all on a Galaxy S25 Ultra. Orbit's own
+ * <p>In v0.7.7.5 "Remove GrokLink Local" did nothing at all on a Galaxy S25 Ultra. Orbit's own
  * confirmation appeared, the user confirmed, Orbit's dialog closed — and Android's uninstall
  * confirmation never came. The package stayed installed and Orbit said nothing, because the old
  * implementation fired {@code ACTION_DELETE} and swallowed every {@link Throwable} it produced.
@@ -198,13 +198,13 @@ public final class OrbitLocalUninstaller {
     /** The short sentence the Orbit Local screen shows for an outcome the user should see. */
     static String message(Stage stage) {
         switch (stage) {
-            case SUCCEEDED: return "Orbit Local was removed.";
-            case CANCELLED: return "Orbit Local was not removed. Nothing was deleted.";
-            case REFUSED: return "Android would not remove the Orbit Local component. Nothing was deleted.";
+            case SUCCEEDED: return "GrokLink Local was removed.";
+            case CANCELLED: return "GrokLink Local was not removed. Nothing was deleted.";
+            case REFUSED: return "Android would not remove the GrokLink Local component. Nothing was deleted.";
             case CONFIRM_MISSING:
-            case NOT_LAUNCHED: return "Orbit could not open Android's uninstaller. Nothing was deleted. "
-                    + "You can remove Orbit Local from Android Settings > Apps instead.";
-            case NOT_INSTALLED: return "The Orbit Local component is not installed.";
+            case NOT_LAUNCHED: return "GrokLink could not open Android's uninstaller. Nothing was deleted. "
+                    + "You can remove GrokLink Local from Android Settings > Apps instead.";
+            case NOT_INSTALLED: return "The GrokLink Local component is not installed.";
             default: return "";
         }
     }

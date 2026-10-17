@@ -65,7 +65,7 @@ public final class FileProviderPathsTest {
 
     /** The Orbit Local component cache must be exposed, or the installer handoff cannot happen. */
     @Test public void theOrbitLocalComponentDirectoryIsExposed() {
-        assertTrue("cache/orbit-local/ must be declared to FileProvider, or the verified Orbit "
+        assertTrue("cache/orbit-local/ must be declared to FileProvider, or the verified GrokLink "
                         + "Local APK cannot be handed to Android's package installer at all",
                 paths().contains("<cache-path name=\"orbit_local_component\" path=\"orbit-local/\" />"));
     }
@@ -117,8 +117,8 @@ public final class FileProviderPathsTest {
     @Test public void everyDirectoryOrbitSharesIsUnderADeclaredRoot() {
         Context context = RuntimeEnvironment.getApplication();
         assertCovered(OrbitLocalInstaller.componentDirectory(context),
-                "the Orbit Local component installer");
-        assertCovered(new File(context.getCacheDir(), "updates"), "the main Orbit updater");
+                "the GrokLink Local component installer");
+        assertCovered(new File(context.getCacheDir(), "updates"), "the main GrokLink updater");
     }
 
     private void assertCovered(File directory, String who) {
@@ -165,7 +165,7 @@ public final class FileProviderPathsTest {
         String xml = paths();
         for (String forbidden : new String[]{"<files-path", "<external-path",
                 "<external-files-path", "<external-cache-path", "<root-path"}) {
-            assertFalse("Orbit shares only specific cache directories, never " + forbidden,
+            assertFalse("GrokLink shares only specific cache directories, never " + forbidden,
                     xml.contains(forbidden));
         }
     }
@@ -174,7 +174,7 @@ public final class FileProviderPathsTest {
     @Test public void everyExposedDirectoryIsAccountedFor() {
         String xml = paths();
         int declared = xml.split("<cache-path", -1).length - 1;
-        assertEquals("Orbit exposes exactly the update, camera, and Orbit Local directories. "
+        assertEquals("GrokLink exposes exactly the update, camera, and GrokLink Local directories. "
                 + "Adding another means adding its test here too.", 3, declared);
     }
 

@@ -335,9 +335,9 @@ public final class MultiAttachmentTest {
 
     /** A total failure reports the reason and never a path or a filename it read. */
     @Test public void atotalFailureReportsItsReason() {
-        AttachmentBatch batch = AttachmentBatch.failed("Orbit could not read that image.");
+        AttachmentBatch batch = AttachmentBatch.failed("GrokLink could not read that image.");
         assertTrue(batch.isEmpty());
-        assertEquals("Orbit could not read that image.", batch.summary());
+        assertEquals("GrokLink could not read that image.", batch.summary());
     }
 
     // ---- the bridge --------------------------------------------------------------------------------------

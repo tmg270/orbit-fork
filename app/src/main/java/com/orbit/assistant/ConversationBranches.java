@@ -229,7 +229,7 @@ final class ConversationBranches {
             throw new Refusal("This message already has " + MAX_VARIANTS + " versions");
         }
         if (countForks(state.forks) + created + countForks(tail.forks) > MAX_FORKS) {
-            throw new Refusal("This chat already has as many branches as Orbit keeps");
+            throw new Refusal("This chat already has as many branches as GrokLink keeps");
         }
         variants.add(null);
         Fork fork = new Fork(at, parentKey(state.messages, at), variants.size() - 1, variants);

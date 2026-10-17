@@ -208,7 +208,7 @@ public final class UpdateChannelTest {
     @Test public void aPendingInstallSurvivesAChannelChange() {
         Prefs.get(context).edit()
                 .putLong("orbit_update_pending_install_code", 99999L)
-                .putString("orbit_update_pending_install_file", "Orbit-Assistant-v0.9.9.9.apk")
+                .putString("orbit_update_pending_install_file", "GrokLink-Assistant-v0.9.9.9.apk")
                 .putString("orbit_post_update_version", "0.9.9.8")
                 .commit();
 
@@ -216,7 +216,7 @@ public final class UpdateChannelTest {
 
         assertEquals(99999L,
                 Prefs.get(context).getLong("orbit_update_pending_install_code", 0L));
-        assertEquals("Orbit-Assistant-v0.9.9.9.apk",
+        assertEquals("GrokLink-Assistant-v0.9.9.9.apk",
                 Prefs.get(context).getString("orbit_update_pending_install_file", ""));
         assertEquals("0.9.9.8", OrbitUpdater.pendingPostUpdateVersion(context));
     }
@@ -234,7 +234,7 @@ public final class UpdateChannelTest {
                     .put("tag", "v" + versionName)
                     .put("versionName", versionName)
                     .put("versionCode", versionCode)
-                    .put("apkAssetName", "Orbit-Assistant-v" + versionName + ".apk")
+                    .put("apkAssetName", "GrokLink-Assistant-v" + versionName + ".apk")
                     .put("apkSha256", UpdateDiscoveryTest.APK_SHA256)
                     .put("certificateSha256", UpdateDiscoveryTest.CERTIFICATE_SHA256)
                     .put("apkSize", 52_000_000L)

@@ -33,7 +33,7 @@ public final class PostUpdatePromptTest {
     private void pendingInstallTargeting(long versionCode) {
         Prefs.get(context).edit()
                 .putLong(PENDING_CODE, versionCode)
-                .putString(PENDING_FILE, "Orbit-Assistant-update.apk")
+                .putString(PENDING_FILE, "GrokLink-Assistant-update.apk")
                 .commit();
     }
 

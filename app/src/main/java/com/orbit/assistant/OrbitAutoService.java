@@ -92,7 +92,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     == PackageManager.PERMISSION_GRANTED;
             Log.i(TAG, "RECORD_AUDIO granted=" + granted);
             if (!granted) {
-                status("Mic permission missing - open Orbit on phone", PlaybackStateCompat.STATE_ERROR, null);
+                status("Mic permission missing - open GrokLink on phone", PlaybackStateCompat.STATE_ERROR, null);
                 return;
             }
             if (!SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -180,8 +180,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, ASK_ID)
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, text)
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, text)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitle == null ? "Orbit" : subtitle)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle == null ? "Orbit" : subtitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitle == null ? "GrokLink" : subtitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle == null ? "GrokLink" : subtitle)
                     .build());
             PlaybackStateCompat.Builder b = new PlaybackStateCompat.Builder()
                     .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID

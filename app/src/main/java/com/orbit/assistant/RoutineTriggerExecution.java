@@ -86,7 +86,7 @@ public final class RoutineTriggerExecution {
             String actionName = RoutineActionCatalog.title(blocked);
             String state = blocked != null && blocked.requiresConfirmation
                     ? "Needs attention · " + actionName + " requires confirmation"
-                    : "Needs attention · " + actionName + " needs Orbit visible";
+                    : "Needs attention · " + actionName + " needs GrokLink visible";
             updateStatus(c, trigger.id, firedAt, state);
             RoutineTriggerNotifier.notifyNeedsContinuation(c, routine, trigger.id, firstBlocked,
                     "Tap to continue at step " + (firstBlocked + 1) + ": " + actionName + ".");
@@ -127,7 +127,7 @@ public final class RoutineTriggerExecution {
                         String actionName = RoutineActionCatalog.title(routine.actions.get(firstBlocked));
                         updateStatus(c, trigger.id, firedAt, "Partially ran · waiting for " + actionName);
                         RoutineTriggerNotifier.notifyNeedsContinuation(c, routine, trigger.id, firstBlocked,
-                                "Orbit completed the background-safe steps. Tap to continue at step " +
+                                "GrokLink completed the background-safe steps. Tap to continue at step " +
                                         (firstBlocked + 1) + ": " + actionName + ".");
                     } else {
                         updateStatus(c, trigger.id, firedAt, "Completed automatically");
@@ -138,7 +138,7 @@ public final class RoutineTriggerExecution {
             }
             });
         } catch (Exception ignored) {
-            updateStatus(c, trigger.id, firedAt, "Stopped · Orbit could not run this Routine");
+            updateStatus(c, trigger.id, firedAt, "Stopped · GrokLink could not run this Routine");
             finish(completion);
         }
     }

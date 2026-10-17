@@ -206,7 +206,7 @@ public final class OrbitVaultBeta3Test {
         assertTrue("the body is cut at the Vault's own ceiling",
                 page.body.length() <= OrbitVaultItem.MAX_BODY_CHARS + 200);
         assertTrue("and says so rather than being silently truncated",
-                page.body.contains("Orbit trimmed this saved item"));
+                page.body.contains("GrokLink trimmed this saved item"));
     }
 
     /** A scanned page that rendered but yielded no text is still worth keeping. */
@@ -337,7 +337,7 @@ public final class OrbitVaultBeta3Test {
         assertTrue(text.contains("little or no extractable text"));
         assertTrue(text.contains("do not claim to have read text that was not provided"));
         ComposerAttachment attachment = OrbitVaultAttachment.of(context, page);
-        assertEquals("and Orbit records what it really has",
+        assertEquals("and GrokLink records what it really has",
                 ComposerAttachment.CONTENT_VISUAL_ONLY, attachment.contentState);
     }
 
@@ -380,7 +380,7 @@ public final class OrbitVaultBeta3Test {
         assertTrue("it uses the real Vault drawable", viewer.contains("R.drawable.ic_vault"));
         assertFalse("saving a page must never copy the whole document",
                 viewer.contains("saveDocumentToVault"));
-        assertTrue("and Ask Orbit is untouched by any of it",
+        assertTrue("and Ask GrokLink is untouched by any of it",
                 viewer.contains("SharedContentStore.stageDocumentPage(page)"));
     }
 
@@ -400,7 +400,7 @@ public final class OrbitVaultBeta3Test {
         assertEquals(1, saved.size());
         assertTrue("a crop is a picture", saved.get(0).isImage());
         assertEquals(OrbitVaultSource.SCREEN_SELECTION, saved.get(0).source);
-        assertTrue("copied into Orbit's own storage",
+        assertTrue("copied into GrokLink's own storage",
                 OrbitVaultMedia.owns(context, saved.get(0).mediaPath));
         assertFalse("the editor stays open so the crop can still be used in a message",
                 editor.isFinishing());
@@ -445,7 +445,7 @@ public final class OrbitVaultBeta3Test {
                 doorway.contains("openConversation(chat);"));
         assertTrue("saving records the canonical source",
                 doorway.contains("OrbitVaultSource.SELECTED_TEXT"));
-        assertFalse("Orbit never writes back over the user's own selection",
+        assertFalse("GrokLink never writes back over the user's own selection",
                 doorway.contains("setResult("));
         assertFalse("and never sends anything itself",
                 doorway.contains("OrbitRequestManager") || doorway.contains("AssistantClient"));
@@ -473,7 +473,7 @@ public final class OrbitVaultBeta3Test {
         assertFalse(OrbitVaultSource.isCanonical("Document · Page many"));
         assertFalse(OrbitVaultSource.isCanonical(""));
         assertFalse(OrbitVaultSource.isCanonical(null));
-        assertEquals("a page number Orbit could not work out degrades rather than lies",
+        assertEquals("a page number GrokLink could not work out degrades rather than lies",
                 OrbitVaultSource.DOCUMENT, OrbitVaultSource.documentPage(0));
 
         assertEquals("a share stays a share", OrbitVaultSource.SHARED,
@@ -504,7 +504,7 @@ public final class OrbitVaultBeta3Test {
             assertTrue(type + " must resolve while the Vault is on", resolved.usable());
             assertEquals(definition.title, resolved.title);
         }
-        assertEquals("the Vault tile uses Orbit's real Vault drawable", R.drawable.ic_vault,
+        assertEquals("the Vault tile uses GrokLink's real Vault drawable", R.drawable.ic_vault,
                 DeckTileRegistry.definition(DeckTileRegistry.TYPE_VAULT).iconRes);
 
         String executor = source("DeckActionExecutor");
@@ -630,7 +630,7 @@ public final class OrbitVaultBeta3Test {
     /** A Beta 2 document, with a note, loads with the note intact. */
     @Test public void abetaTwoStoreStillLoads() {
         String beta2 = "[{\"id\":\"b\",\"type\":\"link\",\"title\":\"\","
-                + "\"body\":\"https://example.com/x\",\"source\":\"Shared to Orbit\","
+                + "\"body\":\"https://example.com/x\",\"source\":\"Shared to GrokLink\","
                 + "\"note\":\"read later\",\"mediaPath\":\"\",\"createdAt\":1700000000001,"
                 + "\"modifiedAt\":1700000000001}]";
         assertTrue(OrbitVaultStore.restoreBackupJson(context, beta2));

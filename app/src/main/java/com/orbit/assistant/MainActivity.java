@@ -147,8 +147,8 @@ public class MainActivity extends Activity {
         OrbitUpdater.clearPostUpdateVersion(this);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Orbit updated")
-                .setMessage("You're now on Orbit v" + version + ".")
+                .setTitle("GrokLink updated")
+                .setMessage("You're now on GrokLink v" + version + ".")
                 .setNegativeButton("Done", null)
                 .setPositiveButton("What's New", (d, w) ->
                         startActivity(new Intent(this, WhatsNewActivity.class)))
@@ -199,9 +199,9 @@ public class MainActivity extends Activity {
                 OrbitUpdater.wasNotified(this, release.versionCode)) return;
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Orbit update available")
-                .setMessage("Orbit Assistant v" + release.versionName +
-                        " is ready to view. Orbit will not download it without your approval.")
+                .setTitle("GrokLink update available")
+                .setMessage("GrokLink v" + release.versionName +
+                        " is ready to view. GrokLink will not download it without your approval.")
                 .setNegativeButton("Later", null)
                 .setPositiveButton("View update", (ignored, which) ->
                         startActivity(new Intent(this, UpdateActivity.class)))
@@ -237,7 +237,7 @@ public class MainActivity extends Activity {
      * mark, and by leaving Chats, so a hold that is abandoned half way opens nothing.
      */
     private void installLaunchSequenceGesture(View mark) {
-        mark.setContentDescription("Orbit");
+        mark.setContentDescription("GrokLink");
         final boolean[] opened = {false};
         final Runnable open = () -> {
             if (opened[0]) return;
@@ -376,7 +376,7 @@ public class MainActivity extends Activity {
         // is exactly the row it was before Deck existed. Deck itself stays reachable from Settings,
         // so turning this off can never strand the feature.
         if (Prefs.deckShortcut(this)) {
-            ImageButton deck = iconButton(com.orbit.assistant.R.drawable.ic_deck, "Open Orbit Deck");
+            ImageButton deck = iconButton(com.orbit.assistant.R.drawable.ic_deck, "Open GrokLink Deck");
             deck.setOnClickListener(v -> {
                 startActivity(new Intent(this, DeckActivity.class));
                 UiKit.applyPageTransition(this);
@@ -394,7 +394,7 @@ public class MainActivity extends Activity {
         // left behind that looks tappable and does nothing.
         if (Prefs.vaultEnabled(this)) {
             ImageButton vault = iconButton(com.orbit.assistant.R.drawable.ic_vault,
-                    "Open Orbit Vault");
+                    "Open GrokLink Vault");
             vault.setOnClickListener(v -> {
                 startActivity(new Intent(this, OrbitVaultActivity.class));
                 UiKit.applyPageTransition(this);
@@ -436,7 +436,7 @@ public class MainActivity extends Activity {
         searchIcon.setBackgroundColor(Color.TRANSPARENT);
         searchBox.addView(searchIcon, new LinearLayout.LayoutParams(UiKit.dp(this, 34), UiKit.dp(this, 34)));
         search = new EditText(this);
-        search.setHint("Search Orbit chats");
+        search.setHint("Search GrokLink chats");
         // Theme-derived rather than the fixed slate grey this hint used to be, so a Theme Studio
         // surface or a light theme gets a hint that reads on it instead of one tuned for one page.
         search.setHintTextColor(UiKit.MUTED);
@@ -565,7 +565,7 @@ public class MainActivity extends Activity {
             TextView t = UiKit.text(this, title, 15, UiKit.TEXT, true);
             card.addView(t);
             TextView state = UiKit.text(this,
-                    PendingRequestStore.RUNNING.equals(item.status) ? "Orbit is thinking..." : "Queued...",
+                    PendingRequestStore.RUNNING.equals(item.status) ? "GrokLink is thinking..." : "Queued...",
                     12, UiKit.accent(this), false);
             state.setPadding(0, UiKit.dp(this, 5), 0, 0);
             card.addView(state);
@@ -586,7 +586,7 @@ public class MainActivity extends Activity {
         if (chats.isEmpty()) {
             LinearLayout empty = card();
             empty.addView(UiKit.text(this, q.trim().isEmpty() ? "No chats yet" : "No matching chats", 16, UiKit.TEXT, true));
-            TextView note = UiKit.text(this, q.trim().isEmpty() ? "Start a chat here or summon Orbit with the Side button." : "Try a different search.", 13, UiKit.MUTED, false);
+            TextView note = UiKit.text(this, q.trim().isEmpty() ? "Start a chat here or summon GrokLink with the Side button." : "Try a different search.", 13, UiKit.MUTED, false);
             note.setPadding(0, UiKit.dp(this, 6), 0, 0);
             empty.addView(note);
             chatList.addView(empty, cardLp());
@@ -630,7 +630,7 @@ public class MainActivity extends Activity {
         PendingRequestStore.Item failed = PendingRequestStore.latestFailedForConversation(this, chat.id);
         boolean unresolvedFailure = failed != null && !chat.messages.isEmpty() &&
                 chat.messages.get(chat.messages.size() - 1).content != null &&
-                chat.messages.get(chat.messages.size() - 1).content.startsWith("Orbit could not finish");
+                chat.messages.get(chat.messages.size() - 1).content.startsWith("GrokLink could not finish");
         String suffix = active ? "  •  Thinking" : unresolvedFailure ? "  •  Needs attention" : "";
         int dateColor = active ? UiKit.accent(this) : unresolvedFailure ? Color.rgb(239,145,153) : UiKit.MUTED;
         TextView date = UiKit.text(this, when + suffix, 11, dateColor, false);
@@ -831,7 +831,7 @@ public class MainActivity extends Activity {
             } else {
                 AlertDialog dialog = new AlertDialog.Builder(this)
                         .setTitle("Delete chat?")
-                        .setMessage("This removes the local Orbit conversation.")
+                        .setMessage("This removes the local GrokLink conversation.")
                         .setNegativeButton("Cancel", null)
                         .setPositiveButton("Delete", (d,w) -> {
                             // The same undoable path the swipe uses, so one action cannot be

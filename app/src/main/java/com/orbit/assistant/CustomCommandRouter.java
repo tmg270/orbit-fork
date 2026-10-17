@@ -26,7 +26,7 @@ public final class CustomCommandRouter {
         }
         if (matches.isEmpty()) return null;
         if (matches.size() > 1) {
-            return new AssistantReply("More than one Custom Command matches that phrase, so Orbit did not run anything. Resolve the conflict in Settings → Routines → Custom Commands.");
+            return new AssistantReply("More than one Custom Command matches that phrase, so GrokLink did not run anything. Resolve the conflict in Settings → Routines → Custom Commands.");
         }
 
         CustomCommandStore.Command command = matches.get(0);

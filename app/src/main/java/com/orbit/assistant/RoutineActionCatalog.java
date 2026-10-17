@@ -170,12 +170,12 @@ public final class RoutineActionCatalog {
                 String label = clean(p.optString("label", ""));
                 String base = "Starts a "
                         + durationModifierLabel(Math.max(1, p.optInt("seconds", 60))) + " timer";
-                return label.isEmpty() || "Orbit timer".equals(label) ? base : base + " · " + label;
+                return label.isEmpty() || "GrokLink timer".equals(label) ? base : base + " · " + label;
             }
             case SET_ALARM: {
                 String label = clean(p.optString("label", ""));
                 String base = "Sets an alarm for " + timeLabel(p.optInt("hour", 8), p.optInt("minute", 0));
-                return label.isEmpty() || "Orbit alarm".equals(label) ? base : base + " · " + label;
+                return label.isEmpty() || "GrokLink alarm".equals(label) ? base : base + " · " + label;
             }
             case OPEN_SETTINGS:
                 return "Opens Android Settings";
@@ -190,7 +190,7 @@ public final class RoutineActionCatalog {
                         : "Extension · " + extensionName;
             }
             default:
-                return "Saved Orbit action";
+                return "Saved GrokLink action";
         }
     }
 

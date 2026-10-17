@@ -111,33 +111,33 @@ public final class MemoryCommandRouter {
         if (raw.isEmpty()) return null;
 
         if (equalsAny(lower, LIST_ALL)) {
-            return listMemories(c, MemoryStore.list(c), "Here is what Orbit remembers locally:");
+            return listMemories(c, MemoryStore.list(c), "Here is what GrokLink remembers locally:");
         }
 
         String subject = extractAfterAny(raw, lower, LIST_ABOUT);
         if (subject != null && !subject.isEmpty()) {
             if (subject.equalsIgnoreCase("me")) {
-                return listMemories(c, MemoryStore.list(c), "Here is what Orbit remembers locally:");
+                return listMemories(c, MemoryStore.list(c), "Here is what GrokLink remembers locally:");
             }
             List<MemoryStore.Memory> matches = MemoryStore.search(c, subject);
             if (matches.isEmpty()) {
-                return new AssistantReply("I do not have any Orbit memories about " + subject + ".");
+                return new AssistantReply("I do not have any GrokLink memories about " + subject + ".");
             }
-            return listMemories(c, matches, "Here is what Orbit remembers about " + subject + ":");
+            return listMemories(c, matches, "Here is what GrokLink remembers about " + subject + ":");
         }
 
         if (equalsAny(lower, CLEAR_ALL)) {
             MemoryStore.clear(c);
-            return new AssistantReply("I cleared all local Orbit memories.");
+            return new AssistantReply("I cleared all local GrokLink memories.");
         }
 
         String deleteSubject = extractAfterAny(raw, lower, DELETE_ABOUT);
         if (deleteSubject != null && !deleteSubject.isEmpty()) {
             int deleted = MemoryStore.deleteMatching(c, deleteSubject);
             if (deleted == 0) {
-                return new AssistantReply("I could not find any Orbit memories about " + deleteSubject + ".");
+                return new AssistantReply("I could not find any GrokLink memories about " + deleteSubject + ".");
             }
-            return new AssistantReply("I forgot " + deleted + (deleted == 1 ? " Orbit memory" : " Orbit memories") +
+            return new AssistantReply("I forgot " + deleted + (deleted == 1 ? " GrokLink memory" : " GrokLink memories") +
                     " about " + deleteSubject + ".");
         }
 
@@ -145,19 +145,19 @@ public final class MemoryCommandRouter {
         if (change != null) {
             MemoryStore.Memory match = MemoryStore.findBest(c, change.subject);
             if (match == null) {
-                return new AssistantReply("I could not find a matching Orbit memory about " +
+                return new AssistantReply("I could not find a matching GrokLink memory about " +
                         change.subject + " to update.");
             }
 
             MemoryStore.Memory duplicate = MemoryStore.findDuplicate(c, change.replacement, match.id);
             if (duplicate != null) {
-                return new AssistantReply("A very similar Orbit memory is already saved: " + duplicate.text);
+                return new AssistantReply("A very similar GrokLink memory is already saved: " + duplicate.text);
             }
 
             String category = MemoryStore.inferCategory(change.replacement);
             if (MemoryStore.CATEGORY_OTHER.equals(category)) category = match.category;
             MemoryStore.update(c, match.id, category, change.replacement, match.pinned, match.enabled);
-            return new AssistantReply("I updated that Orbit memory to: " + change.replacement);
+            return new AssistantReply("I updated that GrokLink memory to: " + change.replacement);
         }
 
         if (lower.equals("remember that") || lower.equals("remember this")) {
@@ -170,26 +170,26 @@ public final class MemoryCommandRouter {
             MemoryStore.Memory duplicate =
                     MemoryStore.findDuplicate(c, contextual.text, null);
             if (duplicate != null) {
-                return new AssistantReply("I already have a similar Orbit memory saved: " +
+                return new AssistantReply("I already have a similar GrokLink memory saved: " +
                         duplicate.text);
             }
 
             MemoryStore.Memory saved = MemoryStore.add(c, contextual.category, contextual.text);
             return saved == null
                     ? new AssistantReply("I could not save that memory.")
-                    : new AssistantReply("I will remember that locally in Orbit: " + saved.text);
+                    : new AssistantReply("I will remember that locally in GrokLink: " + saved.text);
         }
 
         String remember = isExplicitSave(lower) ? extractAfterAny(raw, lower, SAVE_PREFIXES) : null;
         if (remember != null && !remember.isEmpty()) {
             MemoryStore.Memory duplicate = MemoryStore.findDuplicate(c, remember, null);
             if (duplicate != null) {
-                return new AssistantReply("I already have a similar Orbit memory saved: " + duplicate.text);
+                return new AssistantReply("I already have a similar GrokLink memory saved: " + duplicate.text);
             }
 
             MemoryStore.Memory m = MemoryStore.add(c, MemoryStore.inferCategory(remember), remember);
             return m == null ? new AssistantReply("I could not save that memory.")
-                    : new AssistantReply("I will remember that locally in Orbit: " + m.text);
+                    : new AssistantReply("I will remember that locally in GrokLink: " + m.text);
         }
 
         String forget = null;
@@ -200,10 +200,10 @@ public final class MemoryCommandRouter {
         if (forget != null && !forget.isEmpty()) {
             MemoryStore.Memory match = MemoryStore.findBest(c, forget);
             if (match == null) {
-                return new AssistantReply("I could not find a matching Orbit memory to forget.");
+                return new AssistantReply("I could not find a matching GrokLink memory to forget.");
             }
             MemoryStore.delete(c, match.id);
-            return new AssistantReply("I forgot this Orbit memory: " + match.text);
+            return new AssistantReply("I forgot this GrokLink memory: " + match.text);
         }
         return null;
     }
@@ -251,14 +251,14 @@ public final class MemoryCommandRouter {
 
     private static AssistantReply listMemories(Context c, List<MemoryStore.Memory> all, String heading) {
         if (all == null || all.isEmpty()) {
-            return new AssistantReply("I do not have any Orbit memories saved yet.");
+            return new AssistantReply("I do not have any GrokLink memories saved yet.");
         }
 
         StringBuilder b = new StringBuilder(heading);
         int shown = 0;
         for (MemoryStore.Memory m : all) {
             if (shown >= 20) {
-                b.append("\n\nThere are more in Orbit > Memory.");
+                b.append("\n\nThere are more in GrokLink > Memory.");
                 break;
             }
             b.append("\n\n• ").append(m.text);

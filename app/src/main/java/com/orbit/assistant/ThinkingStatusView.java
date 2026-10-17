@@ -133,9 +133,38 @@ public final class ThinkingStatusView extends TextView {
      * <p>Repeating the current text is ignored outright, so a provider that re-sends the same
      * phrase cannot make the line blink.
      */
+    // GrokLink: elapsed-seconds ticker while no readable reasoning has arrived.
+    private final long startedAt = android.os.SystemClock.uptimeMillis();
+    private boolean showingReasoning;
+    private boolean ticking;
+    private String baseText = "Thinking…";
+    private final Runnable tick = new Runnable() {
+        @Override public void run() {
+            if (!ticking) return;
+            if (!showingReasoning) {
+                long secs = (android.os.SystemClock.uptimeMillis() - startedAt) / 1000;
+                setText(secs < 1 ? baseText : baseText + " · " + secs + "s");
+            }
+            postDelayed(this, 1000);
+        }
+    };
+
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (!ticking) { ticking = true; post(tick); }
+    }
+
+    @Override protected void onDetachedFromWindow() {
+        ticking = false;
+        removeCallbacks(tick);
+        super.onDetachedFromWindow();
+    }
+
     public void setStatus(ThinkingUpdate update) {
         if (update == null || update.text.isEmpty()) return;
         if (update.text.contentEquals(getText())) return;
+        showingReasoning = update.stage == ThinkingUpdate.Stage.PROVIDER_REASONING_SUMMARY;
+        if (!showingReasoning) baseText = update.text;
         UiKit.swapText(this, update.text);
         if (host != null) {
             host.setContentDescription(hostDescription.isEmpty()
@@ -153,6 +182,8 @@ public final class ThinkingStatusView extends TextView {
             host.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_NONE);
             host.setContentDescription(hostDescription);
         }
+        ticking = false;
+        removeCallbacks(tick);
         animate().cancel();
         setText("");
         setAlpha(1f);

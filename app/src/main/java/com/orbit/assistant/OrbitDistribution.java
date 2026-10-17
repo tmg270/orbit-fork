@@ -35,11 +35,11 @@ public final class OrbitDistribution {
 
     /** Said wherever the Play edition refuses a GitHub operation. */
     static final String PLAY_REFUSAL =
-            "Orbit from Google Play is updated by Google Play and never installs APKs itself.";
+            "GrokLink from Google Play is updated by Google Play and never installs APKs itself.";
 
     /** What About & updates says in the Play edition. */
     static final String PLAY_UPDATES_MESSAGE =
-            "Orbit updates are delivered by Google Play. Google Play installs new versions for you, "
+            "GrokLink updates are delivered by Google Play. Google Play installs new versions for you, "
                     + "the same way it updates your other apps.";
 
     private static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
@@ -93,7 +93,7 @@ public final class OrbitDistribution {
     /** What the Play edition says wherever a location trigger would otherwise be offered. */
     public static final String LOCATION_TRIGGERS_UNAVAILABLE =
             "Location-triggered Routines aren't currently available in the Google Play edition of "
-                    + "Orbit. Time triggers work as usual.";
+                    + "GrokLink. Time triggers work as usual.";
 
     /** The short state shown on a saved location trigger in the Play edition. */
     public static final String LOCATION_TRIGGER_UNAVAILABLE_STATE =

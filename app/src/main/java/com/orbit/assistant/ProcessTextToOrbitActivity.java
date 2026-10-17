@@ -39,7 +39,7 @@ import java.util.ArrayList;
  * path inside Orbit's untrusted-attachment framing like anything else they shared.
  *
  * <p><b>Two destinations from v0.7.8.4 Beta 3</b>, in exactly the shape Share to Orbit already
- * settled on. A selected paragraph now has two honest meanings - "ask Orbit about this" and "keep
+ * settled on. A selected paragraph now has two honest meanings - "ask GrokLink about this" and "keep
  * this" - and Orbit has no way to tell which one the user had in mind. Adding a second entry to
  * Android's own selection menu was the alternative and it is worse: it would put two Orbit items in
  * every app's text menu, and the platform gives a handler no say in how those are ordered or
@@ -53,7 +53,7 @@ import java.util.ArrayList;
 public final class ProcessTextToOrbitActivity extends Activity {
 
     /** The two destinations offered for a selection, in the words Share to Orbit already uses. */
-    static final String ASK_ORBIT = "Ask Orbit";
+    static final String ASK_ORBIT = "Ask GrokLink";
     static final String SAVE_TO_VAULT = "Save to Vault";
 
     /** True while Orbit's own choice of destination is on screen and this bridge must stay open. */
@@ -70,7 +70,7 @@ public final class ProcessTextToOrbitActivity extends Activity {
             // Malformed input costs the selection, never the process and never a partial import.
             DiagnosticStore.recordExternalText(this, SharedContentStore.SOURCE_PROCESS_TEXT,
                     0, "rejected");
-            Toast.makeText(this, "Orbit could not read that selection", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not read that selection", Toast.LENGTH_SHORT).show();
         }
         // Finished without a result, so the source app replaces nothing. This is the whole
         // read-only contract, and it is the default rather than a branch on purpose: there is no
@@ -127,8 +127,8 @@ public final class ProcessTextToOrbitActivity extends Activity {
         awaitingChoice = true;
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Selected text")
-                .setMessage("Ask Orbit about this, or keep it in your Vault. "
-                        + "Nothing is sent to Orbit's AI until you send it.")
+                .setMessage("Ask GrokLink about this, or keep it in your Vault. "
+                        + "Nothing is sent to GrokLink's AI until you send it.")
                 .setNegativeButton(SAVE_TO_VAULT, (d, which) -> {
                     saveSelectionToVault(text, token);
                     finish();
@@ -167,7 +167,7 @@ public final class ProcessTextToOrbitActivity extends Activity {
                 OrbitVaultSource.SELECTED_TEXT) != null;
         DiagnosticStore.recordExternalText(this, SharedContentStore.SOURCE_PROCESS_TEXT,
                 text.length(), saved ? "saved-to-vault" : "vault-save-failed");
-        Toast.makeText(this, saved ? OrbitVaultStore.savedMessage(this) : OrbitVaultStore.saveFailureMessage(this, "Orbit could not save that selection"),
+        Toast.makeText(this, saved ? OrbitVaultStore.savedMessage(this) : OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save that selection"),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -225,6 +225,6 @@ public final class ProcessTextToOrbitActivity extends Activity {
     private void reject() {
         DiagnosticStore.recordExternalText(this, SharedContentStore.SOURCE_PROCESS_TEXT,
                 0, "rejected");
-        Toast.makeText(this, "Select some text to ask Orbit about", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Select some text to ask GrokLink about", Toast.LENGTH_SHORT).show();
     }
 }

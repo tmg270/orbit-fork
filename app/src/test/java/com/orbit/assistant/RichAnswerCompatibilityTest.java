@@ -322,10 +322,10 @@ public final class RichAnswerCompatibilityTest {
         String agent = RichAnswerPageFetcher.USER_AGENT;
         assertTrue(agent.startsWith("OrbitAssistant/"));
         assertTrue("a contact address is what large public hosts ask for",
-                agent.contains("https://github.com/lpnovi/Orbit-Assistant"));
+                agent.contains("https://github.com/lpnovi/GrokLink-Assistant"));
         for (String impersonation : new String[]{
                 "Mozilla", "Chrome", "Safari", "AppleWebKit", "Gecko", "Edg/"}) {
-            assertFalse("Orbit must not claim to be " + impersonation,
+            assertFalse("GrokLink must not claim to be " + impersonation,
                     agent.contains(impersonation));
         }
         String loader = ComponentUninstallTest.readRepositoryFile(

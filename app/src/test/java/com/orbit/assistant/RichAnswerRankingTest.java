@@ -58,7 +58,7 @@ public final class RichAnswerRankingTest {
     /** The trap: a prompt that says "photo" must not make "photo" a subject word. */
     @Test public void theVocabularyOfThisFeatureIsNeverASubjectWord() {
         List<String> tokens = RichAnswerSubject.tokensOf(
-                "Search the web and answer inside Orbit. Show me how to identify a Northern black "
+                "Search the web and answer inside GrokLink. Show me how to identify a Northern black "
                         + "widow spider. Include one useful sourced photo inline in your response.");
         for (String forbidden : new String[]{
                 "photo", "image", "inline", "sourced", "search", "show", "include", "useful",
@@ -241,7 +241,7 @@ public final class RichAnswerRankingTest {
     @Test public void allThreeAcceptanceQuestionsAreStronglyVisual() {
         String[] prompts = {
                 "Show me pictures of a black widow",
-                "Search the web and answer inside Orbit. Show me how to identify a Northern black "
+                "Search the web and answer inside GrokLink. Show me how to identify a Northern black "
                         + "widow spider. Include one useful sourced photo inline in your response, "
                         + "preferably from Wikimedia Commons, a university, or another trustworthy "
                         + "source. Put the image near the identification explanation, include its "

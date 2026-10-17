@@ -320,7 +320,7 @@ final class AiSelectorDialog {
     private View autoRow;
     private TextView autoProviders;
 
-    /** "Auto can use ChatGPT, Orbit Local ›": the one line that leads to Auto's settings. */
+    /** "Auto can use ChatGPT, GrokLink Local ›": the one line that leads to Auto's settings. */
     private String autoProvidersText() {
         return "Auto can use " + AutoPermissions.summary(context) + " ›";
     }

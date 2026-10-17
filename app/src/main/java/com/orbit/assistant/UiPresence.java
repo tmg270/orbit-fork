@@ -18,7 +18,7 @@ public final class UiPresence {
      *
      * <p>Production never calls this: owners are held weakly and released by their own onPause.
      * Tests of background behaviour need it, because a screen another test opened and never paused
-     * stays registered until it is collected, which would otherwise make "is Orbit on screen"
+     * stays registered until it is collected, which would otherwise make "is GrokLink on screen"
      * depend on the order the suite happened to run in.
      */
     static synchronized void clearForTests() { VISIBLE.clear(); }

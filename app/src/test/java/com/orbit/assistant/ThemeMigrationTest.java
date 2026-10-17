@@ -65,7 +65,7 @@ public final class ThemeMigrationTest {
         assertTrue(theme.amoled);
         assertEquals("rose", theme.userBubble);
         assertEquals("nova", theme.assistantBubble);
-        assertEquals("surface and background did not exist before, so they are Orbit's own",
+        assertEquals("surface and background did not exist before, so they are GrokLink's own",
                 OrbitTheme.CLASSIC, theme.surface);
         assertEquals(OrbitTheme.CLASSIC, theme.background);
     }
@@ -106,7 +106,7 @@ public final class ThemeMigrationTest {
     @Test public void aFreshInstallGetsOrbitDefault() {
         OrbitTheme theme = OrbitThemeStore.active(context);
         assertEquals(OrbitTheme.ID_DEFAULT, theme.id);
-        assertEquals("Orbit Default", theme.name);
+        assertEquals("GrokLink Default", theme.name);
         assertTrue(theme.builtIn);
         assertTrue(theme.sameColours(OrbitTheme.orbitDefault()));
     }
@@ -132,7 +132,7 @@ public final class ThemeMigrationTest {
         installLegacyAppearance(OrbitTheme.DYNAMIC, true, "classic", "classic");
         OrbitTheme theme = OrbitThemeStore.active(context);
         assertEquals(OrbitTheme.ID_AMOLED, theme.id);
-        assertEquals("Orbit AMOLED", theme.name);
+        assertEquals("GrokLink AMOLED", theme.name);
         assertTrue(theme.builtIn);
     }
 
@@ -288,7 +288,7 @@ public final class ThemeMigrationTest {
 
     /** Dynamic is a behaviour, and no migration may turn it into a fixed colour. */
     @Test public void dynamicSurvivesEveryMigration() {
-        installBetaOneAppearance(OrbitTheme.ID_DEFAULT, "Orbit Default", OrbitTheme.DYNAMIC,
+        installBetaOneAppearance(OrbitTheme.ID_DEFAULT, "GrokLink Default", OrbitTheme.DYNAMIC,
                 OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, OrbitTheme.CLASSIC,
                 false);
 
@@ -370,7 +370,7 @@ public final class ThemeMigrationTest {
         assertNotNull("a schema 1 theme must still parse", parsed);
         assertEquals("t_betaone", parsed.id);
         assertEquals("From Beta 1", parsed.name);
-        assertEquals("and its accent is recognised as Orbit's own", "violet", parsed.accent);
+        assertEquals("and its accent is recognised as GrokLink's own", "violet", parsed.accent);
         assertEquals("#3A2E63", parsed.userBubble);
     }
 

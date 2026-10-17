@@ -211,7 +211,7 @@ public final class CalendarActionRoutingTest {
      */
     @Test public void orbitLocalStillDeclaresNoDeviceActions() {
         AiProvider local = AiProviders.byId(Prefs.PROVIDER_LOCAL);
-        assertFalse("Orbit Local must stay truthful about device actions",
+        assertFalse("GrokLink Local must stay truthful about device actions",
                 local.capabilities().deviceActions);
         String source = read("app/src/main/java/com/orbit/assistant/OrbitLocalProvider.java");
         assertFalse("and its prompt must not describe calendar actions",

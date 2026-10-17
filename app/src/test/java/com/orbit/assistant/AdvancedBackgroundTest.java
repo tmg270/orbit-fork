@@ -126,7 +126,7 @@ public final class AdvancedBackgroundTest {
         assertEquals("no background keys means no background effect",
                 OrbitProStyle.BACKGROUND_SOLID, stored.backgroundMode);
         assertFalse(stored.hasBackgroundEffect());
-        assertEquals("and the defaults it landed on are Orbit's own",
+        assertEquals("and the defaults it landed on are GrokLink's own",
                 OrbitProStyle.EFFECT_COLOR_DEFAULT, stored.backgroundEffectColor);
         assertEquals(OrbitProStyle.GRADIENT_DIRECTION_DEFAULT, stored.gradientDirection);
         assertEquals(OrbitProStyle.GLOW_STRENGTH_DEFAULT, stored.glowStrength);
@@ -229,7 +229,7 @@ public final class AdvancedBackgroundTest {
         assertEquals("a mode below the range becomes Solid",
                 OrbitProStyle.BACKGROUND_SOLID,
                 OrbitProStyle.DEFAULT.withBackgroundMode(-7).backgroundMode);
-        assertEquals("and one above it becomes the last mode Orbit knows",
+        assertEquals("and one above it becomes the last mode GrokLink knows",
                 OrbitProStyle.BACKGROUND_GLOW,
                 OrbitProStyle.DEFAULT.withBackgroundMode(99).backgroundMode);
         assertEquals(0, OrbitProStyle.DEFAULT.withGradientDirection(-1).gradientDirection);
@@ -598,7 +598,7 @@ public final class AdvancedBackgroundTest {
             OrbitTheme preset = OrbitTheme.builtIn(id);
             assertNotNull(preset);
             OrbitThemeTokens tokens = OrbitThemeTokens.resolve(context, preset);
-            assertFalse(preset.name + " must not trip Orbit's own warning",
+            assertFalse(preset.name + " must not trip GrokLink's own warning",
                     tokens.hasLowContrast());
             int lit = OrbitBackground.effectivePageColor(context,
                     OrbitBackground.Page.of(tokens, preset.pro));
@@ -954,7 +954,7 @@ public final class AdvancedBackgroundTest {
                 OrbitBackground.effectDraws(context));
         assertEquals("but the strength is kept", 40,
                 OrbitThemeStore.activeProStyle(context).gradientStrength);
-        assertEquals("and resolves to Orbit's own value while Free",
+        assertEquals("and resolves to GrokLink's own value while Free",
                 OrbitProStyle.GRADIENT_STRENGTH_DEFAULT,
                 OrbitProStyle.live(context).gradientStrength);
 

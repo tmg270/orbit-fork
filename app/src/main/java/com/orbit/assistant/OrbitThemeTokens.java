@@ -163,7 +163,7 @@ public final class OrbitThemeTokens {
     public java.util.List<Check> readability() {
         java.util.List<Check> out = new java.util.ArrayList<>();
         out.add(textCheck("Your messages", userBubbleInk, userBubble));
-        out.add(textCheck("Orbit's replies", assistantBubbleInk, assistantBubble));
+        out.add(textCheck("GrokLink's replies", assistantBubbleInk, assistantBubble));
         out.add(textCheck("Text on the background", text, background));
         out.add(textCheck("Text on cards", text, surface));
         out.add(uiCheck("Accent on cards", accent, surface));

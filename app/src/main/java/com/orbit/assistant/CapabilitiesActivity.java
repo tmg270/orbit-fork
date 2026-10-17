@@ -97,7 +97,7 @@ public final class CapabilitiesActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "See what Orbit can do now and manage the Android permissions or special access each capability needs.",
+                "See what GrokLink can do now and manage the Android permissions or special access each capability needs.",
                 13, UiKit.MUTED, false);
         intro.setPadding(UiKit.dp(this,4), UiKit.dp(this,14), UiKit.dp(this,4), UiKit.dp(this,4));
         page.addView(intro);
@@ -128,7 +128,7 @@ public final class CapabilitiesActivity extends Activity {
         LinearLayout ai = card();
         ai.addView(status("ChatGPT account", ChatGptAuth.getAccountInfo(this) != null));
         ai.addView(status("Direct model and strength choice", true));
-        ai.addView(status("Orbit Memory", Prefs.memoryEnabled(this)));
+        ai.addView(status("GrokLink Memory", Prefs.memoryEnabled(this)));
         ai.addView(status("Attachments & PDF", true));
         page.addView(ai, cardLp());
 
@@ -159,8 +159,8 @@ public final class CapabilitiesActivity extends Activity {
         if (locationTriggers) automation.addView(locationAutomationAccessRow());
         automation.addView(routineAutomationAccessRow("Trigger alerts", false));
         TextView automationNote = UiKit.text(this, locationTriggers
-                ? "Precise timing uses Android's Alarms & reminders access for time triggers and Orbit reminders. Location triggers require precise plus background location, while Trigger alerts let Orbit hand off any automatic routine that needs a visible app or confirmation."
-                : "Precise timing uses Android's Alarms & reminders access for time triggers and Orbit reminders, while Trigger alerts let Orbit hand off any automatic routine that needs a visible app or confirmation. "
+                ? "Precise timing uses Android's Alarms & reminders access for time triggers and GrokLink reminders. Location triggers require precise plus background location, while Trigger alerts let GrokLink hand off any automatic routine that needs a visible app or confirmation."
+                : "Precise timing uses Android's Alarms & reminders access for time triggers and GrokLink reminders, while Trigger alerts let GrokLink hand off any automatic routine that needs a visible app or confirmation. "
                         + OrbitDistribution.LOCATION_TRIGGERS_UNAVAILABLE,
                 12, UiKit.MUTED, false);
         automationNote.setPadding(0, UiKit.dp(this,10), 0, 0);

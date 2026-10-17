@@ -61,7 +61,7 @@ public final class ThemeStudioDraftTest {
 
         assertFalse("a freshly opened editor has nothing to lose", activity.isDirty());
         assertTrue(texts(activity).contains("Theme Studio"));
-        assertTrue(texts(activity).contains("Make Orbit yours."));
+        assertTrue(texts(activity).contains("Make GrokLink yours."));
         controller.pause().stop().destroy();
     }
 
@@ -87,7 +87,7 @@ public final class ThemeStudioDraftTest {
         List<String> shown = texts(controller.get());
         assertTrue(shown.contains("Accent"));
         assertTrue(shown.contains("Your messages"));
-        assertTrue(shown.contains("Orbit's replies"));
+        assertTrue(shown.contains("GrokLink's replies"));
         assertTrue(shown.contains("Cards"));
         assertTrue(shown.contains("Background"));
         assertTrue(shown.contains("True black AMOLED background"));
@@ -125,7 +125,7 @@ public final class ThemeStudioDraftTest {
         assertNotNull("the studio must draw a preview", view);
         assertEquals("the preview must show the draft's page colour",
                 OrbitTheme.hexTokenColor("#08110E"), previewBackground(view));
-        assertEquals("while Orbit itself is unchanged", UiKit.classicBackground(), UiKit.BG);
+        assertEquals("while GrokLink itself is unchanged", UiKit.classicBackground(), UiKit.BG);
         controller.pause().stop().destroy();
     }
 
@@ -280,7 +280,7 @@ public final class ThemeStudioDraftTest {
 
         assertNotNull(saved);
         assertEquals(1, OrbitThemeStore.customPresetCount(context));
-        assertTrue("saving must not change what Orbit is drawing",
+        assertTrue("saving must not change what GrokLink is drawing",
                 OrbitThemeStore.active(context).sameColours(OrbitTheme.orbitDefault()));
         controller.pause().stop().destroy();
     }
@@ -347,7 +347,7 @@ public final class ThemeStudioDraftTest {
         assertTrue("but applying it is still the user's decision", activity.isDirty());
 
         apply(activity);
-        assertFalse("Orbit must not have refused it", activity.isDirty());
+        assertFalse("GrokLink must not have refused it", activity.isDirty());
         assertEquals("#9A9A9A", OrbitThemeStore.active(context).userBubble);
         controller.pause().stop().destroy();
     }
@@ -381,7 +381,7 @@ public final class ThemeStudioDraftTest {
         OrbitThemeStore.applyActive(context, OrbitTheme.builtIn(OrbitTheme.ID_MOSS));
         ActivityController<ThemeStudioActivity> controller = open();
         String all = String.join("\n", descriptions(controller.get().getWindow().getDecorView()));
-        assertTrue(all.contains("Moss, Orbit preset, selected"));
+        assertTrue(all.contains("Moss, GrokLink preset, selected"));
         controller.pause().stop().destroy();
     }
 
@@ -389,7 +389,7 @@ public final class ThemeStudioDraftTest {
         assertEquals("White", OrbitColorName.of(Color.WHITE));
         assertEquals("Black", OrbitColorName.of(Color.BLACK));
         assertEquals("Grey", OrbitColorName.of(Color.rgb(150, 150, 150)));
-        assertEquals("Orbit's own violet must land in the violet family, not indigo or blue",
+        assertEquals("GrokLink's own violet must land in the violet family, not indigo or blue",
                 "Light violet", OrbitColorName.of(Color.rgb(139, 124, 255)));
         assertEquals("Blue", OrbitColorName.of(Color.rgb(80, 151, 255)));
         assertEquals("Teal", OrbitColorName.of(Color.rgb(69, 204, 166)));
@@ -437,12 +437,12 @@ public final class ThemeStudioDraftTest {
 
         List<OrbitTheme> saved = OrbitThemeStore.customPresets(context);
         assertEquals(1, saved.size());
-        assertFalse("an imported theme is never one of Orbit's own", saved.get(0).builtIn);
+        assertFalse("an imported theme is never one of GrokLink's own", saved.get(0).builtIn);
         assertFalse(OrbitTheme.isBuiltInId(saved.get(0).id));
         assertEquals("Nova AMOLED", saved.get(0).name);
         assertTrue("and it is the same appearance that was exported",
                 OrbitTheme.builtIn(OrbitTheme.ID_NOVA_AMOLED).sameColours(saved.get(0)));
-        assertNotNull("Orbit's own preset is still Orbit's own",
+        assertNotNull("GrokLink's own preset is still GrokLink's own",
                 OrbitTheme.builtIn(OrbitTheme.ID_NOVA_AMOLED));
         assertTrue(texts(activity).contains("Nova AMOLED"));
         controller.pause().stop().destroy();
@@ -521,7 +521,7 @@ public final class ThemeStudioDraftTest {
         assertNotNull("the Deck sample must draw an icon", mark);
         android.graphics.drawable.Drawable icon = mark.getDrawable();
         assertNotNull("the icon must actually load", icon);
-        assertEquals("and it must be Orbit's own Deck mark", R.drawable.ic_deck,
+        assertEquals("and it must be GrokLink's own Deck mark", R.drawable.ic_deck,
                 ((org.robolectric.shadows.ShadowDrawable)
                         org.robolectric.shadow.api.Shadow.extract(icon)).getCreatedFromResId());
         assertEquals(OrbitThemeTokens.resolve(context, draft(activity)).accent,
@@ -553,7 +553,7 @@ public final class ThemeStudioDraftTest {
         View preview = findPreview(activity.getWindow().getDecorView());
 
         View mark = findByTag(preview, "orbit_mark");
-        assertNotNull("the preview header must draw Orbit's mark", mark);
+        assertNotNull("the preview header must draw GrokLink's mark", mark);
         assertNull("the generic accent dot drew itself as a background; the mark does not",
                 mark.getBackground());
         assertTrue("the mark belongs at the start of the header row",

@@ -37,13 +37,13 @@ public final class NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         String title = compact(prompt, 52);
-        if (title.isEmpty()) title = "Orbit finished responding";
+        if (title.isEmpty()) title = "GrokLink finished responding";
         String body = compact(response, 110);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(c, CHANNEL)
                 : new Notification.Builder(c);
-        b.setSmallIcon(com.orbit.assistant.R.drawable.ic_orbit)
-                .setContentTitle("Orbit finished: " + title)
+        b.setSmallIcon(com.orbit.assistant.R.drawable.ic_notification)
+                .setContentTitle("GrokLink finished: " + title)
                 .setContentText(body)
                 .setStyle(new Notification.BigTextStyle().bigText(body))
                 .setContentIntent(pi)

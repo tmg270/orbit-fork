@@ -117,7 +117,7 @@ public class TimeTriggerEditorActivity extends Activity {
         header.addView(titles,new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Choose when Orbit should run this routine. Use a simple schedule, the every-2-weeks biweekly/fortnightly preset, or a custom interval such as every 3 days or every 2 months.",
+                "Choose when GrokLink should run this routine. Use a simple schedule, the every-2-weeks biweekly/fortnightly preset, or a custom interval such as every 3 days or every 2 months.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0,1.13f); LinearLayout.LayoutParams ilp=new LinearLayout.LayoutParams(-1,-2); ilp.setMargins(2,UiKit.dp(this,16),2,UiKit.dp(this,14)); page.addView(intro,ilp);
 

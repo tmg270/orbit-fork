@@ -314,7 +314,7 @@ public final class OrbitLocalActionRouter {
                 String label = p.optString("label", "");
                 String spoken = "Setting a "
                         + RoutineActionCatalog.durationModifierLabel(seconds) + " timer";
-                return label.isEmpty() || "Orbit timer".equals(label)
+                return label.isEmpty() || "GrokLink timer".equals(label)
                         ? spoken + "." : spoken + " for " + label.toLowerCase(Locale.US) + ".";
             }
             case "SET_ALARM":
@@ -356,7 +356,7 @@ public final class OrbitLocalActionRouter {
         p.append("{\"action\":\"SET_ALARM\",\"params\":{\"hour\":0-23,\"minute\":0-59}}\n");
         p.append("{\"action\":\"OPEN_APP\",\"params\":{\"app\":\"app name\"}}\n");
         p.append("{\"action\":\"OPEN_SETTINGS\",\"params\":{\"page\":\"main|internet|bluetooth\"}}\n");
-        p.append("Undo what Orbit just changed: {\"action\":\"UNDO_LAST\"}\n");
+        p.append("Undo what GrokLink just changed: {\"action\":\"UNDO_LAST\"}\n");
         p.append("Two or three requests in one sentence: {\"actions\":[{...},{...}]}\n");
         p.append("Anything else: {\"action\":\"NONE\"}\n");
 

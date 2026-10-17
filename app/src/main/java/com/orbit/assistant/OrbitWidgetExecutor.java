@@ -36,7 +36,7 @@ final class OrbitWidgetExecutor {
             if (action != null && action.requiresConfirmation) {
                 try { openRoutineUi(context, routine.id, 0); }
                 catch (Exception e) {
-                    Toast.makeText(context, "Orbit could not open the Routine runner.",
+                    Toast.makeText(context, "GrokLink could not open the Routine runner.",
                             Toast.LENGTH_LONG).show();
                 }
                 finally { if (completion != null) completion.finish(); }
@@ -76,7 +76,7 @@ final class OrbitWidgetExecutor {
                                     openRoutineUi(context, routine.id, Math.max(0, failedIndex[0]));
                                 } catch (Exception e) {
                                     MAIN.post(() -> Toast.makeText(context,
-                                            "Orbit could not open the Routine permission flow.",
+                                            "GrokLink could not open the Routine permission flow.",
                                             Toast.LENGTH_LONG).show());
                                 }
                             } else if (failure != null) {
@@ -90,7 +90,7 @@ final class OrbitWidgetExecutor {
                 });
             } catch (Exception e) {
                 MAIN.post(() -> Toast.makeText(context,
-                        "Orbit could not run this Routine.", Toast.LENGTH_LONG).show());
+                        "GrokLink could not run this Routine.", Toast.LENGTH_LONG).show());
                 if (completion != null) completion.finish();
             }
         });
@@ -138,7 +138,7 @@ final class OrbitWidgetExecutor {
                 try { manager.unregisterTorchCallback(callbackHolder[0]); }
                 catch (Exception ignored) {}
                 finishFlashlight(completion,
-                        DeviceActionExecutor.Result.failed("Orbit could not read the flashlight state."));
+                        DeviceActionExecutor.Result.failed("GrokLink could not read the flashlight state."));
             };
             CameraManager.TorchCallback callback = new CameraManager.TorchCallback() {
                 @Override public void onTorchModeChanged(String cameraId, boolean enabled) {

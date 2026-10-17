@@ -195,7 +195,7 @@ public class AppProfileActivity extends Activity {
         root.addView(section("QUICK ACTIONS"));
         LinearLayout actions = card();
         TextView actionNote = UiKit.text(this,
-                "Leave a slot Automatic and Orbit will choose it from the screen. Customize any slot you want to keep consistent in this app.",
+                "Leave a slot Automatic and GrokLink will choose it from the screen. Customize any slot you want to keep consistent in this app.",
                 12, UiKit.MUTED, false);
         actionNote.setPadding(0,0,0,UiKit.dp(this,5));
         actions.addView(actionNote);

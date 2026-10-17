@@ -90,7 +90,7 @@ public final class OrbitDialogContractTest {
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle("Information")
-                .setMessage("Orbit keeps the established appearance contract.")
+                .setMessage("GrokLink keeps the established appearance contract.")
                 .setPositiveButton("OK", null)
                 .create();
         UiKit.styleOrbitDialog(dialog, activity, false);
@@ -103,7 +103,7 @@ public final class OrbitDialogContractTest {
 
         assertTrue(dialog.isShowing());
         assertCanonicalEntranceFinished(decor);
-        assertEquals("Orbit's content animation must not change the dialog window bounds",
+        assertEquals("GrokLink's content animation must not change the dialog window bounds",
                 before, WindowGeometry.of(dialog));
         assertFalse(dialog.getWindow().getDecorView().isForceDarkAllowed());
         assertEquals("normal actions follow the live Accent",
@@ -173,8 +173,8 @@ public final class OrbitDialogContractTest {
             localController.get().confirmRemoveOrbitLocal();
             AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
             assertNotNull(dialog);
-            assertEquals("Remove Orbit Local?", Shadows.shadowOf(dialog).getTitle().toString());
-            assertTrue("the Orbit warning must actually reach the screen", dialog.isShowing());
+            assertEquals("Remove GrokLink Local?", Shadows.shadowOf(dialog).getTitle().toString());
+            assertTrue("the GrokLink warning must actually reach the screen", dialog.isShowing());
             assertCanonicalEntranceIsPrepared(dialog, dialog.getWindow().getDecorView());
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
             assertCanonicalEntranceFinished(dialog.getWindow().getDecorView());
@@ -182,7 +182,7 @@ public final class OrbitDialogContractTest {
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).getCurrentTextColor());
 
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-            assertEquals("only the Orbit exit is suppressed before Android owns the next window",
+            assertEquals("only the GrokLink exit is suppressed before Android owns the next window",
                     0, dialog.getWindow().getAttributes().windowAnimations);
             assertFalse(dialog.isShowing());
             ShadowLooper.idleMainLooper();
@@ -262,9 +262,9 @@ public final class OrbitDialogContractTest {
         assertTrue(request.contains("installer.uninstall(OrbitLocalComponent.PACKAGE"));
         assertTrue(receiver.contains("Intent.EXTRA_INTENT"));
         assertTrue(receiver.contains("context.startActivity(confirm)"));
-        assertFalse("Orbit must not clone Android's uninstall confirmation",
+        assertFalse("GrokLink must not clone Android's uninstall confirmation",
                 receiver.contains("new AlertDialog.Builder"));
-        assertFalse("Orbit must not try to paint Android's package-installer window",
+        assertFalse("GrokLink must not try to paint Android's package-installer window",
                 receiver.contains("styleOrbitDialog"));
         // The GitHub edition builds both system hand-offs in OrbitEdition (src/github); the
         // installers still launch them themselves. The Play edition has neither.
@@ -284,7 +284,7 @@ public final class OrbitDialogContractTest {
         // Calendar permission is Android's window, exactly like the picker's. Orbit's own
         // confirmation happens before this bridge opens and never overlaps it.
         assertTrue(calendarBridge.contains("requestPermissions("));
-        assertFalse("Orbit must not draw its own Calendar permission prompt",
+        assertFalse("GrokLink must not draw its own Calendar permission prompt",
                 calendarBridge.contains("new AlertDialog.Builder"));
         assertFalse(calendarBridge.contains("styleOrbitDialog"));
 
@@ -293,7 +293,7 @@ public final class OrbitDialogContractTest {
         // bridges rather than pages, and all six keep the dedicated non-page theme.
         assertTrue("invisible picker, calendar, widget, share, selected-text and sign-in return"
                         + " bridges keep their non-page theme",
-                count(manifest, "android:theme=\"@style/Theme.Orbit.Bridge\"") == 6);
+                count(manifest, "android:theme=\"@style/Theme.GrokLink.Bridge\"") == 6);
 
         // Both external doorways draw exactly one thing, and only since v0.7.8.4: the question of
         // where the content should go. Share to Orbit gained it in Beta 1 and the selected-text
@@ -310,7 +310,7 @@ public final class OrbitDialogContractTest {
         for (String bridge : new String[]{"ShareToOrbitActivity", "ProcessTextToOrbitActivity"}) {
             String source = ComponentUninstallTest.readRepositoryFile(
                     "app/src/main/java/com/orbit/assistant/" + bridge + ".java");
-            assertTrue(bridge + ": the one dialog it may draw is Orbit's own, through the shared"
+            assertTrue(bridge + ": the one dialog it may draw is GrokLink's own, through the shared"
                             + " styling path",
                     source.contains("UiKit.styleOrbitDialog(dialog, this, false)"));
             assertEquals(bridge + ": and there is exactly one of it",
@@ -387,7 +387,7 @@ public final class OrbitDialogContractTest {
         Matcher creations = Pattern.compile("new\\s+PopupWindow\\s*\\(").matcher(uiKit);
         List<Integer> starts = new ArrayList<>();
         while (creations.find()) starts.add(creations.start());
-        assertEquals("all Orbit PopupWindows live in the three shared UiKit builders", 3,
+        assertEquals("all GrokLink PopupWindows live in the three shared UiKit builders", 3,
                 starts.size());
         for (int i = 0; i < starts.size(); i++) {
             int end = i + 1 < starts.size() ? starts.get(i + 1) : uiKit.length();
@@ -433,7 +433,7 @@ public final class OrbitDialogContractTest {
                         .matcher(region).find();
                 String site = relative(file) + ":" + lineAt(code, start);
                 assertTrue(site + " creates " + creation.variable
-                        + " without the canonical Orbit dialog styling path", styled);
+                        + " without the canonical GrokLink dialog styling path", styled);
                 assertTrue(site + " styles " + creation.variable
                         + " but never calls " + creation.variable + ".show()", shown);
             }

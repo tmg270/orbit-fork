@@ -77,7 +77,7 @@ public final class PlayOrbitLocalSigningTest {
                 LocalAiActivity.playComponentDetails(OrbitLocalComponent.State.NOT_INSTALLED));
         for (OrbitLocalComponent.State state : OrbitLocalComponent.State.values()) {
             String text = LocalAiActivity.playComponentDetails(state);
-            assertFalse("never " + state + ": " + text, text.contains("install Orbit Local from here"));
+            assertFalse("never " + state + ": " + text, text.contains("install GrokLink Local from here"));
             assertFalse(text.contains("Update it"));
         }
     }
@@ -88,10 +88,10 @@ public final class PlayOrbitLocalSigningTest {
         controller = Robolectric.buildActivity(LocalAiActivity.class).setup();
         View root = controller.get().getWindow().getDecorView();
         assertNotNull(findText(root, "Remove untrusted component"));
-        assertNull(findText(root, "Set up Orbit Local"));
+        assertNull(findText(root, "Set up GrokLink Local"));
         assertNull(findText(root, "Install component"));
         assertNull(findText(root, "Update component"));
-        assertNull(findContaining(root, "install Orbit Local from here"));
+        assertNull(findContaining(root, "install GrokLink Local from here"));
     }
 
     /**

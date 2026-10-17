@@ -46,8 +46,8 @@ import java.util.concurrent.TimeUnit;
 @Config(sdk = {29, 35})
 public final class SmartVaultBeta2Test {
 
-    /** A screenshot whose header says "Orbit" long before the line the user is looking for. */
-    private static final String SCREENSHOT = "Orbit Assistant 12:04\nSettings Accounts Privacy\n"
+    /** A screenshot whose header says "GrokLink" long before the line the user is looking for. */
+    private static final String SCREENSHOT = "GrokLink 12:04\nSettings Accounts Privacy\n"
             + "Notifications are grouped by app and sorted by time received today yesterday and "
             + "earlier this week with quiet delivery for anything you have muted before now and "
             + "a summary at the top of the shade every morning at eight and evening at six\n"
@@ -96,7 +96,7 @@ public final class SmartVaultBeta2Test {
         assertEquals(SmartVaultRanker.Reason.RECOGNIZED, top.reason);
         assertTrue("the phrase spans OCR lines and is still the phrase", top.exact);
         assertTrue(top.excerpt, top.excerpt.contains("ORBIT PURPLE 7294"));
-        assertFalse("not the header that merely says Orbit", top.excerpt.contains("Settings"));
+        assertFalse("not the header that merely says GrokLink", top.excerpt.contains("Settings"));
     }
 
     @Test public void wordsFoundApartAreShownTogetherButNotClaimedAsThePhrase() {

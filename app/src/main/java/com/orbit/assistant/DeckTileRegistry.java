@@ -41,7 +41,7 @@ public final class DeckTileRegistry {
 
     /** The Add-tile groupings. Deliberately five, so the sheet stays one calm screen. */
     public enum Category {
-        ORBIT("Orbit"),
+        ORBIT("GrokLink"),
         ACTIONS("Actions"),
         ROUTINES("Routines"),
         APPS("Apps"),
@@ -111,29 +111,29 @@ public final class DeckTileRegistry {
 
     static {
         // ---- Orbit destinations: places the user already has, one tap closer -------------------
-        put(new Definition(TYPE_NEW_CHAT, "New chat", "Start a new Orbit conversation",
-                R.drawable.ic_deck_new_chat, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
+        put(new Definition(TYPE_NEW_CHAT, "New chat", "Start a new GrokLink conversation",
+                R.drawable.ic_deck_new_chat, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
         put(new Definition(TYPE_ROUTINES, "Routines", "Open your saved Routines",
-                R.drawable.ic_routine_tile, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_REMINDERS, "Reminders", "Open your Orbit reminders",
-                R.drawable.ic_widget_reminder, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_MEMORIES, "Memories", "What Orbit remembers about you",
-                R.drawable.ic_deck_memory, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_CAPABILITIES, "Capabilities", "What Orbit can do on this phone",
-                R.drawable.ic_deck_capabilities, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_EXTENSIONS, "Extensions", "Manage your Orbit extensions",
-                R.drawable.ic_deck_extension, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_THEME_STUDIO, "Theme Studio", "Design how Orbit looks",
-                R.drawable.ic_deck_theme, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
+                R.drawable.ic_routine_tile, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_REMINDERS, "Reminders", "Open your GrokLink reminders",
+                R.drawable.ic_widget_reminder, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_MEMORIES, "Memories", "What GrokLink remembers about you",
+                R.drawable.ic_deck_memory, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_CAPABILITIES, "Capabilities", "What GrokLink can do on this phone",
+                R.drawable.ic_deck_capabilities, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_EXTENSIONS, "Extensions", "Manage your GrokLink extensions",
+                R.drawable.ic_deck_extension, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_THEME_STUDIO, "Theme Studio", "Design how GrokLink looks",
+                R.drawable.ic_deck_theme, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
         put(new Definition(TYPE_VAULT, "Vault", "Open the things you have saved",
-                R.drawable.ic_vault, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
+                R.drawable.ic_vault, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
         // Quick Capture is a destination too, not a second capture implementation: tapping it
         // opens the Vault's own capture flow - write text, paste clipboard, add image - which
         // is the same one the Vault screen's own button opens.
         put(new Definition(TYPE_QUICK_CAPTURE, "Quick Capture", "Save something to your Vault",
-                R.drawable.ic_deck_note, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
-        put(new Definition(TYPE_SETTINGS, "Settings", "Open Orbit settings",
-                R.drawable.ic_settings, ALL_SIZES, true, false, Category.ORBIT, "Orbit shortcut"));
+                R.drawable.ic_deck_note, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
+        put(new Definition(TYPE_SETTINGS, "Settings", "Open GrokLink settings",
+                R.drawable.ic_settings, ALL_SIZES, true, false, Category.ORBIT, "GrokLink shortcut"));
 
         // ---- Direct device actions: immediate, and already implemented elsewhere ---------------
         put(new Definition(TYPE_FLASHLIGHT, "Flashlight", "Turn the flashlight on or off",

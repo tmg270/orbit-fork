@@ -113,7 +113,7 @@ public final class ReplyRoutingTest {
         assertEquals("Use in chat", ReplySurface.insertLabel(ReplySurface.Kind.SMS));
         for (ReplySurface.Kind kind : new ReplySurface.Kind[]{
                 ReplySurface.Kind.EMAIL, ReplySurface.Kind.OTHER_APP, ReplySurface.Kind.UNKNOWN}) {
-            assertEquals("a surface Orbit cannot insert into offers no control at all",
+            assertEquals("a surface GrokLink cannot insert into offers no control at all",
                     "", ReplySurface.insertLabel(kind));
         }
     }

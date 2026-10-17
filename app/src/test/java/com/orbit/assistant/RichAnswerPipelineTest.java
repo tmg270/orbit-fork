@@ -561,7 +561,7 @@ public final class RichAnswerPipelineTest {
         assertFalse(result.loaded());
         assertEquals("HTTP 404", result.describe());
         assertEquals("a refusal says so without naming the address",
-                "Orbit blocked this private or unsafe image address",
+                "GrokLink blocked this private or unsafe image address",
                 RemoteImageLoader.fetchPicture(context, "file:///etc/passwd").describe());
     }
 

@@ -4,7 +4,7 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">#0B0D12</item>
         <item name="android:statusBarColor">#0B0D12</item>
-        <item name="android:colorAccent">#8B7CFF</item>
+        <item name="android:colorAccent">#22D3EE</item>
         <item name="android:windowActionModeOverlay">true</item>
         <!--
           Orbit's own surface colour. Without this the window inherits the light Material
@@ -82,7 +82,7 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">false</item>
-        <item name="android:colorAccent">#8B7CFF</item>
+        <item name="android:colorAccent">#22D3EE</item>
     </style>
 
     <style name="OrbitPopupAnimation">

@@ -78,7 +78,7 @@ public final class WhatsNewActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
         titles.addView(UiKit.text(this, "What's New", 24, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Recent stable Orbit releases", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "Recent stable GrokLink releases", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
@@ -110,7 +110,7 @@ public final class WhatsNewActivity extends Activity {
         page.addView(notesContainer, notesLp);
 
         TextView source = UiKit.text(this,
-                "Release notes come from the public lpnovi/Orbit-Assistant GitHub Releases page. Orbit caches the last successful result for offline viewing.",
+                "Release notes come from the public lpnovi/Orbit-Assistant GitHub Releases page. GrokLink caches the last successful result for offline viewing.",
                 11, UiKit.MUTED, false);
         source.setLineSpacing(0, 1.1f);
         LinearLayout.LayoutParams sourceLp = new LinearLayout.LayoutParams(
@@ -153,7 +153,7 @@ public final class WhatsNewActivity extends Activity {
     private void renderReleases(List<ReleaseNotesRepository.ReleaseNote> releases) {
         notesContainer.removeAllViews();
         if (releases == null || releases.isEmpty()) {
-            status.setText("No stable Orbit release notes are available yet.");
+            status.setText("No stable GrokLink release notes are available yet.");
             retry.setVisibility(View.VISIBLE);
             return;
         }
@@ -165,7 +165,7 @@ public final class WhatsNewActivity extends Activity {
             update.addView(UiKit.text(this,
                     "Update available · v" + releases.get(0).versionName, 15, UiKit.TEXT, true));
             TextView detail = UiKit.text(this,
-                    "Return to About & updates to use Orbit's verified updater.", 12, UiKit.MUTED, false);
+                    "Return to About & updates to use GrokLink's verified updater.", 12, UiKit.MUTED, false);
             detail.setPadding(0, UiKit.dp(this, 4), 0, UiKit.dp(this, 10));
             update.addView(detail);
             Button open = primaryButton("Open About & updates");

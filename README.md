@@ -1,6 +1,8 @@
 <div align="center">
 
-# Orbit Assistant
+# GrokLink
+
+_A modified fork of Orbit Assistant by lpnovi (MPL-2.0); not affiliated with xAI. Talks only to xAI Grok (SuperGrok sign-in or xAI API key)._
 
 **Your Android assistant, one gesture away, aware of the screen you choose, and ready to act.**
 

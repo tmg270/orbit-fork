@@ -175,7 +175,7 @@ public final class CalendarConfirmationTest {
         assertEquals(12, preview.eventCount);
         assertEquals("the destination is a field of its own, not a line of prose",
                 "Personal", preview.selectorLabel);
-        assertTrue("and Add may run, because Orbit knows where these go", preview.canAdd());
+        assertTrue("and Add may run, because GrokLink knows where these go", preview.canAdd());
         assertTrue(preview.detail().contains("Sep 5 - Sep 16, 2026"));
         assertTrue("a few real events, not a bare count",
                 preview.detail().contains("Michigan game 1"));

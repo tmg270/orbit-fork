@@ -63,7 +63,7 @@ public final class CalendarActionExecutor {
      * nothing the user could pick would fix that one.
      */
     public static final String NO_TARGET_CHOSEN =
-            "Choose which calendar Orbit should use before adding these events.";
+            "Choose which calendar GrokLink should use before adding these events.";
 
     private static final int MAX_TITLE_CHARS = 240;
     private static final int MAX_TEXT_CHARS = 1000;
@@ -268,7 +268,7 @@ public final class CalendarActionExecutor {
         }
         if (raw.length() > MAX_EVENTS) {
             return new Plan(null, "That is more than " + MAX_EVENTS
-                    + " events; Orbit will not add an unbounded schedule in one step");
+                    + " events; GrokLink will not add an unbounded schedule in one step");
         }
         ZoneId fallbackZone = deviceZone == null ? ZoneId.systemDefault() : deviceZone;
         List<Event> events = new ArrayList<>();
@@ -371,7 +371,7 @@ public final class CalendarActionExecutor {
         if (!OrbitCalendarStore.hasAccess(c)) {
             CalendarDiagnostics.recordBlocked(c, "permission", plannedCount(params));
             return DeviceActionExecutor.Result.permission(
-                    "Allow Calendar access so Orbit can add these events.");
+                    "Allow Calendar access so GrokLink can add these events.");
         }
 
         Plan plan = parse(params);
@@ -387,7 +387,7 @@ public final class CalendarActionExecutor {
         if (target == null && writable.size() == 1) target = writable.get(0);
         if (target == null) {
             String reason = writable.isEmpty()
-                    ? "No writable calendar is set up on this phone, so Orbit has nowhere to add these events."
+                    ? "No writable calendar is set up on this phone, so GrokLink has nowhere to add these events."
                     : NO_TARGET_CHOSEN;
             CalendarDiagnostics.recordBlocked(c,
                     writable.isEmpty() ? "no writable calendar" : "no target chosen", plan.size());

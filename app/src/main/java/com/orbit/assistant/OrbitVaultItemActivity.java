@@ -47,7 +47,7 @@ public final class OrbitVaultItemActivity extends Activity {
     static final String NOTE_EMPTY = "Add a note";
 
     /** The actions this screen offers, as the labels a person reads. */
-    static final String ACTION_ASK = "Ask Orbit";
+    static final String ACTION_ASK = "Ask GrokLink";
     static final String ACTION_OPEN_LINK = "Open link";
     /** What a saved picture that remembers its page offers, and only such an item. */
     static final String ACTION_OPEN_SOURCE = "Open source";
@@ -182,10 +182,10 @@ public final class OrbitVaultItemActivity extends Activity {
 
     // ---- Smart Vault on this screen (v0.8.1.0-beta.1) ---------------------------------------------
 
-    static final String SUGGESTED_HEADING = "Orbit suggested";
+    static final String SUGGESTED_HEADING = "GrokLink suggested";
     static final String TOPICS_HEADING = "Topics";
     static final String CAPTURED_HEADING = "Text from the screen";
-    static final String RECOGNIZED_HEADING = "Text Orbit read in this picture";
+    static final String RECOGNIZED_HEADING = "Text GrokLink read in this picture";
     static final String PAGE_TEXT_HEADING = "Text from the saved page";
     static final String RELATED_HEADING = "RELATED IN YOUR VAULT";
     static final String ACTION_SUGGEST = "Suggest details";
@@ -352,7 +352,7 @@ public final class OrbitVaultItemActivity extends Activity {
         scrollLp.setMargins(0, UiKit.dp(this, 10), 0, 0);
         card.addView(scroller, scrollLp);
         if (!item.suggestedTopics().isEmpty()) {
-            TextView hint = UiKit.text(this, "Topics marked ✦ are Orbit's suggestions. "
+            TextView hint = UiKit.text(this, "Topics marked ✦ are GrokLink's suggestions. "
                     + "Tap one to keep or remove it.", 11, UiKit.MUTED, false);
             hint.setPadding(0, UiKit.dp(this, 6), 0, 0);
             card.addView(hint);
@@ -485,8 +485,8 @@ public final class OrbitVaultItemActivity extends Activity {
         }
         int queued = SmartVault.queueSuggestions(this, java.util.Collections.singletonList(item.id));
         Toast.makeText(this, queued > 0
-                ? "Orbit will send this item to " + SmartVault.providerName(this) + " for suggestions"
-                : "Orbit could not queue suggestions", Toast.LENGTH_SHORT).show();
+                ? "GrokLink will send this item to " + SmartVault.providerName(this) + " for suggestions"
+                : "GrokLink could not queue suggestions", Toast.LENGTH_SHORT).show();
         rebuild();
     }
 
@@ -612,7 +612,7 @@ public final class OrbitVaultItemActivity extends Activity {
     private void togglePin(OrbitVaultItem item) {
         boolean wanted = !item.pinned;
         if (!OrbitVaultStore.setPinned(this, item.id, wanted)) {
-            Toast.makeText(this, "Orbit could not update that item", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not update that item", Toast.LENGTH_SHORT).show();
             return;
         }
         Toast.makeText(this, wanted ? "Pinned" : "Unpinned", Toast.LENGTH_SHORT).show();
@@ -680,7 +680,7 @@ public final class OrbitVaultItemActivity extends Activity {
         }
         // Honest either way: with "Read saved links" on, Smart Vault has read the page once.
         TextView note = UiKit.text(this, pageText(item).isEmpty()
-                        ? "Orbit has not opened or read this address. It opens only when you choose to."
+                        ? "GrokLink has not opened or read this address. It opens only when you choose to."
                         : "Smart Vault read this page once so you can search its text. It opens "
                                 + "only when you choose to.",
                 12, UiKit.MUTED, false);
@@ -766,7 +766,7 @@ public final class OrbitVaultItemActivity extends Activity {
         // from it, which is exactly the thing somebody wants out of a page they kept.
         if (!item.isImage() && !item.body.isEmpty()) {
             utilities.add(compactAction(ACTION_COPY, R.drawable.ic_copy,
-                    v -> MessageActions.copy(this, "Orbit Vault", item.body,
+                    v -> MessageActions.copy(this, "GrokLink Vault", item.body,
                             () -> Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show())));
             utilities.add(compactAction(ACTION_SHARE, R.drawable.ic_share,
                     v -> shareText(item)));
@@ -868,7 +868,7 @@ public final class OrbitVaultItemActivity extends Activity {
             if (save == null) return;
             save.setOnClickListener(v -> {
                 if (!OrbitVaultStore.updateNote(this, item.id, note.getText().toString())) {
-                    Toast.makeText(this, "Orbit could not save that note",
+                    Toast.makeText(this, "GrokLink could not save that note",
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -903,7 +903,7 @@ public final class OrbitVaultItemActivity extends Activity {
             // Said plainly rather than hidden behind a disabled field: a saved answer, a link and a
             // picture are records, and the title is the part that belongs to the user.
             TextView why = UiKit.text(this, item.isOrbitReply()
-                            ? "The answer itself stays exactly as Orbit wrote it."
+                            ? "The answer itself stays exactly as GrokLink wrote it."
                             : "Only the title can be changed for this kind of item.",
                     12, UiKit.MUTED, false);
             why.setPadding(0, UiKit.dp(this, 12), 0, 0);
@@ -938,7 +938,7 @@ public final class OrbitVaultItemActivity extends Activity {
                     ok = OrbitVaultStore.updateText(this, item.id, title.getText().toString(), text);
                 }
                 if (!ok) {
-                    Toast.makeText(this, "Orbit could not save that change",
+                    Toast.makeText(this, "GrokLink could not save that change",
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -959,7 +959,7 @@ public final class OrbitVaultItemActivity extends Activity {
     private void openLink(OrbitVaultItem item) {
         String url = OrbitVaultItem.singleLinkOrEmpty(item.body);
         if (url.isEmpty()) {
-            Toast.makeText(this, "That is not a web address Orbit can open",
+            Toast.makeText(this, "That is not a web address GrokLink can open",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -980,7 +980,7 @@ public final class OrbitVaultItemActivity extends Activity {
      */
     private void openSource(OrbitVaultItem item) {
         if (item == null || !RichAnswerUrlPolicy.isOpenableWebUrl(item.sourceUrl)) {
-            Toast.makeText(this, "That is not a web address Orbit can open",
+            Toast.makeText(this, "That is not a web address GrokLink can open",
                     Toast.LENGTH_SHORT).show();
             return;
         }

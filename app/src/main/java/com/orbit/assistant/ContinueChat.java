@@ -74,7 +74,7 @@ final class ContinueChat {
                     @Override public void onText(String raw, String providerLabel) {
                         String summary = cleanSummary(raw);
                         if (summary == null) {
-                            main.post(() -> callback.onFailed("Orbit could not write a summary. "
+                            main.post(() -> callback.onFailed("GrokLink could not write a summary. "
                                     + "This chat is unchanged."));
                             return;
                         }
@@ -94,13 +94,13 @@ final class ContinueChat {
                                         : AiSelections.resolve(chat.aiSelection), items);
                         main.post(() -> {
                             if (created) callback.onReady(fresh);
-                            else callback.onFailed("Orbit could not create the new chat. "
+                            else callback.onFailed("GrokLink could not create the new chat. "
                                     + "This chat is unchanged.");
                         });
                     }
 
                     @Override public void onError(String message) {
-                        main.post(() -> callback.onFailed("Orbit could not write a summary: "
+                        main.post(() -> callback.onFailed("GrokLink could not write a summary: "
                                 + (message == null ? "unknown error" : message)
                                 + ". This chat is unchanged."));
                     }
@@ -118,7 +118,7 @@ final class ContinueChat {
         for (int i = path.size() - 1; i >= 0; i--) {
             AssistantClient.History h = path.get(i);
             if (h == null || h.content == null || h.content.trim().isEmpty()) continue;
-            String speaker = "assistant".equalsIgnoreCase(h.role) ? "Orbit" : "User";
+            String speaker = "assistant".equalsIgnoreCase(h.role) ? "GrokLink" : "User";
             String line = speaker + ": " + neutralize(h.content.trim());
             if (!h.attachmentLabel.isEmpty() && "user".equalsIgnoreCase(h.role)) {
                 line += "\n[attached: " + neutralize(h.attachmentLabel) + "]";

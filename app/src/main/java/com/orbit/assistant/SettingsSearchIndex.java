@@ -139,7 +139,7 @@ public final class SettingsSearchIndex {
     private static final String S_AI = "AI & account";
     private static final String S_VOICE = "Voice, context & permissions";
     private static final String S_DATA = "Personalization & data";
-    private static final String S_DECK = "Orbit Deck";
+    private static final String S_DECK = "GrokLink Deck";
     private static final String S_CHATS = "Conversations";
     private static final String S_LOOK = "Look & Feel";
     private static final String S_ADVANCED = "Advanced";
@@ -250,21 +250,21 @@ public final class SettingsSearchIndex {
     private static List<Entry> buildEntries() {
         List<Entry> out = new ArrayList<>();
 
-        out.add(new Entry("Make Orbit default assistant",
-                "Set Orbit as the Digital assistant app and map the Side button.",
+        out.add(new Entry("Make GrokLink default assistant",
+                "Set GrokLink as the Digital assistant app and map the Side button.",
                 S_ASSISTANT, "assistant", KEY_DEFAULT_ASSISTANT,
                 "side button", "bixby", "assistant", "default", "long press", "setup"));
         out.add(new Entry("Quick Settings tiles",
-                "Open Orbit or run a Routine from the Quick Settings panel.",
+                "Open GrokLink or run a Routine from the Quick Settings panel.",
                 S_ASSISTANT, "assistant", KEY_QUICK_TILES,
                 "tile", "quick settings", "shade", "pull down"));
         out.add(new Entry("Home-screen widgets",
-                "Add the Ask Orbit, Run Routine and Quick Actions widgets.",
+                "Add the Ask GrokLink, Run Routine and Quick Actions widgets.",
                 S_ASSISTANT, "assistant", KEY_WIDGETS,
                 "widget", "home screen", "launcher"));
 
         out.add(new Entry("AI provider",
-                "Choose which AI backend Orbit sends requests to.",
+                "Choose which AI backend GrokLink sends requests to.",
                 S_AI, "ai", KEY_PROVIDER,
                 "provider", "backend", "openrouter", "relay", "orbit local", "chatgpt", "account"));
         out.add(new Entry("ChatGPT sign-in",
@@ -279,7 +279,7 @@ public final class SettingsSearchIndex {
                 // Auto and its provider switches live in the same card.
                 "auto", "smart routing", "routing", "auto can use"));
         out.add(new Entry("Thinking updates",
-                "Brief status while Orbit prepares an answer.",
+                "Brief status while GrokLink prepares an answer.",
                 S_AI, "ai", KEY_THINKING_UPDATES,
                 "thinking", "status", "progress", "updates"));
         out.add(new Entry("Sourced images in answers",
@@ -287,11 +287,11 @@ public final class SettingsSearchIndex {
                 S_AI, "ai", KEY_RICH_ANSWERS,
                 "images", "pictures", "photos", "rich answers", "visual", "web images"));
 
-        out.add(new Entry("Allow Orbit to read current-screen text",
+        out.add(new Entry("Allow GrokLink to read current-screen text",
                 "Screen awareness for the Side-button assistant.",
                 S_VOICE, "voice", KEY_SCREEN_TEXT,
                 "screen", "context", "read screen", "awareness", "privacy"));
-        out.add(new Entry("Allow Orbit to receive screenshots",
+        out.add(new Entry("Allow GrokLink to receive screenshots",
                 "Send a picture of the screen with a request.",
                 S_VOICE, "voice", KEY_SCREENSHOTS,
                 "screenshot", "screen image", "capture", "privacy"));
@@ -312,7 +312,7 @@ public final class SettingsSearchIndex {
                 S_VOICE, "voice", KEY_VOICE_PAUSE,
                 "pause", "voice", "dictation", "listening"));
         out.add(new Entry("Start listening when overlay opens",
-                "Begin voice input as soon as Orbit appears.",
+                "Begin voice input as soon as GrokLink appears.",
                 S_VOICE, "voice", KEY_AUTO_LISTEN,
                 "listen", "microphone", "mic", "voice", "auto"));
         out.add(new Entry("Hands-free voice follow-ups",
@@ -324,7 +324,7 @@ public final class SettingsSearchIndex {
                 S_VOICE, "voice", KEY_SMART_FOLLOW_UPS,
                 "follow up", "suggestions", "smart"));
         out.add(new Entry("Keyboard-aware assistant invocation",
-                "How Orbit opens while a keyboard is showing.",
+                "How GrokLink opens while a keyboard is showing.",
                 S_VOICE, "voice", KEY_KEYBOARD_AWARE,
                 "keyboard", "ime", "invocation"));
         out.add(new Entry("Permissions & capabilities",
@@ -332,27 +332,27 @@ public final class SettingsSearchIndex {
                 S_VOICE, "voice", KEY_PERMISSIONS,
                 "permission", "microphone", "mic", "camera", "contacts", "calendar", "access"));
 
-        out.add(new Entry("Orbit Memory",
-                "What Orbit remembers about you between chats.",
+        out.add(new Entry("GrokLink Memory",
+                "What GrokLink remembers about you between chats.",
                 S_DATA, "data", KEY_MEMORY,
                 "memory", "remember", "personalization", "facts", "forget"));
-        out.add(new Entry("Orbit reminders",
-                "Reminders Orbit has scheduled.",
+        out.add(new Entry("GrokLink reminders",
+                "Reminders GrokLink has scheduled.",
                 S_DATA, "data", KEY_REMINDERS,
                 "reminder", "alarm", "notify", "schedule"));
         out.add(new Entry("Saved places",
-                "Home, work and other places Orbit knows.",
+                "Home, work and other places GrokLink knows.",
                 S_DATA, "data", KEY_PLACES,
                 "places", "location", "home", "work", "address", "map"));
         out.add(new Entry("App profiles",
-                "How Orbit behaves over each app.",
+                "How GrokLink behaves over each app.",
                 S_DATA, "data", KEY_APP_PROFILES,
                 "apps", "per app", "profile", "privacy"));
         out.add(new Entry("Notification intelligence",
-                "What Orbit may read from your notifications.",
+                "What GrokLink may read from your notifications.",
                 S_DATA, "data", KEY_NOTIFICATIONS,
                 "notifications", "alerts", "privacy", "retention"));
-        out.add(new Entry("Orbit Vault",
+        out.add(new Entry("GrokLink Vault",
                 "The things you have chosen to keep.",
                 S_DATA, "data", KEY_VAULT,
                 "vault", "saved", "saved stuff", "keep", "collection", "clips", "bookmarks",
@@ -362,20 +362,20 @@ public final class SettingsSearchIndex {
                 S_DATA, "data", KEY_WEATHER,
                 "weather", "temperature", "celsius", "fahrenheit", "units", "forecast"));
         out.add(new Entry("Gallery app",
-                "Which app Orbit opens for photos.",
+                "Which app GrokLink opens for photos.",
                 S_DATA, "data", KEY_GALLERY,
                 "gallery", "photos", "pictures", "album"));
         out.add(new Entry("Backup & restore",
-                "Export or restore your Orbit data.",
+                "Export or restore your GrokLink data.",
                 S_DATA, "data", KEY_BACKUP,
                 "backup", "restore", "export", "import", "transfer", "copy"));
 
-        out.add(new Entry("Orbit Deck",
-                "Shortcuts to the things Orbit already does.",
+        out.add(new Entry("GrokLink Deck",
+                "Shortcuts to the things GrokLink already does.",
                 S_DECK, "deck", KEY_DECK,
                 "deck", "shortcuts", "tiles", "suggestions"));
 
-        out.add(new Entry("Start a new chat each time Orbit opens",
+        out.add(new Entry("Start a new chat each time GrokLink opens",
                 "Whether the overlay resumes the last chat.",
                 S_CHATS, "conversations", KEY_NEW_CHAT,
                 "new chat", "resume", "continue", "overlay"));
@@ -391,7 +391,7 @@ public final class SettingsSearchIndex {
                 "Offer a Stop control during a reply.",
                 S_CHATS, "conversations", KEY_STOP_BUTTON,
                 "stop", "cancel", "interrupt"));
-        out.add(new Entry("Clear Orbit conversation history",
+        out.add(new Entry("Clear GrokLink conversation history",
                 "Delete every stored chat on this device.",
                 S_CHATS, "conversations", KEY_CLEAR_HISTORY,
                 "clear", "delete chats", "erase", "history", "wipe"));
@@ -402,7 +402,7 @@ public final class SettingsSearchIndex {
                 "amoled", "dark mode", "dark", "light", "theme", "accent", "color", "colour",
                 "black", "appearance", "bubble", "nova", "palette"));
         out.add(new Entry("App font",
-                "The typeface Orbit uses everywhere.",
+                "The typeface GrokLink uses everywhere.",
                 S_LOOK, "appearance", KEY_FONT,
                 "font", "typeface", "typography", "text"));
         out.add(new Entry("Chat text size",
@@ -410,7 +410,7 @@ public final class SettingsSearchIndex {
                 S_LOOK, "appearance", KEY_CHAT_TEXT_SIZE,
                 "text size", "font size", "bigger text", "larger", "small", "readable"));
         out.add(new Entry("Overlay",
-                "Customize how Orbit appears over other apps.",
+                "Customize how GrokLink appears over other apps.",
                 S_LOOK, "appearance", KEY_OVERLAY,
                 "overlay", "customize overlay", "side button", "assistant overlay", "overlay settings"));
         out.add(new Entry("Overlay preview",
@@ -429,15 +429,15 @@ public final class SettingsSearchIndex {
                 "model chip", "history button", "new chat button", "screen buttons",
                 "attach button", "mic button", "voice button", "minimal overlay"));
         out.add(new Entry("Haptic feedback",
-                "Whether Orbit vibrates on interactions.",
+                "Whether GrokLink vibrates on interactions.",
                 S_LOOK, "appearance", KEY_HAPTICS,
                 "haptics", "vibrate", "vibration", "feedback", "buzz"));
         out.add(new Entry("Page transitions",
-                "How screens move when Orbit changes page.",
+                "How screens move when GrokLink changes page.",
                 S_LOOK, "appearance", KEY_PAGE_TRANSITIONS,
                 "transition", "animation", "motion", "effects"));
         out.add(new Entry("Swipe to go back",
-                "Interactive back gesture inside Orbit.",
+                "Interactive back gesture inside GrokLink.",
                 S_LOOK, "appearance", KEY_SWIPE_BACK,
                 "swipe", "gesture", "back", "navigation"));
         out.add(new Entry("Chat swipe actions",
@@ -445,7 +445,7 @@ public final class SettingsSearchIndex {
                 S_LOOK, "appearance", KEY_CHAT_SWIPE,
                 "swipe", "gesture", "chats", "delete", "pin", "actions"));
 
-        out.add(new Entry("Orbit diagnostics",
+        out.add(new Entry("GrokLink diagnostics",
                 "Local routing, context and troubleshooting information.",
                 S_ADVANCED, "advanced", KEY_DIAGNOSTICS,
                 "diagnostics", "debug", "troubleshoot", "logs", "developer", "astra", "model"));
@@ -458,7 +458,7 @@ public final class SettingsSearchIndex {
                 S_ROUTINES, "routines", "",
                 "routine", "automation", "trigger", "custom command", "schedule"));
         out.add(new Entry("Extensions",
-                "Declarative Orbit extensions and their setup.",
+                "Declarative GrokLink extensions and their setup.",
                 S_EXTENSIONS, "extensions", "",
                 "extension", "orbitext", "integration", "plugin", "api"));
         out.add(new Entry("About & updates",

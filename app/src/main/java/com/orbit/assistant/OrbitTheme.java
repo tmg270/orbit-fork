@@ -25,7 +25,7 @@ import java.util.UUID;
  * <ul>
  *   <li>a catalogue key Orbit already understood — {@code dynamic}, {@code violet}, {@code mint} —
  *       which keeps following the system accent or the shipped palette;</li>
- *   <li>{@code classic}, meaning "whatever Orbit's own design says here", which is how a theme
+ *   <li>{@code classic}, meaning "whatever GrokLink's own design says here", which is how a theme
  *       stays correct when Orbit's defaults are retuned in a later release;</li>
  *   <li>{@code accent}, on a bubble, meaning "follow the accent of this theme";</li>
  *   <li>an explicit {@code #RRGGBB}.</li>
@@ -64,7 +64,7 @@ public final class OrbitTheme {
 
     // ---- token vocabulary --------------------------------------------------------------------
 
-    /** "Whatever Orbit's own design says here." */
+    /** "Whatever GrokLink's own design says here." */
     public static final String CLASSIC = "classic";
     /** On a bubble: follow this theme's accent. */
     public static final String ACCENT = "accent";
@@ -555,11 +555,11 @@ public final class OrbitTheme {
         List<OrbitTheme> out = new ArrayList<>();
         // Orbit as it ships. Every token classic, so this preset is defined by Orbit's design
         // rather than by a snapshot of it, and stays correct if those defaults are ever retuned.
-        out.add(new OrbitTheme(ID_DEFAULT, "Orbit Default", true,
+        out.add(new OrbitTheme(ID_DEFAULT, "GrokLink Default", true,
                 DYNAMIC, CLASSIC, CLASSIC, CLASSIC, CLASSIC, false));
         // The same thing on a true-black page. Surfaces stay classic on purpose: AMOLED is about
         // the large lit area, not about flattening every card into the background.
-        out.add(new OrbitTheme(ID_AMOLED, "Orbit AMOLED", true,
+        out.add(new OrbitTheme(ID_AMOLED, "GrokLink AMOLED", true,
                 DYNAMIC, CLASSIC, CLASSIC, CLASSIC, CLASSIC, true));
         // The creator's own Orbit: Nova on a true-black page. Not a snapshot of the classic
         // Nova-plus-AMOLED settings, because that combination has a real flaw — Nova at full

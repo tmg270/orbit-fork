@@ -211,7 +211,7 @@ final class LocalContextBudget {
      *
      * <p>Two things are neutralised. A tag that looks like one of Orbit's own delimiters could close
      * the untrusted block early and put the rest of a saved note or notification outside it; its
-     * angle bracket is replaced so it reads as text. And a line beginning "User:" or "Orbit:" would
+     * angle bracket is replaced so it reads as text. And a line beginning "User:" or "GrokLink:" would
      * look to a small model like a turn of the conversation; it is rewritten so it cannot. Nothing
      * else about the text changes.
      */
@@ -266,7 +266,7 @@ final class LocalContextBudget {
         if (in.explicitAttachment && r.imageCount > 0) {
             trusted.append("\n\nThe user attached ").append(r.imageCount)
                     .append(r.imageCount == 1 ? " picture" : " pictures")
-                    .append(". You cannot see pictures. You only have any text Orbit read from them, ")
+                    .append(". You cannot see pictures. You only have any text GrokLink read from them, ")
                     .append("shown below. If the question needs the picture itself, say so plainly.");
         }
 
@@ -360,7 +360,7 @@ final class LocalContextBudget {
         List<String> lines = new ArrayList<>();
         for (int i = turns.size() - 1; i >= 0 && lines.size() < MAX_HISTORY_TURNS; i--) {
             AssistantClient.History h = turns.get(i);
-            String role = "assistant".equalsIgnoreCase(h.role) ? "Orbit: " : "User: ";
+            String role = "assistant".equalsIgnoreCase(h.role) ? "GrokLink: " : "User: ";
             String content = h.content.trim();
             if (content.length() > MAX_HISTORY_TURN_CHARS) {
                 content = content.substring(0, MAX_HISTORY_TURN_CHARS).trim() + " [...]";
@@ -700,7 +700,7 @@ final class LocalContextBudget {
         out.append(">\n").append(body);
         out.append("Showing ").append(used).append(" of ")
                 .append(moreExisted ? "more than " + lines.size() : String.valueOf(lines.size()))
-                .append(" notifications Orbit found for this question.\n");
+                .append(" notifications GrokLink found for this question.\n");
         out.append("</untrusted_notifications>");
         return out.toString();
     }

@@ -77,7 +77,7 @@ public final class AttachmentLoader {
         try {
             if (mime.startsWith("image/") || isImageName(lowerName)) {
                 Bitmap image = decodeImage(c, uri, 1800);
-                if (image == null) return error("Orbit could not read that image.");
+                if (image == null) return error("GrokLink could not read that image.");
                 return new Result("image", name.isEmpty() ? "Image" : name, "", image, "");
             }
 
@@ -96,9 +96,9 @@ public final class AttachmentLoader {
                 return new Result("file_text", label, context, null, "");
             }
 
-            return error("Orbit can attach images, PDFs, and text-based files. This file type is not supported yet.");
+            return error("GrokLink can attach images, PDFs, and text-based files. This file type is not supported yet.");
         } catch (Exception e) {
-            return error("Orbit could not read that attachment: " +
+            return error("GrokLink could not read that attachment: " +
                     (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()));
         }
     }
@@ -121,7 +121,7 @@ public final class AttachmentLoader {
     private static Result loadPdf(Context c, Uri uri, String name) throws Exception {
         String label = name.isEmpty() ? "PDF" : name;
         String documentPath = DocumentFileStore.importPdf(c, uri);
-        if (documentPath.isEmpty()) return error("Orbit could not retain that PDF for viewing.");
+        if (documentPath.isEmpty()) return error("GrokLink could not retain that PDF for viewing.");
 
         // PdfBox-Android requires its Android resource loader to be initialized
         // before PDFBox APIs are used.
@@ -253,11 +253,11 @@ public final class AttachmentLoader {
                 .append("PDF page count: ").append(Math.max(0, totalPages)).append(".\n");
 
         if (meaningfulText) {
-            context.append("Orbit locally extracted text from the PDF with page markers. ")
+            context.append("GrokLink locally extracted text from the PDF with page markers. ")
                     .append("Use those page markers when the user asks for page-specific ")
                     .append("information or citations.\n");
             if (textTruncated) {
-                context.append("IMPORTANT: the extracted PDF text exceeded Orbit's ")
+                context.append("IMPORTANT: the extracted PDF text exceeded GrokLink's ")
                         .append(MAX_PDF_TEXT_CHARS)
                         .append("-character attachment limit, so the later portion of the ")
                         .append("document is not present in this request. Do not claim you ")
@@ -304,7 +304,7 @@ public final class AttachmentLoader {
 
         if (preview == null && !meaningfulText) {
             DocumentFileStore.delete(documentPath);
-            return error("Orbit could not extract text or render a preview from that PDF.");
+            return error("GrokLink could not extract text or render a preview from that PDF.");
         }
 
         return new Result("pdf", trayLabel, context.toString(), preview, "",
@@ -325,7 +325,7 @@ public final class AttachmentLoader {
             }
         }
         if (out.length() >= MAX_TEXT_CHARS) {
-            out.append("\n\n[Orbit truncated this file after ").append(MAX_TEXT_CHARS).append(" characters.]");
+            out.append("\n\n[GrokLink truncated this file after ").append(MAX_TEXT_CHARS).append(" characters.]");
         }
         return out.toString();
     }

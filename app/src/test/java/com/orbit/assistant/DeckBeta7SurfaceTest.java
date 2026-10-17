@@ -81,7 +81,7 @@ public final class DeckBeta7SurfaceTest {
         assertEquals("Your shortcuts", activity.headerSubtitleForTest().getText().toString());
         assertFalse(activity.headerSubtitleForTest().hasOnClickListeners());
         activity.openLayoutManagerForTest();
-        assertNotNull(findText(activity.getWindow().getDecorView(), "Deck layouts · Orbit Pro"));
+        assertNotNull(findText(activity.getWindow().getDecorView(), "Deck layouts · GrokLink Pro"));
         assertNotNull(findContainingText(activity.getWindow().getDecorView(),
                 "Your active Deck and all Free organization tools remain fully available"));
     }

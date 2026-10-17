@@ -277,7 +277,7 @@ public final class RichAnswerRenderingTest {
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(context, 150)));
 
         OrbitRichResponseRenderer.showImageFailure(context, frame, "", "https://127.0.0.1/a.jpg",
-                "Orbit blocked this private or unsafe image address", android.graphics.Color.BLACK);
+                "GrokLink blocked this private or unsafe image address", android.graphics.Color.BLACK);
 
         String text = textOf(frame);
         assertTrue(text.contains("Image unavailable"));

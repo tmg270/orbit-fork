@@ -533,7 +533,7 @@ public final class LiquidGlassTest {
         String gradle = OrbitGlassChromeTest.readRepositoryFile("app/build.gradle");
         for (String library : new String[]{"renderscript", "blurry", "blurkit", "dimezis",
                 "haze", "RenderScript"}) {
-            assertFalse("Orbit must not take a dependency for this: " + library,
+            assertFalse("GrokLink must not take a dependency for this: " + library,
                     gradle.contains(library));
         }
         String glass = ThemeStudioProTest.readSourceFile("OrbitGlass.java");

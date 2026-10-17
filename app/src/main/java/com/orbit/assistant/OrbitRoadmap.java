@@ -24,7 +24,7 @@ public final class OrbitRoadmap {
     public static final String CURRENT = "AI Control";
 
     /** The previous headline line, still NOW for what remains of it. */
-    public static final String ORBIT_LOCAL_2 = "Orbit Local 2.0";
+    public static final String ORBIT_LOCAL_2 = "GrokLink Local 2.0";
 
     /** The previous headline line, still NOW for what remains of it. */
     public static final String SMART_VAULT = "Smart Vault";

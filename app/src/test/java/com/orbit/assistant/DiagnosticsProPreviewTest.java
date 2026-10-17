@@ -125,7 +125,7 @@ public final class DiagnosticsProPreviewTest {
         assertTrue(text.contains("Selected: Free"));
         assertTrue(text.contains("Effective: Free (preview override)"));
         assertTrue("the Overview reports the same thing",
-                text.contains("Orbit Pro: Free (preview override)"));
+                text.contains("GrokLink Pro: Free (preview override)"));
         assertTrue("and the area says what it is, so nobody mistakes it for a purchase",
                 text.contains("Testing override for this build only")
                         && text.contains("nothing here is a purchase"));
@@ -150,7 +150,7 @@ public final class DiagnosticsProPreviewTest {
         String text = allText(activity);
         assertTrue(text.contains("Selected: Pro Preview"));
         assertTrue(text.contains("Effective: Pro Preview"));
-        assertTrue("including the Overview above it", text.contains("Orbit Pro: Pro Preview"));
+        assertTrue("including the Overview above it", text.contains("GrokLink Pro: Pro Preview"));
         assertTrue("and the chosen control reads as chosen",
                 choice(activity, "Pro Preview").isSelected());
         assertFalse(choice(activity, "Free").isSelected());
@@ -169,7 +169,7 @@ public final class DiagnosticsProPreviewTest {
         assertFalse(OrbitProEntitlement.hasPro(activity));
         String text = allText(activity);
         assertTrue(text.contains("Selected: Free"));
-        assertTrue(text.contains("Orbit Pro: Free (preview override)"));
+        assertTrue(text.contains("GrokLink Pro: Free (preview override)"));
         assertTrue(choice(activity, "Free").isSelected());
     }
 
@@ -191,7 +191,7 @@ public final class DiagnosticsProPreviewTest {
         DiagnosticsActivity diagnostics = (DiagnosticsActivity) activity;
         String full = diagnostics.fullReport();
         assertTrue("the copied report carries the effective state",
-                full.contains("Orbit Pro: " + OrbitProEntitlement.status(activity)));
+                full.contains("GrokLink Pro: " + OrbitProEntitlement.status(activity)));
 
         // The entitlement line is one short phrase and must stay one short phrase. Anything a
         // provider knows privately has to stop at the boundary rather than reach the clipboard.

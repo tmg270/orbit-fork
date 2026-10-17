@@ -149,7 +149,7 @@ public final class StopButtonComposerTest {
         PendingRequestStore.Item request = startRequest(FULL_CHAT);
         PendingRequestStore.markRunning(context, request.id);
 
-        PendingRequestStore.markFailed(context, request.id, "Orbit could not finish this response.");
+        PendingRequestStore.markFailed(context, request.id, "GrokLink could not finish this response.");
 
         assertFalse(stopForFullChat(FULL_CHAT));
     }

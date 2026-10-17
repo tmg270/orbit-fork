@@ -63,7 +63,7 @@ public final class AiSelection {
 
     /** The provider's user-facing name. Auto belongs to Orbit, not to any one provider. */
     public String providerName() {
-        if (isAuto()) return "Orbit";
+        if (isAuto()) return "GrokLink";
         return AiProviders.byId(provider).displayName();
     }
 
@@ -71,7 +71,7 @@ public final class AiSelection {
     public static final String AUTO_LABEL = "Auto";
     /** Auto's one-line description, shared by every picker. */
     public static final String AUTO_DESCRIPTION =
-            "Orbit chooses the model and reasoning level for each request.";
+            "GrokLink chooses the model and reasoning level for each request.";
 
     /**
      * " · OpenRouter" for a model reached through OpenRouter, otherwise "". The same model reached

@@ -105,8 +105,8 @@ public class NotificationsActivity extends Activity {
 
         TextView desc = UiKit.text(this,
                 enabled
-                        ? "Orbit can now build a private local history from notifications that arrive on this phone."
-                        : "Android requires you to explicitly grant Notification access before Orbit can see notification content.",
+                        ? "GrokLink can now build a private local history from notifications that arrive on this phone."
+                        : "Android requires you to explicitly grant Notification access before GrokLink can see notification content.",
                 13, UiKit.MUTED, false);
         desc.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 12));
         card.addView(desc);
@@ -135,7 +135,7 @@ public class NotificationsActivity extends Activity {
         card.addView(UiKit.switchRow(this, "Use relevant notification history in AI answers", null, ai));
 
         TextView help = UiKit.text(this,
-                "Orbit stores notification history locally. It only supplies that history to the AI when your prompt is clearly asking about notifications, missed messages, or what you missed.",
+                "GrokLink stores notification history locally. It only supplies that history to the AI when your prompt is clearly asking about notifications, missed messages, or what you missed.",
                 12, UiKit.MUTED, false);
         help.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 12));
         card.addView(help);
@@ -160,7 +160,7 @@ public class NotificationsActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 46)));
 
         TextView warning = UiKit.text(this,
-                "For sensitive apps such as banking, authenticator, password-manager, or private-work apps, exclude them below. Excluded apps are not kept in Orbit notification history.",
+                "For sensitive apps such as banking, authenticator, password-manager, or private-work apps, exclude them below. Excluded apps are not kept in GrokLink notification history.",
                 12, UiKit.MUTED, false);
         warning.setPadding(0, UiKit.dp(this, 10), 0, 0);
         card.addView(warning);
@@ -235,7 +235,7 @@ public class NotificationsActivity extends Activity {
             TextView body = UiKit.text(this,
                     NotificationAccess.enabled(this)
                             ? "New notifications will appear here as they arrive."
-                            : "Grant Notification access first. Orbit cannot read past notifications retroactively.",
+                            : "Grant Notification access first. GrokLink cannot read past notifications retroactively.",
                     12, UiKit.MUTED, false);
             body.setPadding(0, UiKit.dp(this, 6), 0, 0);
             empty.addView(body);

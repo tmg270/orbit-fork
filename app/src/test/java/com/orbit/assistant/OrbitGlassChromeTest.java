@@ -348,7 +348,7 @@ public final class OrbitGlassChromeTest {
 
     private void applyTheme(String presetId) {
         OrbitTheme theme = OrbitTheme.builtIn(presetId);
-        assertNotNull(presetId + " must be a preset Orbit ships", theme);
+        assertNotNull(presetId + " must be a preset GrokLink ships", theme);
         OrbitThemeStore.applyActive(context, theme);
         UiKit.syncTheme(context);
     }
@@ -376,7 +376,7 @@ public final class OrbitGlassChromeTest {
         assertTrue("nor a violet haze", Math.abs(hueOf(novaHaze) - hueOf(emberHaze)) > 40f);
         assertTrue("nor violet glass", novaFill != emberFill);
 
-        assertFalse("no Orbit colour may be written into the glass itself",
+        assertFalse("no GrokLink colour may be written into the glass itself",
                 code(source("OrbitGlass")).contains("Color.rgb("));
         assertFalse(code(source("OrbitGlass")).contains("Color.parseColor"));
         assertFalse("and no hex literal either", code(source("OrbitGlass")).contains("0xFF"));
@@ -554,7 +554,7 @@ public final class OrbitGlassChromeTest {
     @Test public void noBlurLibraryWasAdded() {
         String gradle = readRepositoryFile("app/build.gradle").toLowerCase(java.util.Locale.US);
         for (String library : new String[]{"blur", "glass", "haze", "frosted", "renderscript"}) {
-            assertFalse("Orbit must not take a dependency for this: " + library,
+            assertFalse("GrokLink must not take a dependency for this: " + library,
                     gradle.contains(library));
         }
     }
@@ -635,10 +635,10 @@ public final class OrbitGlassChromeTest {
         View type = findByDescriptionPrefix(screen.getWindow().getDecorView(),
                 OrbitVaultActivity.TYPE_QUESTION + ": ");
         assertNotNull(type);
-        assertTrue("a resting selector is Orbit glass",
+        assertTrue("a resting selector is GrokLink glass",
                 type.getBackground() instanceof RippleDrawable);
         Drawable resting = ((RippleDrawable) type.getBackground()).getDrawable(0);
-        assertTrue("a resting selector wears Orbit's glass material",
+        assertTrue("a resting selector wears GrokLink's glass material",
                 resting instanceof OrbitGlass.GlassDrawable);
         OrbitGlass.Finish finish = ((OrbitGlass.GlassDrawable) resting).finish();
         assertTrue("its translucency is a body with depth, not a flat fill",

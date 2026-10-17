@@ -65,7 +65,7 @@ public final class RemoteImageLoader {
      */
     public enum Failure {
         NONE(""),
-        BLOCKED("Orbit blocked this private or unsafe image address"),
+        BLOCKED("GrokLink blocked this private or unsafe image address"),
         REDIRECT_BLOCKED("Redirect blocked"),
         TOO_MANY_REDIRECTS("Too many redirects"),
         HTTP_ERROR("Image host refused the request"),

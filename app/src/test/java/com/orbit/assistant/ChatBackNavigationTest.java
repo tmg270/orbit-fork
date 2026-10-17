@@ -500,9 +500,9 @@ public final class ChatBackNavigationTest {
                 Robolectric.buildActivity(DiagnosticsActivity.class).setup();
         String report = diagnostics.get().fullReport();
 
-        assertFalse("Orbit cannot see the system's frames and must not claim them",
+        assertFalse("GrokLink cannot see the system's frames and must not claim them",
                 report.contains("system predictive"));
-        assertTrue("what Orbit asked for is configuration, and must read as configuration",
+        assertTrue("what GrokLink asked for is configuration, and must read as configuration",
                 report.contains("Predictive navigation requested:"));
         assertTrue("the device's capability is a runtime fact and may be stated as one",
                 report.contains("Platform predictive API:"));
@@ -542,9 +542,9 @@ public final class ChatBackNavigationTest {
         ActivityController<DiagnosticsActivity> diagnostics =
                 Robolectric.buildActivity(DiagnosticsActivity.class).setup();
         String report = diagnostics.get().fullReport();
-        assertTrue("the outcome and the count are both observations Orbit really has",
+        assertTrue("the outcome and the count are both observations GrokLink really has",
                 report.contains("Last predictive gesture: cancelled · 3 progress events"));
-        assertTrue(report.contains("Last back path: Orbit progress"));
+        assertTrue(report.contains("Last back path: GrokLink progress"));
         diagnostics.pause().stop().destroy();
     }
 

@@ -92,7 +92,7 @@ public final class UpdateChannelUiTest {
         assertTrue("the risk must be stated plainly",
                 text.contains("bugs, crashes, regressions"));
         assertTrue("Beta must not be implied to be less trusted",
-                text.contains("officially signed and verified by Orbit"));
+                text.contains("officially signed and verified by GrokLink"));
         assertTrue("leaving must be presented as easy and safe",
                 text.contains("never automatically downgrade"));
         assertFalse("nothing changes until the user accepts", Prefs.betaChannel(context));
@@ -182,7 +182,7 @@ public final class UpdateChannelUiTest {
         assertNotNull("the Update channel row must exist", row);
         row.performClick();
         idle();
-        assertNotNull("tapping the row must open the Orbit selector", latestDialog());
+        assertNotNull("tapping the row must open the GrokLink selector", latestDialog());
     }
 
     private void chooseOption(String name) {

@@ -83,7 +83,7 @@ public final class OnboardingConnectTest {
 
     @Test public void chatGptIsPresentedAsTheRecommendedProvider() {
         String text = connectText();
-        assertTrue(text.contains("Connect Orbit"));
+        assertTrue(text.contains("Connect GrokLink"));
         assertTrue(text.contains("ChatGPT"));
         assertTrue(text.contains("Recommended"));
         assertTrue("the recommendation has to say what it buys",
@@ -96,7 +96,7 @@ public final class OnboardingConnectTest {
         assertTrue(text.contains("Sign-in required"));
         assertTrue(text.contains("Sign in with ChatGPT"));
         assertTrue("the secure sign-in explanation must survive",
-                text.contains("Orbit never asks for your ChatGPT password"));
+                text.contains("GrokLink never asks for your ChatGPT password"));
         assertFalse(text.contains("ChatGPT active"));
     }
 
@@ -111,7 +111,7 @@ public final class OnboardingConnectTest {
 
     @Test public void orbitLocalAppearsAsAnOptionalProviderWithItsRealState() {
         String text = connectText();
-        assertTrue("Orbit Local was missing from onboarding entirely", text.contains("Orbit Local"));
+        assertTrue("GrokLink Local was missing from onboarding entirely", text.contains("GrokLink Local"));
         assertTrue(text.contains("Optional"));
         assertTrue(text.contains("Runs privately on this phone"));
         assertTrue(text.contains("works simpler")
@@ -156,10 +156,10 @@ public final class OnboardingConnectTest {
         String text = connectText();
         if (local.status(context) == AiProvider.Status.UNSUPPORTED) {
             assertTrue(text.contains("Not supported on this device"));
-            assertFalse(text.contains("Set up Orbit Local"));
+            assertFalse(text.contains("Set up GrokLink Local"));
         } else {
-            assertTrue(text.contains("Set up Orbit Local"));
-            assertFalse("nothing is ready to select yet", text.contains("Orbit Local active"));
+            assertTrue(text.contains("Set up GrokLink Local"));
+            assertFalse("nothing is ready to select yet", text.contains("GrokLink Local active"));
         }
     }
 

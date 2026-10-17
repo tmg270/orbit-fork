@@ -107,7 +107,7 @@ public final class DiagnosticsDisclosureTest {
 
         assertTrue("the Overview is the part that is always there", visible.contains("Overview"));
         for (String section : new String[]{"Request flow", "Thinking updates", "AI selection",
-                "Screen & app context", "Memory", "Calendar", "Orbit Local", "Routines", "Advanced"}) {
+                "Screen & app context", "Memory", "Calendar", "GrokLink Local", "Routines", "Advanced"}) {
             assertTrue("section " + section + " must have a heading", visible.contains(section));
         }
 
@@ -123,10 +123,10 @@ public final class DiagnosticsDisclosureTest {
         ActivityController<DiagnosticsActivity> controller = open();
         String overview = null;
         for (String text : texts(controller.get())) {
-            if (text.startsWith("Orbit version:")) overview = text;
+            if (text.startsWith("GrokLink version:")) overview = text;
         }
         assertNotNull("the Overview must be present", overview);
-        for (String field : new String[]{"Orbit version:", "Provider:", "ChatGPT:",
+        for (String field : new String[]{"GrokLink version:", "Provider:", "ChatGPT:",
                 "Default AI:", "Pending requests:", "Thinking updates:"}) {
             assertTrue("the Overview must answer " + field, overview.contains(field));
         }
@@ -175,7 +175,7 @@ public final class DiagnosticsDisclosureTest {
 
     /** Returns the Overview block, which is the one that starts with the version. */
     private String overviewOf(DiagnosticsActivity activity) {
-        for (String text : texts(activity)) if (text.startsWith("Orbit version:")) return text;
+        for (String text : texts(activity)) if (text.startsWith("GrokLink version:")) return text;
         return "";
     }
 
@@ -303,7 +303,7 @@ public final class DiagnosticsDisclosureTest {
         String full = controller.get().fullReport();
 
         for (String heading : new String[]{"Overview", "Request flow", "Thinking updates",
-                "AI selection", "Screen & app context", "Memory", "Calendar", "Orbit Local",
+                "AI selection", "Screen & app context", "Memory", "Calendar", "GrokLink Local",
                 "Routines", "Advanced"}) {
             assertTrue("the full report must still contain " + heading, full.contains(heading));
         }
@@ -482,7 +482,7 @@ public final class DiagnosticsDisclosureTest {
         Activity activity = controller.get();
 
         for (String title : new String[]{"Overview", "Request flow", "Thinking updates",
-                "AI selection", "Screen & app context", "Memory", "Calendar", "Orbit Local",
+                "AI selection", "Screen & app context", "Memory", "Calendar", "GrokLink Local",
                 "Routines", "Gestures", "Advanced"}) {
             assertNotNull(title + " must be copyable on its own",
                     copyControlFor(activity, title));
@@ -500,13 +500,13 @@ public final class DiagnosticsDisclosureTest {
         String copied = clipboard();
 
         assertTrue("it must say which section this is",
-                copied.startsWith("Orbit Diagnostics — Gestures"));
+                copied.startsWith("GrokLink Diagnostics — Gestures"));
         assertTrue("and carry that section's own lines",
                 copied.contains("Swipe to go back:"));
         assertFalse("a neighbouring section may not come with it",
                 copied.contains("Routines"));
         assertFalse(copied.contains("Requests accepted"));
-        assertFalse(copied.contains("Orbit Local"));
+        assertFalse(copied.contains("GrokLink Local"));
         controller.pause().stop().destroy();
     }
 
@@ -558,13 +558,13 @@ public final class DiagnosticsDisclosureTest {
     @Test public void anemptySectionCopiesAClearStandIn() {
         // The stand-in the screen shows for a section with nothing in it is the stand-in the
         // clipboard gets, because one expression produces both.
-        assertEquals("Orbit Diagnostics — Example\nNothing recorded yet.",
+        assertEquals("GrokLink Diagnostics — Example\nNothing recorded yet.",
                 DiagnosticsActivity.sectionReport("Example", ""));
         assertEquals("whitespace is not content either",
-                "Orbit Diagnostics — Example\nNothing recorded yet.",
+                "GrokLink Diagnostics — Example\nNothing recorded yet.",
                 DiagnosticsActivity.sectionReport("Example", "\n   \n"));
         assertEquals("and a section that does have lines keeps every one of them, under its title",
-                "Orbit Diagnostics — Example\n\n  Two: 2",
+                "GrokLink Diagnostics — Example\n\n  Two: 2",
                 DiagnosticsActivity.sectionReport("Example", "\n  Two: 2"));
     }
 
@@ -576,8 +576,8 @@ public final class DiagnosticsDisclosureTest {
 
         copyControlFor(activity, "Overview").performClick();
         String copied = clipboard();
-        assertTrue(copied.startsWith("Orbit Diagnostics — Overview"));
-        assertTrue(copied.contains("Orbit version:"));
+        assertTrue(copied.startsWith("GrokLink Diagnostics — Overview"));
+        assertTrue(copied.contains("GrokLink version:"));
         assertFalse("Overview is not the support summary and must not grow into it",
                 copied.contains("Requests: 12 accepted"));
         assertTrue("while the support summary still carries the counters it exists for",
@@ -653,7 +653,7 @@ public final class DiagnosticsDisclosureTest {
         assertNotNull("a user has to be able to copy the trace after reproducing a failure", button);
         button.performClick();
         String copied = clipboard();
-        assertTrue(copied.startsWith("Orbit Rich Answers diagnostics"));
+        assertTrue(copied.startsWith("GrokLink Rich Answers diagnostics"));
         assertTrue(copied.contains("No prompt, answer or page text is recorded."));
         controller.pause().stop().destroy();
     }

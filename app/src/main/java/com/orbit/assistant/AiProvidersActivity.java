@@ -42,21 +42,9 @@ public final class AiProvidersActivity extends Activity {
     /** OpenRouter's advanced fallback: a key the user creates on OpenRouter and pastes here. */
     static final String ACTION_USE_API_KEY = "Use API key instead";
 
-    /** Hears the OpenRouter sign-in while this screen is visible. */
-    private final OpenRouterAuth.Listener openRouterListener = new OpenRouterAuth.Listener() {
-        @Override public void onConnected() {
-            Toast.makeText(AiProvidersActivity.this, "OpenRouter connected", Toast.LENGTH_SHORT).show();
-            refreshOpenRouterCatalog(false);
-            refreshCards();
-        }
-
-        @Override public void onFailed(String message) {
-            showOpenRouterSignInFailure(message);
-            refreshCards();
-        }
-
-        @Override public void onCancelled() { refreshCards(); }
-    };
+    static final String EXTRA_START = "groklink_start";
+    static final String START_SUPERGROK = "supergrok";
+    static final String START_API_KEY = "api_key";
 
     private LinearLayout cardsContainer;
     private String appearanceSignature;
@@ -75,17 +63,21 @@ public final class AiProvidersActivity extends Activity {
         setContentView(content);
         UiKit.applyActivityInsets(this, content, true);
         navigation = OrbitPredictiveBack.install(this);
+        // GrokLink onboarding hands off straight into one of the two ways to connect Grok.
+        if (savedInstanceState == null) {
+            String start = getIntent().getStringExtra(EXTRA_START);
+            if (START_SUPERGROK.equals(start)) content.post(this::startSuperGrokSignIn);
+            else if (START_API_KEY.equals(start)) content.post(() -> showApiKeySetup(Prefs.PROVIDER_XAI));
+        }
     }
 
     @Override protected void onResume() {
         super.onResume();
         UiPresence.enter(this);
         ProviderCatalogRepository.loadCached(this);
-        OpenRouterAuth.attach(openRouterListener);
         // Back from the browser after approving the code: poll at once so the dot turns green.
         SuperGrokAuth.pollNow();
-        for (String provider : new String[]{Prefs.PROVIDER_ANTHROPIC, Prefs.PROVIDER_XAI,
-                Prefs.PROVIDER_OPENROUTER}) {
+        for (String provider : new String[]{Prefs.PROVIDER_XAI}) {
             ProviderCatalogRepository.refreshIfStale(this, provider, (changed, error) -> {
                 if (changed) runOnUiThread(this::refreshCards);
             });
@@ -99,7 +91,6 @@ public final class AiProvidersActivity extends Activity {
 
     @Override protected void onPause() {
         // The sign-in keeps waiting while the browser is in front; its outcome is held for onResume.
-        OpenRouterAuth.detach(openRouterListener);
         UiPresence.leave(this);
         super.onPause();
     }
@@ -134,13 +125,13 @@ public final class AiProvidersActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
         titles.addView(UiKit.text(this, "AI Providers", 24, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Choose what Orbit thinks with", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "Choose what GrokLink thinks with", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Choose how Orbit thinks. Features and capabilities vary by provider.",
+                "Choose how GrokLink thinks. Features and capabilities vary by provider.",
                 13, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.14f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -268,12 +259,6 @@ public final class AiProvidersActivity extends Activity {
      * the browser sign-in as the primary action, and a typed key as the quiet fallback.
      */
     static List<String> actionLabels(String providerId, AiProvider.Status status, boolean active) {
-        if (Prefs.PROVIDER_OPENROUTER.equals(providerId) && status == AiProvider.Status.NEEDS_SETUP) {
-            List<String> out = new ArrayList<>();
-            out.add(ACTION_OPENROUTER_SIGN_IN);
-            out.add(ACTION_USE_API_KEY);
-            return out;
-        }
         return actionLabels(status, active);
     }
 
@@ -282,7 +267,7 @@ public final class AiProvidersActivity extends Activity {
         List<String> labels = actionLabels(provider.id(), status, active);
         boolean first = true;
         for (String label : labels) {
-            boolean primary = ACTION_USE.equals(label) || ACTION_OPENROUTER_SIGN_IN.equals(label)
+            boolean primary = ACTION_USE.equals(label)
                     || (ACTION_SET_UP.equals(label) && status != AiProvider.Status.COMING_SOON);
             View action;
             LinearLayout.LayoutParams lp;
@@ -316,18 +301,10 @@ public final class AiProvidersActivity extends Activity {
     private void runAction(AiProvider provider, String label) {
         if (ACTION_USE.equals(label)) {
             if (AiProviders.select(this, provider.id())) {
-                Toast.makeText(this, provider.displayName() + " is now Orbit's active provider",
+                Toast.makeText(this, provider.displayName() + " is now GrokLink's active provider",
                         Toast.LENGTH_SHORT).show();
                 refreshCards();
             }
-            return;
-        }
-        if (ACTION_OPENROUTER_SIGN_IN.equals(label)) {
-            startOpenRouterSignIn();
-            return;
-        }
-        if (ACTION_USE_API_KEY.equals(label)) {
-            showOpenRouterKeyEntry();
             return;
         }
         manage(provider);
@@ -380,209 +357,12 @@ public final class AiProvidersActivity extends Activity {
     }
 
     private void manage(AiProvider provider) {
-        String id = provider.id();
-        if (Prefs.PROVIDER_LOCAL.equals(id)) {
-            startActivity(new Intent(this, LocalAiActivity.class));
-            return;
-        }
-        if (Prefs.PROVIDER_OPENROUTER.equals(id)) {
-            if (SecureStore.hasOpenRouterKey(this)) showOpenRouterManage();
-            else startOpenRouterSignIn();
-            return;
-        }
-        if (Prefs.PROVIDER_ANTHROPIC.equals(id) || Prefs.PROVIDER_XAI.equals(id)) {
-            showApiKeySetup(id);
-            return;
-        }
-        // ChatGPT sign-in and relay configuration keep living in Settings > AI & account, which
-        // already owns those flows.
-        Intent intent = new Intent(this, SettingsActivity.class);
-        intent.putExtra(SettingsActivity.EXTRA_SECTION, SettingsActivity.SECTION_AI);
-        startActivity(intent);
-    }
-
-    // ---- OpenRouter (0.8.3.0-beta.6+) ------------------------------------------------------------
-
-    /**
-     * Sign in with OpenRouter: opens OpenRouter's own page in the browser. The result arrives
-     * through {@link #openRouterListener}; a failure explains itself and offers the key fallback,
-     * and Orbit never switches methods without the user choosing to.
-     */
-    private void startOpenRouterSignIn() {
-        OpenRouterAuth.Started started = OpenRouterAuth.start(this, openRouterListener);
-        if (!started.ok()) {
-            showOpenRouterSignInFailure(started.error);
-            return;
-        }
-        ChatGptSignInReturnActivity.returnTo = AiProvidersActivity.class;
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(started.authorizeUrl))
-                    .addCategory(Intent.CATEGORY_BROWSABLE));
-        } catch (Exception e) {
-            OpenRouterAuth.cancel();
-            showOpenRouterSignInFailure("Orbit could not open a web browser on this phone.");
-        }
-    }
-
-    private void showOpenRouterSignInFailure(String message) {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("OpenRouter was not connected")
-                .setMessage(message)
-                .setPositiveButton(ACTION_USE_API_KEY, (d, w) -> showOpenRouterKeyEntry())
-                .setNegativeButton("Close", null)
-                .create();
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.show();
-    }
-
-    /** Refreshes OpenRouter's model list; a rejected credential is reported, never kept quietly. */
-    private void refreshOpenRouterCatalog(boolean announce) {
-        ProviderCatalogRepository.refreshAsync(this, Prefs.PROVIDER_OPENROUTER, (changed, error) ->
-                runOnUiThread(() -> {
-                    if (announce || error.contains("rejected")) {
-                        Toast.makeText(this, error.isEmpty() ? "OpenRouter models are up to date"
-                                : error, error.isEmpty() ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-                    }
-                    refreshCards();
-                }));
-    }
-
-    /**
-     * The connected OpenRouter card's Manage: how it is connected, and the actions that make sense
-     * now. The saved key is never shown, in whole or in part.
-     */
-    private void showOpenRouterManage() {
-        LinearLayout wrap = new LinearLayout(this);
-        wrap.setOrientation(LinearLayout.VERTICAL);
-        int pad = UiKit.dp(this, 22);
-        wrap.setPadding(pad, UiKit.dp(this, 8), pad, 0);
-        String status = AiProviders.byId(Prefs.PROVIDER_OPENROUTER).statusDetail(this);
-        TextView note = UiKit.text(this, status + ". Usage is billed to your OpenRouter account. "
-                + "Auto uses OpenRouter only if you switch it on in Settings > Intelligence > Auto.",
-                13, UiKit.MUTED, false);
-        note.setLineSpacing(0, 1.14f);
-        wrap.addView(note);
-        AlertDialog[] holder = new AlertDialog[1];
-        addSheetButton(wrap, "Check connection", false, () -> {
-            Toast.makeText(this, "Checking OpenRouter connection…", Toast.LENGTH_SHORT).show();
-            ProviderCatalogRepository.checkOpenRouterAsync(this, (changed, error) ->
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, error.isEmpty() ? "OpenRouter is connected" : error,
-                                error.isEmpty() ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-                        if (error.isEmpty()) refreshOpenRouterCatalog(false);
-                    }));
-        }, holder);
-        addSheetButton(wrap, "Refresh models", false, () -> refreshOpenRouterCatalog(true), holder);
-        addSheetButton(wrap, "Reconnect with OpenRouter", false, this::startOpenRouterSignIn, holder);
-        addSheetButton(wrap, SecureStore.OPENROUTER_SOURCE_MANUAL.equals(
-                SecureStore.openRouterKeySource(this)) ? "Replace API key" : ACTION_USE_API_KEY,
-                false, this::showOpenRouterKeyEntry, holder);
-        addSheetButton(wrap, "Disconnect", true, this::confirmOpenRouterDisconnect, holder);
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("OpenRouter")
-                .setView(wrap)
-                .setNegativeButton("Close", null)
-                .create();
-        holder[0] = dialog;
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.show();
-    }
-
-    private void addSheetButton(LinearLayout wrap, String label, boolean destructive,
-                                Runnable action, AlertDialog[] holder) {
-        Button b = secondaryButton(label);
-        if (destructive) b.setTextColor(UiKit.DANGER);
-        b.setOnClickListener(v -> {
-            if (holder[0] != null) holder[0].dismiss();
-            action.run();
-        });
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44));
-        lp.topMargin = UiKit.dp(this, 8);
-        wrap.addView(b, lp);
-    }
-
-    /** Disconnect removes the key and Auto's permission; chats and their history stay. */
-    private void confirmOpenRouterDisconnect() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Disconnect OpenRouter?")
-                .setMessage("Orbit removes its OpenRouter key from this phone and stops using "
-                        + "OpenRouter, including in Auto. Your chats and their history stay. To "
-                        + "revoke the key itself, delete it in your OpenRouter account settings.")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Disconnect", (d, w) -> {
-                    OpenRouterAuth.cancel();
-                    SecureStore.clearOpenRouterKey(this);
-                    Toast.makeText(this, "OpenRouter disconnected", Toast.LENGTH_SHORT).show();
-                    refreshCards();
-                })
-                .create();
-        UiKit.styleOrbitDialog(dialog, this, true);
-        dialog.show();
-    }
-
-    /**
-     * Use API key instead: the advanced fallback, and how keys saved before this release arrived.
-     * A key OpenRouter explicitly rejects is not kept as a misleading connection; a network outage
-     * keeps it so the user can retry without entering it again.
-     */
-    private void showOpenRouterKeyEntry() {
-        LinearLayout wrap = new LinearLayout(this);
-        wrap.setOrientation(LinearLayout.VERTICAL);
-        int pad = UiKit.dp(this, 22);
-        wrap.setPadding(pad, UiKit.dp(this, 8), pad, 0);
-        TextView note = UiKit.text(this,
-                "Paste an API key created in your OpenRouter account. Orbit encrypts it with Android Keystore, never backs it up, and never shows it again. Signing in with OpenRouter does this for you.",
-                13, UiKit.MUTED, false);
-        note.setLineSpacing(0, 1.14f);
-        wrap.addView(note);
-
-        EditText input = new EditText(this);
-        input.setHint(SecureStore.hasOpenRouterKey(this) ? "Key saved · enter a new key to replace it" : "sk-or-…");
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        input.setTextColor(UiKit.TEXT);
-        input.setHintTextColor(UiKit.MUTED);
-        input.setBackgroundTintList(ColorStateList.valueOf(UiKit.accent(this)));
-        LinearLayout.LayoutParams inputLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        inputLp.topMargin = UiKit.dp(this, 10);
-        wrap.addView(input, inputLp);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("OpenRouter API key")
-                .setView(wrap)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Save and check", (d, w) -> {
-                    String value = input.getText().toString().trim();
-                    if (value.isEmpty()) return;
-                    if (!SecureStore.saveOpenRouterKey(this, value,
-                            SecureStore.OPENROUTER_SOURCE_MANUAL)) {
-                        Toast.makeText(this, "Could not store the key securely, so it was not saved",
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    Toast.makeText(this, "Checking OpenRouter connection…", Toast.LENGTH_SHORT).show();
-                    ProviderCatalogRepository.checkOpenRouterAsync(this, (changed, error) ->
-                            runOnUiThread(() -> {
-                                if (ProviderCatalogRepository.OPENROUTER_REJECTED.equals(error)) {
-                                    SecureStore.clearOpenRouterKey(this);
-                                    Toast.makeText(this, "OpenRouter rejected that key, so it was not saved.",
-                                            Toast.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(this, error.isEmpty() ? "OpenRouter connected" : error,
-                                            error.isEmpty() ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-                                    refreshOpenRouterCatalog(false);
-                                }
-                                refreshCards();
-                            }));
-                })
-                .create();
-        UiKit.styleOrbitDialog(dialog, this, false);
-        dialog.show();
+        // GrokLink: the only provider is xAI; Set up opens its API key / SuperGrok sheet.
+        showApiKeySetup(Prefs.PROVIDER_XAI);
     }
 
     private void showApiKeySetup(String provider) {
-        boolean anthropic = Prefs.PROVIDER_ANTHROPIC.equals(provider);
+        boolean anthropic = false; // GrokLink: xAI only
         String name = anthropic ? "Anthropic" : "xAI";
         boolean saved = anthropic ? SecureStore.hasAnthropicKey(this) : SecureStore.hasXaiKey(this);
         LinearLayout wrap = new LinearLayout(this);
@@ -590,7 +370,7 @@ public final class AiProvidersActivity extends Activity {
         int pad = UiKit.dp(this, 22);
         wrap.setPadding(pad, UiKit.dp(this, 8), pad, 0);
         TextView note = UiKit.text(this,
-                "Enter a developer API key from " + name + ". Orbit encrypts it with Android Keystore, never backs it up, and never shows the saved key again.",
+                "Enter a developer API key from " + name + ". GrokLink encrypts it with Android Keystore, never backs it up, and never shows the saved key again.",
                 13, UiKit.MUTED, false);
         note.setLineSpacing(0, 1.14f);
         wrap.addView(note);

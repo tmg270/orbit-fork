@@ -48,8 +48,8 @@ public final class ReminderNotifier {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(c, CHANNEL)
                 : new Notification.Builder(c);
-        b.setSmallIcon(R.drawable.ic_orbit)
-                .setContentTitle("Orbit reminder")
+        b.setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("GrokLink reminder")
                 .setContentText(item.message)
                 .setStyle(new Notification.BigTextStyle().bigText(item.message))
                 .setContentIntent(pi)

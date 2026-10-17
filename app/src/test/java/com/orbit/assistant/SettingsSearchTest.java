@@ -68,9 +68,9 @@ public final class SettingsSearchTest {
     /** A prefix is enough, because people type as they think. */
     @Test public void aPrefixIsEnough() {
         assertTrue(titles("hapt").contains("Haptic feedback"));
-        assertTrue(titles("diag").contains("Orbit diagnostics"));
-        assertTrue(titles("remind").contains("Orbit reminders"));
-        assertTrue(titles("vault").contains("Orbit Vault"));
+        assertTrue(titles("diag").contains("GrokLink diagnostics"));
+        assertTrue(titles("remind").contains("GrokLink reminders"));
+        assertTrue(titles("vault").contains("GrokLink Vault"));
     }
 
     /** Case never matters. */
@@ -100,15 +100,15 @@ public final class SettingsSearchTest {
         assertEquals("Theme Studio", best("dark mode").title);
         assertEquals("Theme Studio", best("accent").title);
         assertEquals("Theme Studio", best("colour").title);
-        assertEquals("Orbit Vault", best("saved stuff").title);
+        assertEquals("GrokLink Vault", best("saved stuff").title);
         assertEquals("Default AI for new chats", best("ai model").title);
         assertEquals("Chat text size", best("bigger text").title);
         assertEquals("Haptic feedback", best("vibrate").title);
         assertEquals("Backup & restore", best("export").title);
-        assertTrue(titles("delete chats").contains("Clear Orbit conversation history"));
+        assertTrue(titles("delete chats").contains("Clear GrokLink conversation history"));
         assertTrue(titles("chatgpt").contains("ChatGPT sign-in"));
         assertTrue(titles("astra").contains("Default AI for new chats"));
-        assertTrue(titles("bixby").contains("Make Orbit default assistant"));
+        assertTrue(titles("bixby").contains("Make GrokLink default assistant"));
     }
 
     /** The example queries from the release brief all find something useful. */
@@ -147,7 +147,7 @@ public final class SettingsSearchTest {
 
     /** An exact title beats a description mention. */
     @Test public void anExactTitleOutranksAPassingMention() {
-        assertEquals("Orbit Memory", best("memory").title);
+        assertEquals("GrokLink Memory", best("memory").title);
         assertEquals("Sourced images in answers", best("sourced images in answers").title);
     }
 

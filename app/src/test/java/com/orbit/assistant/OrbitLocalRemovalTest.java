@@ -92,7 +92,7 @@ public final class OrbitLocalRemovalTest {
         ActivityController<LocalAiActivity> controller = launchWithPendingRemoval("component");
         controller.pause().resume();
 
-        assertEquals("a component uninstall must leave Orbit's own model data alone",
+        assertEquals("a component uninstall must leave GrokLink's own model data alone",
                 before, LocalModelStore.legacyBytes(context));
         controller.destroy();
     }
@@ -105,7 +105,7 @@ public final class OrbitLocalRemovalTest {
         ActivityController<LocalAiActivity> controller = launchWithPendingRemoval("everything");
         controller.pause().resume();
 
-        assertEquals("Remove Orbit Local means everything Orbit Local uses",
+        assertEquals("Remove GrokLink Local means everything GrokLink Local uses",
                 0L, LocalModelStore.legacyBytes(context));
         controller.destroy();
     }
@@ -166,7 +166,7 @@ public final class OrbitLocalRemovalTest {
 
         controller.pause().resume();
 
-        assertFalse("a removed Orbit Local cannot remain the active provider",
+        assertFalse("a removed GrokLink Local cannot remain the active provider",
                 Prefs.PROVIDER_LOCAL.equals(Prefs.provider(context)));
         controller.destroy();
     }

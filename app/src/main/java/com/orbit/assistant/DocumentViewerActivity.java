@@ -239,9 +239,9 @@ public final class DocumentViewerActivity extends Activity {
         header.addView(saveToVaultButton, new LinearLayout.LayoutParams(
                 UiKit.dp(this, 48), UiKit.dp(this, 48)));
 
-        // The visible label stays two words. The whole action — "Ask Orbit about this page" — is
+        // The visible label stays two words. The whole action — "Ask GrokLink about this page" — is
         // what a screen reader is told, which is where the extra words are worth their room.
-        askButton = actionButton("Ask Orbit", "Ask Orbit about this page");
+        askButton = actionButton("Ask GrokLink", "Ask GrokLink about this page");
         askButton.setEnabled(false);
         askButton.setAlpha(0.5f);
         askButton.setOnClickListener(v -> askAboutPage());
@@ -459,7 +459,7 @@ public final class DocumentViewerActivity extends Activity {
     }
 
     private void showOpenError(String message) {
-        opening.setText(message == null ? "Orbit could not open this PDF." : message);
+        opening.setText(message == null ? "GrokLink could not open this PDF." : message);
         opening.setTextColor(UiKit.MUTED);
         pager.setVisibility(View.GONE);
         previous.setEnabled(false);
@@ -770,10 +770,10 @@ public final class DocumentViewerActivity extends Activity {
         }
         boolean hasText = model != null && textIndex != null
                 && !textIndex.pageText(model.page()).trim().isEmpty();
-        // The visible label stays "Ask Orbit"; the whole action is only ever spoken here.
+        // The visible label stays "Ask GrokLink"; the whole action is only ever spoken here.
         askButton.setContentDescription(enabled && !hasText
-                ? "Ask Orbit about this page, no extractable text on this page"
-                : "Ask Orbit about this page");
+                ? "Ask GrokLink about this page, no extractable text on this page"
+                : "Ask GrokLink about this page");
     }
 
     /**
@@ -794,7 +794,7 @@ public final class DocumentViewerActivity extends Activity {
         DocumentPageContext page = new DocumentPageContext(session.document.label, pageIndex,
                 model.pageCount(), text, session.document, rendered);
         if (!page.isUsable()) {
-            Toast.makeText(this, "Orbit could not read or render this page",
+            Toast.makeText(this, "GrokLink could not read or render this page",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -828,7 +828,7 @@ public final class DocumentViewerActivity extends Activity {
     private void savePageToVault() {
         if (model == null || model.pageCount() <= 0) return;
         if (!Prefs.vaultEnabled(this)) {
-            Toast.makeText(this, "Orbit Vault is turned off", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink Vault is turned off", Toast.LENGTH_SHORT).show();
             return;
         }
         int pageIndex = model.page();
@@ -840,7 +840,7 @@ public final class DocumentViewerActivity extends Activity {
                 pageIndex, model.pageCount(), text, rendered, "");
         if (rendered != null && !rendered.isRecycled()) rendered.recycle();
         if (saved == null) {
-            Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "Orbit could not save this page"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save this page"), Toast.LENGTH_SHORT).show();
             return;
         }
         UiKit.haptic(saveToVaultButton, HapticFeedbackConstants.CLOCK_TICK);

@@ -162,7 +162,7 @@ public final class SupersededWorkerAttemptTest {
     /**
      * The misrepresentation Beta 3 shipped. Diagnostics called this WorkManager's retry counter;
      * it counts starts. Reporting it 1-based as a run number is what stops "attempt 3" being read
-     * as "Orbit retried three times" when Orbit retries at most once.
+     * as "GrokLink retried three times" when Orbit retries at most once.
      */
     @Test public void theRunCountIsAStartCountReportedFromOne() {
         assertEquals("the first execution is run 1", 1, WorkerAttempt.of(0, false).runNumber());

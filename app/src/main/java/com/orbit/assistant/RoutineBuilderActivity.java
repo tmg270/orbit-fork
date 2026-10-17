@@ -112,13 +112,13 @@ public class RoutineBuilderActivity extends Activity {
         header.addView(back, backLp);
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
-        titles.addView(UiKit.text(this, "Create with Orbit", 25, UiKit.TEXT, true));
+        titles.addView(UiKit.text(this, "Create with GrokLink", 25, UiKit.TEXT, true));
         titles.addView(UiKit.text(this, "Describe a routine", 12, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Describe what you want the routine to do and Orbit will turn it into steps using "
+                "Describe what you want the routine to do and GrokLink will turn it into steps using "
                         + "the actions it already supports. Nothing runs and nothing is saved until "
                         + "you review it and press Save routine.",
                 14, UiKit.MUTED, false);
@@ -188,7 +188,7 @@ public class RoutineBuilderActivity extends Activity {
         if (building) return;
         String text = description.getText().toString().trim();
         if (text.isEmpty()) {
-            showMessage("Describe the routine you want Orbit to build.");
+            showMessage("Describe the routine you want GrokLink to build.");
             return;
         }
         building = true;

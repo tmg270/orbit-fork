@@ -95,7 +95,7 @@ public final class OrbitWidgets {
                 .putExtra(ChatActivity.EXTRA_FOCUS_COMPOSER, true);
         views.setOnClickPendingIntent(R.id.widget_ask_card,
                 activityPendingIntent(context, intent, widgetId, 0, TYPE_ASK));
-        views.setContentDescription(R.id.widget_ask_card, "Ask Orbit. Opens a new Orbit chat.");
+        views.setContentDescription(R.id.widget_ask_card, "Ask GrokLink. Opens a new GrokLink chat.");
         manager.updateAppWidget(widgetId, views);
     }
 
@@ -113,7 +113,7 @@ public final class OrbitWidgets {
             views.setTextViewText(R.id.widget_routine_name, "Routine unavailable");
             views.setTextViewText(R.id.widget_routine_hint, "Tap to choose another");
             views.setContentDescription(R.id.widget_routine_card,
-                    "Routine unavailable. Tap to reconfigure this Orbit widget.");
+                    "Routine unavailable. Tap to reconfigure this GrokLink widget.");
             pending = configurationPendingIntent(context, widgetId, 0);
         } else {
             views.setTextViewText(R.id.widget_routine_name, routine.name);
@@ -154,7 +154,7 @@ public final class OrbitWidgets {
             views.setContentDescription(containers[slot], presentation.description);
             views.setOnClickPendingIntent(containers[slot], presentation.pendingIntent);
         }
-        views.setContentDescription(R.id.widget_quick_card, "Orbit Quick Actions");
+        views.setContentDescription(R.id.widget_quick_card, "GrokLink Quick Actions");
         manager.updateAppWidget(widgetId, views);
     }
 
@@ -181,11 +181,11 @@ public final class OrbitWidgets {
                     .putExtra(ChatActivity.EXTRA_FOCUS_COMPOSER, true)
                     .putExtra(ChatActivity.EXTRA_INITIAL_DRAFT, "Remind me ");
             return new Slot("Reminder", R.drawable.ic_widget_reminder,
-                    "Create an Orbit reminder", activityPendingIntent(context, intent, widgetId, slot, type));
+                    "Create an GrokLink reminder", activityPendingIntent(context, intent, widgetId, slot, type));
         }
         Intent intent = new Intent(context, ChatActivity.class)
                 .putExtra(ChatActivity.EXTRA_FOCUS_COMPOSER, true);
-        return new Slot("Ask Orbit", R.drawable.ic_orbit_tile, "Ask Orbit",
+        return new Slot("Ask GrokLink", R.drawable.ic_orbit_tile, "Ask GrokLink",
                 activityPendingIntent(context, intent, widgetId, slot, TYPE_ASK));
     }
 
@@ -194,14 +194,14 @@ public final class OrbitWidgets {
         AppWidgetManager manager = AppWidgetManager.getInstance(activity);
         if (Build.VERSION.SDK_INT < 26 || !manager.isRequestPinAppWidgetSupported()) {
             Toast.makeText(activity,
-                    "Open your launcher's widget picker, then choose Orbit.", Toast.LENGTH_LONG).show();
+                    "Open your launcher's widget picker, then choose GrokLink.", Toast.LENGTH_LONG).show();
             return;
         }
         boolean requested = manager.requestPinAppWidget(
                 new ComponentName(activity, providerClass), null, null);
         if (!requested) {
             Toast.makeText(activity,
-                    "Open your launcher's widget picker, then choose Orbit.", Toast.LENGTH_LONG).show();
+                    "Open your launcher's widget picker, then choose GrokLink.", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(activity, "Choose where to place the " + label + " widget.",
                     Toast.LENGTH_SHORT).show();

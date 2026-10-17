@@ -419,7 +419,7 @@ public final class OrbitVaultItem {
         switch (type) {
             case TYPE_LINK: return "Link";
             case TYPE_IMAGE: return "Image";
-            case TYPE_ORBIT_REPLY: return "Orbit answer";
+            case TYPE_ORBIT_REPLY: return "GrokLink answer";
             case TYPE_DOCUMENT_PAGE: return "Document page";
             default: return "Note";
         }
@@ -712,7 +712,7 @@ public final class OrbitVaultItem {
         String text = value == null ? "" : value.trim();
         if (text.length() <= MAX_BODY_CHARS) return text;
         return text.substring(0, MAX_BODY_CHARS)
-                + "\n\n[Orbit trimmed this saved item after "
+                + "\n\n[GrokLink trimmed this saved item after "
                 + String.format(Locale.US, "%,d", MAX_BODY_CHARS) + " characters.]";
     }
 }

@@ -83,7 +83,7 @@ public class MemoryActivity extends Activity {
         root.addView(top);
 
         TextView explainer = UiKit.text(this,
-                "Orbit Memory stores user-approved facts and preferences locally. " +
+                "GrokLink Memory stores user-approved facts and preferences locally. " +
                         "0.5.9 now selects only memories that look relevant to each request.",
                 13, UiKit.MUTED, false);
         explainer.setPadding(UiKit.dp(this,4), UiKit.dp(this,14),
@@ -92,7 +92,7 @@ public class MemoryActivity extends Activity {
 
         LinearLayout toggleCard = card();
 
-        toggleCard.addView(memorySettingRow("Use Orbit Memory in AI responses",
+        toggleCard.addView(memorySettingRow("Use GrokLink Memory in AI responses",
                 Prefs.MEMORY_ENABLED, Prefs.memoryEnabled(this)));
         toggleCard.addView(memorySettingRow("Suggest useful memories",
                 Prefs.MEMORY_SUGGESTIONS, Prefs.memorySuggestions(this)));
@@ -237,7 +237,7 @@ public class MemoryActivity extends Activity {
         }
 
         if (query.isEmpty()) {
-            Button clear = secondaryButton("Clear all Orbit memories");
+            Button clear = secondaryButton("Clear all GrokLink memories");
             clear.setOnClickListener(v -> confirmClearAll());
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this,48));
@@ -254,7 +254,7 @@ public class MemoryActivity extends Activity {
         form.setBackgroundColor(UiKit.SURFACE);
 
         EditText text = new EditText(this);
-        text.setHint("What should Orbit remember?");
+        text.setHint("What should GrokLink remember?");
         text.setText(existing == null ? "" : existing.text);
         text.setTextColor(UiKit.TEXT);
         text.setHintTextColor(UiKit.MUTED);
@@ -403,7 +403,7 @@ public class MemoryActivity extends Activity {
     private void confirmClearAll() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Clear all memories?")
-                .setMessage("This removes every local Orbit memory from this device.")
+                .setMessage("This removes every local GrokLink memory from this device.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Clear", (d,w) -> {
                     MemoryStore.clear(this);

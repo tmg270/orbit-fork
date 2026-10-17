@@ -77,7 +77,7 @@ public final class RemindersActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Reminders you create through Orbit live here until they fire or you cancel them.",
+                "Reminders you create through GrokLink live here until they fire or you cancel them.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -113,7 +113,7 @@ public final class RemindersActivity extends Activity {
             LinearLayout empty = card();
             empty.addView(UiKit.text(this, "No pending reminders", 16, UiKit.TEXT, true));
             TextView note = UiKit.text(this,
-                    "Ask Orbit something like “Remind me to wash clothes tomorrow at 10 AM.”",
+                    "Ask GrokLink something like “Remind me to wash clothes tomorrow at 10 AM.”",
                     13, UiKit.MUTED, false);
             note.setPadding(0, UiKit.dp(this, 6), 0, 0);
             empty.addView(note);

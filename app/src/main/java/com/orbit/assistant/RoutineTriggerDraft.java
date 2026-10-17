@@ -117,7 +117,7 @@ public final class RoutineTriggerDraft {
                     place.name, place.id, place.latitude, place.longitude, radius, transition, true);
         }
 
-        if (!type.isEmpty()) addWarning(warnings, "Orbit couldn't set up that kind of automation");
+        if (!type.isEmpty()) addWarning(warnings, "GrokLink couldn't set up that kind of automation");
         return null;
     }
 

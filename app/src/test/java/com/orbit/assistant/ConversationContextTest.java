@@ -282,7 +282,7 @@ public final class ConversationContextTest {
     }
 
     @Test public void anUnknownWindowShowsNoPercentage() {
-        ContextEstimate local = new ContextEstimate(3000, 0, Collections.emptyMap(), 0, true, "Orbit Local");
+        ContextEstimate local = new ContextEstimate(3000, 0, Collections.emptyMap(), 0, true, "GrokLink Local");
         assertFalse(local.knowsLimit());
         assertEquals(-1, local.percent());
         assertEquals(ContextEstimate.Level.UNKNOWN, local.level());
@@ -350,7 +350,7 @@ public final class ConversationContextTest {
                 new AssistantClient.History("user", "Plan Lisbon"),
                 new AssistantClient.History("assistant", "Day one: Alfama")), Collections.emptyList());
         assertTrue(prompt.contains("Plan Lisbon"));
-        assertFalse("no Orbit instructions or request state travel with it",
+        assertFalse("no GrokLink instructions or request state travel with it",
                 prompt.contains("Current local time") || prompt.contains("orbit_kept_context"));
         assertNull(ContinueChat.cleanSummary("   "));
         assertNotNull(ContinueChat.cleanSummary("Facts: one."));

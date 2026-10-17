@@ -106,7 +106,7 @@ public final class SharedContentStore {
         String text = value.trim();
         if (text.length() <= MAX_TEXT_CHARS) return text;
         return text.substring(0, MAX_TEXT_CHARS)
-                + "\n\n[Orbit truncated the shared text after "
+                + "\n\n[GrokLink truncated the shared text after "
                 + String.format(java.util.Locale.US, "%,d", MAX_TEXT_CHARS) + " characters.]";
     }
 

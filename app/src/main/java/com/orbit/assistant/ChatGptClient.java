@@ -60,8 +60,8 @@ public final class ChatGptClient {
      * promising two photographs is a sentence that is wrong whenever the web only had one.
      */
     private static final String RICH_ANSWERS_SYSTEM =
-            " Orbit supplies the pictures for this answer itself. Do not emit Markdown image syntax or any direct image embed; an image you write will not be displayed. Ordinary Markdown links to pages, galleries and sources remain welcome and unchanged. " +
-            "Orbit attaches its own sourced pictures under your answer after you have finished writing, and how many of them survive real-world fetching is not knowable while you write. So never promise a number of pictures, never describe what is about to appear, and never claim the pictures are different from each other: no here are three photos, no I will attach two images, no these are two separate photographs, no below you will find. Write neutrally instead, for example Here are some useful visual references, or simply answer the question.";
+            " GrokLink supplies the pictures for this answer itself. Do not emit Markdown image syntax or any direct image embed; an image you write will not be displayed. Ordinary Markdown links to pages, galleries and sources remain welcome and unchanged. " +
+            "GrokLink attaches its own sourced pictures under your answer after you have finished writing, and how many of them survive real-world fetching is not knowable while you write. So never promise a number of pictures, never describe what is about to appear, and never claim the pictures are different from each other: no here are three photos, no I will attach two images, no these are two separate photographs, no below you will find. Write neutrally instead, for example Here are some useful visual references, or simply answer the question.";
 
     /**
      * The image policy sent when Orbit is not going to attach anything.
@@ -126,7 +126,7 @@ public final class ChatGptClient {
      * prompt asks for. Sending both told the model to satisfy two incompatible shapes at once.
      */
     private static final String PLANNING_SYSTEM =
-            "You are Orbit's routine planner. You convert a description of a phone routine into a " +
+            "You are GrokLink's routine planner. You convert a description of a phone routine into a " +
             "routine definition. Reply with a single raw JSON object and nothing else: no prose " +
             "before or after it, no explanation, and no code fence. Use exactly the schema and the " +
             "supported action list given in the user message, and never invent an action type or a " +
@@ -537,7 +537,7 @@ public final class ChatGptClient {
                           "Do not say you cannot access notification history when this context is present.";
         String task = trustedTaskContext == null ? "" : trustedTaskContext.trim();
         String trustedTaskInstruction = task.isEmpty() ? "" :
-                "\n\nTrusted Orbit task state derived from the user's direct corrections (not from screen content):\n" + task;
+                "\n\nTrusted GrokLink task state derived from the user's direct corrections (not from screen content):\n" + task;
         // Read at request time rather than cached, so turning Rich Answers off changes the next
         // answer rather than the one after it - the same rule the discovery side follows.
         String orbitInstructions = SYSTEM + imagePolicy(context) + searchPolicy(forceSearch)
@@ -1105,9 +1105,9 @@ public final class ChatGptClient {
 
     private static String friendlyHttpError(int code, String body, String model) {
         String detail = extractHttpMessage(body);
-        if (code == 401) return "Your ChatGPT session was rejected after refresh. Open Orbit settings, sign out, and sign in with ChatGPT again." + detail;
+        if (code == 401) return "Your ChatGPT session was rejected after refresh. Open GrokLink settings, sign out, and sign in with ChatGPT again." + detail;
         if (code == 429) return "Your ChatGPT/Codex account allowance appears to be at its current limit." + detail;
-        if (code == 404) return "The ChatGPT/Codex backend did not make " + model + " available for this request. Choose another model, or use Orbit's API-relay fallback." + detail;
+        if (code == 404) return "The ChatGPT/Codex backend did not make " + model + " available for this request. Choose another model, or use GrokLink's API-relay fallback." + detail;
         if (code == 403) return "Your ChatGPT account or workspace did not allow this Codex-backed request." + detail;
         return "ChatGPT/Codex backend error " + code + detail;
     }

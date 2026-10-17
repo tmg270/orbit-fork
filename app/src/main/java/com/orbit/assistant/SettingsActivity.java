@@ -118,7 +118,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 if (!canShowAuthResult()) return;
                 updateChatGptStatus();
                 Toast.makeText(SettingsActivity.this,
-                        "ChatGPT connected to Orbit", Toast.LENGTH_LONG).show();
+                        "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
             });
         }
 
@@ -136,7 +136,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
          public void onSignedIn(ChatGptAuth.AccountInfo account) {
             if (!canShowAuthResult()) return;
             updateChatGptStatus();
-            Toast.makeText(SettingsActivity.this, "ChatGPT connected to Orbit", Toast.LENGTH_LONG).show();
+            Toast.makeText(SettingsActivity.this, "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
         }
 
          public void onFailed(String message, boolean offerCodeSignIn) {
@@ -248,12 +248,12 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.addView(UiKit.text(this, "Settings", 28, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Orbit Power Assistant", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "GrokLink Power Assistant", 13, UiKit.MUTED, false));
         brand.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(brand);
 
         TextView intro = UiKit.text(this,
-                "Search for a control, or choose a section. Orbit keeps the everyday controls easy to find while deeper options stay out of the way.",
+                "Search for a control, or choose a section. GrokLink keeps the everyday controls easy to find while deeper options stay out of the way.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.12f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -287,19 +287,19 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         categories.addView(settingsCategoryCard(SECTION_ROUTINES, "Routines",
                 "Create, edit and run saved Action Engine chains"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_EXTENSIONS, "Extensions",
-                "Add integrations and new actions to Orbit"), categoryLp());
-        categories.addView(settingsCategoryCard(SECTION_DECK, "Orbit Deck",
-                "Customize your personal Orbit shortcuts"), categoryLp());
+                "Add integrations and new actions to GrokLink"), categoryLp());
+        categories.addView(settingsCategoryCard(SECTION_DECK, "GrokLink Deck",
+                "Customize your personal GrokLink shortcuts"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_CONVERSATIONS, "Conversations",
                 "History, chat behavior and background notifications"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_APPEARANCE, "Look & Feel",
                 "Theme Studio, font, chat text size and haptics"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_UPDATES, "About & updates",
-                "Current version and verified official Orbit releases"), categoryLp());
+                "Current version and verified official GrokLink releases"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_ADVANCED, "Advanced",
                 "Diagnostics and developer tools"), categoryLp());
 
-        TextView footer = UiKit.text(this, "Orbit " + BuildConfig.VERSION_NAME + " • Power Assistant", 12, UiKit.MUTED, false);
+        TextView footer = UiKit.text(this, "GrokLink " + BuildConfig.VERSION_NAME + "\nGrokLink is a modified fork of Orbit Assistant by lpnovi (MPL-2.0); not affiliated with xAI.", 12, UiKit.MUTED, false);
         footer.setGravity(Gravity.CENTER);
         footer.setOnClickListener(v -> handleLeloSecretTap());
         footer.setOnLongClickListener(v -> {
@@ -589,7 +589,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         if (SECTION_AI.equals(section)) return "AI & account";
         if (SECTION_VOICE.equals(section)) return "Voice, context & permissions";
         if (SECTION_DATA.equals(section)) return "Personalization & data";
-        if (SECTION_DECK.equals(section)) return "Orbit Deck";
+        if (SECTION_DECK.equals(section)) return "GrokLink Deck";
         if (SECTION_CONVERSATIONS.equals(section)) return "Conversations";
         if (SECTION_APPEARANCE.equals(section)) return "Look & Feel";
         if (SECTION_ADVANCED.equals(section)) return "Advanced";
@@ -597,15 +597,15 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     }
 
     private String sectionDescription(String section) {
-        if (SECTION_ASSISTANT.equals(section)) return "Set Orbit as your assistant and configure Side button and Quick Settings access.";
-        if (SECTION_AI.equals(section)) return "Choose and configure Orbit's active AI provider, manage your ChatGPT connection, and set default intelligence.";
+        if (SECTION_ASSISTANT.equals(section)) return "Set GrokLink as your assistant and configure Side button and Quick Settings access.";
+        if (SECTION_AI.equals(section)) return "Choose and configure GrokLink's active AI provider, manage your ChatGPT connection, and set default intelligence.";
         if (SECTION_VOICE.equals(section)) return "Control Voice Beta, screen awareness and device permissions.";
-        if (SECTION_DATA.equals(section)) return "Manage weather preferences and the local information Orbit uses to personalize and organize your assistant experience.";
-        if (SECTION_DECK.equals(section)) return "Choose how Orbit Deck is reached and whether it may suggest shortcuts.";
+        if (SECTION_DATA.equals(section)) return "Manage weather preferences and the local information GrokLink uses to personalize and organize your assistant experience.";
+        if (SECTION_DECK.equals(section)) return "Choose how GrokLink Deck is reached and whether it may suggest shortcuts.";
         if (SECTION_CONVERSATIONS.equals(section)) return "Choose local chat storage and background completion behavior.";
-        if (SECTION_APPEARANCE.equals(section)) return "Design Orbit's theme, then set typography and tactile feedback.";
+        if (SECTION_APPEARANCE.equals(section)) return "Design GrokLink's theme, then set typography and tactile feedback.";
         if (SECTION_ADVANCED.equals(section)) return "Inspect local diagnostics and developer troubleshooting information.";
-        return "Orbit settings.";
+        return "GrokLink settings.";
     }
 
     private String sectionSubtitle(String section) {
@@ -617,7 +617,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         if (SECTION_CONVERSATIONS.equals(section)) return "Chat behavior";
         if (SECTION_APPEARANCE.equals(section)) return "Style & feedback";
         if (SECTION_ADVANCED.equals(section)) return "Developer tools";
-        return "Orbit";
+        return "GrokLink";
     }
 
     private View buildDetailContent() {
@@ -666,10 +666,10 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         tagSectionCard(setupCard, "setup");
         assistantStatus = UiKit.text(this, "Checking assistant status…", 15, UiKit.TEXT, true);
         setupCard.addView(assistantStatus);
-        TextView desc = UiKit.text(this, "Make Orbit the default Digital assistant app, then map Side button → Long press → Digital assistant in Samsung Settings.", 13, UiKit.MUTED, false);
+        TextView desc = UiKit.text(this, "Make GrokLink the default Digital assistant app, then map Side button → Long press → Digital assistant in Samsung Settings.", 13, UiKit.MUTED, false);
         desc.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 14));
         setupCard.addView(desc);
-        assistantAction = primaryButton("Make Orbit default assistant");
+        assistantAction = primaryButton("Make GrokLink default assistant");
         assistantAction.setOnClickListener(v -> openAssistantSettings(true));
         setupCard.addView(assistantAction);
         Button rerunSetup = secondaryButton("Run setup again");
@@ -686,7 +686,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         tagSectionCard(quickCard, "setup");
         quickCard.addView(UiKit.text(this, "Quick Settings tiles", 16, UiKit.TEXT, true));
         TextView quickNote = UiKit.text(this,
-                "Open Orbit instantly, or assign one saved Routine to a Quick Settings tile.",
+                "Open GrokLink instantly, or assign one saved Routine to a Quick Settings tile.",
                 12, UiKit.MUTED, false);
         quickNote.setLineSpacing(0, 1.12f);
         quickNote.setPadding(0, UiKit.dp(this, 6), 0, UiKit.dp(this, 12));
@@ -694,7 +694,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
         LinearLayout tileButtons = new LinearLayout(this);
         tileButtons.setGravity(Gravity.CENTER_VERTICAL);
-        Button addOrbit = secondaryButton("Add Orbit tile");
+        Button addOrbit = secondaryButton("Add GrokLink tile");
         addOrbit.setOnClickListener(v -> QuickSettingsTiles.requestAddAskTile(this));
         tileButtons.addView(addOrbit, new LinearLayout.LayoutParams(0, UiKit.dp(this, 44), 1));
         Button addRoutine = secondaryButton("Add Routine tile");
@@ -707,7 +707,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         TextView addHint = UiKit.text(this,
                 Build.VERSION.SDK_INT >= 33
                         ? "Android will ask before adding either tile."
-                        : "Add the Orbit tiles manually from Android's Quick Settings editor.",
+                        : "Add the GrokLink tiles manually from Android's Quick Settings editor.",
                 11, UiKit.MUTED, false);
         addHint.setPadding(0, UiKit.dp(this, 9), 0, UiKit.dp(this, 12));
         quickCard.addView(addHint);
@@ -725,9 +725,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         page.addView(sectionTitle("HOME-SCREEN WIDGETS", "setup"));
         LinearLayout widgetCard = card();
         tagSectionCard(widgetCard, "setup");
-        widgetCard.addView(UiKit.text(this, "Orbit widgets", 16, UiKit.TEXT, true));
+        widgetCard.addView(UiKit.text(this, "GrokLink widgets", 16, UiKit.TEXT, true));
         TextView widgetNote = UiKit.text(this,
-                "Add Orbit widgets from your launcher's widget picker, or ask Android to pin one below.",
+                "Add GrokLink widgets from your launcher's widget picker, or ask Android to pin one below.",
                 12, UiKit.MUTED, false);
         widgetNote.setLineSpacing(0, 1.12f);
         widgetNote.setPadding(0, UiKit.dp(this, 6), 0, UiKit.dp(this, 12));
@@ -740,9 +740,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         widgetEditNote.setPadding(0, 0, 0, UiKit.dp(this, 12));
         widgetCard.addView(widgetEditNote);
 
-        Button pinAskWidget = secondaryButton("Add Ask Orbit widget");
+        Button pinAskWidget = secondaryButton("Add Ask GrokLink widget");
         pinAskWidget.setOnClickListener(v -> OrbitWidgets.requestPin(this,
-                AskOrbitWidgetProvider.class, "Ask Orbit"));
+                AskOrbitWidgetProvider.class, "Ask GrokLink"));
         widgetCard.addView(pinAskWidget, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44)));
 
@@ -767,11 +767,11 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout remindersCard = card();
         tagSectionCard(remindersCard, "data");
         TextView remindersHelp = UiKit.text(this,
-                "Orbit reminders are scheduled locally on this device and appear as notifications at the time you choose.",
+                "GrokLink reminders are scheduled locally on this device and appear as notifications at the time you choose.",
                 13, UiKit.MUTED, false);
         remindersHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
         remindersCard.addView(remindersHelp);
-        Button manageReminders = secondaryButton("Manage Orbit reminders");
+        Button manageReminders = secondaryButton("Manage GrokLink reminders");
         manageReminders.setOnClickListener(v -> startActivity(new Intent(this, RemindersActivity.class)));
         remindersCard.addView(manageReminders, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
@@ -781,7 +781,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout personalDataCard = card();
         tagSectionCard(personalDataCard, "data");
         TextView personalDataHelp = UiKit.text(this,
-                "Open Orbit's dedicated managers for saved places, remembered information, your Vault, per-app behavior and notification context.",
+                "Open GrokLink's dedicated managers for saved places, remembered information, your Vault, per-app behavior and notification context.",
                 13, UiKit.MUTED, false);
         personalDataHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
         personalDataCard.addView(personalDataHelp);
@@ -792,7 +792,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         personalDataCard.addView(managePlaces, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
 
-        Button manageMemory = secondaryButton("Manage Orbit Memory");
+        Button manageMemory = secondaryButton("Manage GrokLink Memory");
         manageMemory.setOnClickListener(v -> startActivity(new Intent(this, MemoryActivity.class)));
         LinearLayout.LayoutParams manageMemoryLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48));
@@ -828,7 +828,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout backupCard = card();
         tagSectionCard(backupCard, "data");
         TextView backupHelp = UiKit.text(this,
-                "Orbit backups stay in the file you choose. They include local chats, Memory, your Vault, Routines, safe extension manifests, reminders, saved places and personalization. Sensitive account credentials are not included. Android permissions and default-assistant status are not included and may need to be granted again after reinstalling Orbit.",
+                "GrokLink backups stay in the file you choose. They include local chats, Memory, your Vault, Routines, safe extension manifests, reminders, saved places and personalization. Sensitive account credentials are not included. Android permissions and default-assistant status are not included and may need to be granted again after reinstalling GrokLink.",
                 13, UiKit.MUTED, false);
         backupHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
         backupCard.addView(backupHelp);
@@ -838,12 +838,12 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         backupPrivacy.setPadding(0, 0, 0, UiKit.dp(this, 12));
         backupCard.addView(backupPrivacy);
 
-        Button exportBackup = secondaryButton("Export Orbit backup");
+        Button exportBackup = secondaryButton("Export GrokLink backup");
         exportBackup.setOnClickListener(v -> chooseBackupDestination());
         backupCard.addView(exportBackup, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
 
-        Button restoreBackup = secondaryButton("Restore Orbit backup");
+        Button restoreBackup = secondaryButton("Restore GrokLink backup");
         restoreBackup.setOnClickListener(v -> chooseBackupToRestore());
         LinearLayout.LayoutParams restoreBackupLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48));
@@ -912,9 +912,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         cameraLp.setMargins(0, UiKit.dp(this, 8), 0, 0);
         voiceCard.addView(cameraPermission, cameraLp);
         voiceCard.addView(target(SettingsSearchIndex.KEY_SCREEN_TEXT,
-                toggle("Allow Orbit to read current-screen text", Prefs.SCREEN_CONTEXT, true)));
+                toggle("Allow GrokLink to read current-screen text", Prefs.SCREEN_CONTEXT, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_SCREENSHOTS,
-                toggle("Allow Orbit to receive screenshots",
+                toggle("Allow GrokLink to receive screenshots",
                 "Visual context, previews, and screen-region selection.",
                 Prefs.SCREENSHOT, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_ATTACH_SCREEN,
@@ -925,7 +925,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 toggle("Speak replies to voice requests", Prefs.SPEAK, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_VOICE_PAUSE,
                 toggle("Allow longer pauses while speaking",
-                "Voice Beta gives you more time to pause and think before Orbit decides you are finished. Tap the mic again if you want to finish sooner.",
+                "Voice Beta gives you more time to pause and think before GrokLink decides you are finished. Tap the mic again if you want to finish sooner.",
                 Prefs.VOICE_PAUSE_FRIENDLY, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_AUTO_LISTEN,
                 toggle("Start listening when overlay opens",
@@ -933,11 +933,11 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 Prefs.AUTO_LISTEN_ON_OPEN, false)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_FOLLOW_UPS,
                 toggle("Hands-free voice follow-ups",
-                "Reopen the microphone after Orbit speaks.",
+                "Reopen the microphone after GrokLink speaks.",
                 Prefs.AUTO_LISTEN, false)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_SMART_FOLLOW_UPS,
                 toggle("Smart follow-ups",
-                "Only reopen the microphone when Orbit is waiting for your answer.",
+                "Only reopen the microphone when GrokLink is waiting for your answer.",
                 Prefs.SMART_FOLLOW_UPS, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_KEYBOARD_AWARE,
                 toggle("Keyboard-aware assistant invocation", Prefs.KEYBOARD_AWARE_ASSISTANT, true)));
@@ -954,7 +954,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout weatherCard = card();
         tagSectionCard(weatherCard, "data");
         TextView weatherHelp = UiKit.text(this,
-                "Orbit can answer current weather and forecasts directly in chat using Open-Meteo. You can set a default city or allow approximate device location. Weather questions do not need to open a browser.",
+                "GrokLink can answer current weather and forecasts directly in chat using Open-Meteo. You can set a default city or allow approximate device location. Weather questions do not need to open a browser.",
                 13, UiKit.MUTED, false);
         weatherHelp.setPadding(0, 0, 0, UiKit.dp(this, 10));
         weatherCard.addView(weatherHelp);
@@ -973,7 +973,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
             Toast.makeText(this, weatherLocation.getText().toString().trim().isEmpty() ? "Default weather location cleared" : "Weather location saved", Toast.LENGTH_SHORT).show();
         });
         TextView weatherNote = UiKit.text(this,
-                "If device location is off, Orbit uses the saved city. If neither is available, it will ask for a city and remember the last city you use for weather.",
+                "If device location is off, GrokLink uses the saved city. If neither is available, it will ask for a city and remember the last city you use for weather.",
                 12, UiKit.MUTED, false);
         weatherNote.setPadding(0, UiKit.dp(this, 8), 0, 0);
         weatherCard.addView(weatherNote);
@@ -984,7 +984,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         galleryCard.addView(label("Gallery app"));
         galleryCard.addView(galleryAppSelector(), selectorLp());
         TextView galleryHelp = UiKit.text(this,
-                "Choose which compatible installed app Orbit uses when you attach an image. System picker remains the safe fallback if that app becomes unavailable.",
+                "Choose which compatible installed app GrokLink uses when you attach an image. System picker remains the safe fallback if that app becomes unavailable.",
                 12, UiKit.MUTED, false);
         galleryCard.addView(galleryHelp);
 
@@ -1014,13 +1014,13 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         TextView defaultAiHelp = UiKit.text(this,
                 "Provider, model and strength for new chats and the assistant. Each chat remembers "
                         + "its own choice, so changing this never changes an existing chat. "
-                        + "Orbit always uses exactly the model you choose; only Auto chooses for you.",
+                        + "GrokLink always uses exactly the model you choose; only Auto chooses for you.",
                 12, UiKit.MUTED, false);
         defaultAiHelp.setLineSpacing(0, 1.12f);
         defaultAiHelp.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 4));
         aiCard.addView(defaultAiHelp);
         aiCard.addView(autoProvidersRow());
-        TextView cost = UiKit.text(this, "ChatGPT-account mode uses your account-backed allowance. Orbit never silently switches to the separately metered API-relay fallback.", 12, UiKit.MUTED, false);
+        TextView cost = UiKit.text(this, "ChatGPT-account mode uses your account-backed allowance. GrokLink never silently switches to the separately metered API-relay fallback.", 12, UiKit.MUTED, false);
         cost.setPadding(0, UiKit.dp(this, 8), 0, 0);
         aiCard.addView(cost);
         // Sits with Intelligence because it is about how a request behaves while it runs, and it
@@ -1029,7 +1029,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         // comes from Prefs rather than a literal here, so the two cannot drift apart.
         aiCard.addView(target(SettingsSearchIndex.KEY_THINKING_UPDATES,
                 toggle("Thinking updates",
-                "Show brief updates about what Orbit is working on while it prepares an answer. "
+                "Show brief updates about what GrokLink is working on while it prepares an answer. "
                         + "Never shows private chain-of-thought.",
                 Prefs.THINKING_UPDATES, Prefs.THINKING_UPDATES_DEFAULT)));
         // Sits with Intelligence because it is about what an answer contains. The copy names the
@@ -1037,7 +1037,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         // contacts, and that it is only the pages the answer already used.
         aiCard.addView(target(SettingsSearchIndex.KEY_RICH_ANSWERS,
                 toggle("Sourced images in answers",
-                "Show a useful picture inside an answer when one genuinely helps. Orbit only reads "
+                "Show a useful picture inside an answer when one genuinely helps. GrokLink only reads "
                         + "the preview image a page it already cited declares about itself, and "
                         + "never sends your chat, prompt or Vault anywhere to do it.",
                 Prefs.RICH_ANSWERS, Prefs.RICH_ANSWERS_DEFAULT)));
@@ -1046,13 +1046,13 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         page.addView(sectionTitle("DIAGNOSTICS", "diagnostics"));
         LinearLayout diagnosticsCard = card();
         tagSectionCard(diagnosticsCard, "diagnostics");
-        diagnosticsCard.addView(UiKit.text(this, "Orbit diagnostics", 16, UiKit.TEXT, true));
+        diagnosticsCard.addView(UiKit.text(this, "GrokLink diagnostics", 16, UiKit.TEXT, true));
         TextView diagnosticsHelp = UiKit.text(this,
                 "View local routing, context, account, capability, and troubleshooting information.",
                 13, UiKit.MUTED, false);
         diagnosticsHelp.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 12));
         diagnosticsCard.addView(diagnosticsHelp);
-        Button diagnostics = secondaryButton("Open Orbit diagnostics");
+        Button diagnostics = secondaryButton("Open GrokLink diagnostics");
         diagnosticsCard.addView(diagnostics, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
         diagnostics.setOnClickListener(v -> startActivity(new Intent(this, DiagnosticsActivity.class)));
@@ -1065,17 +1065,17 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 "Puts the Deck control in the Chats header. Deck stays reachable from here either way.",
                 Prefs.DECK_SHORTCUT, true));
         deckCard.addView(toggle("Smart suggestions",
-                "Show relevant shortcuts from recent Orbit context.",
+                "Show relevant shortcuts from recent GrokLink context.",
                 Prefs.DECK_SUGGESTIONS, true));
         TextView deckNote = UiKit.text(this,
-                "Deck arranges shortcuts to things Orbit already does. Suggestions are worked out on "
-                        + "this phone from context Orbit already has, and opening Deck never sends "
+                "Deck arranges shortcuts to things GrokLink already does. Suggestions are worked out on "
+                        + "this phone from context GrokLink already has, and opening Deck never sends "
                         + "anything to your AI provider. Which tiles you keep, and how they are "
                         + "arranged, is edited in Deck itself.",
                 12, UiKit.MUTED, false);
         deckNote.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 12));
         deckCard.addView(deckNote);
-        Button openDeck = secondaryButton("Open Orbit Deck");
+        Button openDeck = secondaryButton("Open GrokLink Deck");
         deckCard.addView(openDeck, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
         openDeck.setOnClickListener(v -> startActivity(new Intent(this, DeckActivity.class)));
@@ -1085,32 +1085,32 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout conversationCard = card();
         tagSectionCard(conversationCard, "conversations");
         conversationCard.addView(target(SettingsSearchIndex.KEY_NEW_CHAT,
-                toggle("Start a new chat each time Orbit opens", Prefs.NEW_CHAT_ON_OPEN, true)));
+                toggle("Start a new chat each time GrokLink opens", Prefs.NEW_CHAT_ON_OPEN, true)));
         conversationCard.addView(target(SettingsSearchIndex.KEY_HISTORY,
                 toggle("Save recent chats on this device", Prefs.HISTORY_ENABLED, true)));
         conversationCard.addView(target(SettingsSearchIndex.KEY_THUMBNAILS,
                 toggle("Save screen attachment thumbnails in chat history", Prefs.SAVE_SCREEN_THUMBNAILS, false)));
         conversationCard.addView(target(SettingsSearchIndex.KEY_STOP_BUTTON,
                 toggle("Show Stop button while replying",
-                "Replace Send with Stop while Orbit is generating a reply.",
+                "Replace Send with Stop while GrokLink is generating a reply.",
                 Prefs.SHOW_STOP_BUTTON, true)));
         conversationCard.addView(notificationToggle());
         TextView conversationNote = UiKit.text(this,
-                "Orbit keeps up to 100 recent chats locally when history is enabled. The full Orbit app can search, rename, reopen, and delete them. Screen thumbnails are stored only in Orbit's private app storage when that option is enabled.",
+                "GrokLink keeps up to 100 recent chats locally when history is enabled. The full GrokLink app can search, rename, reopen, and delete them. Screen thumbnails are stored only in GrokLink's private app storage when that option is enabled.",
                 12, UiKit.MUTED, false);
         conversationNote.setPadding(0, UiKit.dp(this, 7), 0, UiKit.dp(this, 10));
         conversationCard.addView(conversationNote);
-        Button clearHistory = secondaryButton("Clear Orbit conversation history");
+        Button clearHistory = secondaryButton("Clear GrokLink conversation history");
         conversationCard.addView(target(SettingsSearchIndex.KEY_CLEAR_HISTORY, clearHistory),
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
         clearHistory.setOnClickListener(v -> {
             AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("Clear Orbit history?")
-                    .setMessage("This deletes Orbit's locally saved recent chats. It does not affect your ChatGPT account.")
+                    .setTitle("Clear GrokLink history?")
+                    .setMessage("This deletes GrokLink's locally saved recent chats. It does not affect your ChatGPT account.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Clear", (d, which) -> {
                         ConversationStore.clear(this);
-                        Toast.makeText(this, "Orbit conversation history cleared", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "GrokLink conversation history cleared", Toast.LENGTH_SHORT).show();
                     })
                     .create();
             styleOrbitDialog(dialog, true);
@@ -1143,7 +1143,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         styleCard.addView(controlGroup(SettingsSearchIndex.KEY_FONT,
                 label("App font"), fontSelector(), null));
         TextView fontNote = UiKit.text(this,
-                "Orbit Default is the current app font. Times New Roman uses your phone's Times New Roman font when it has one, and otherwise Android's built-in serif font for a similar classic look. Orbit doesn't include a font file.",
+                "GrokLink Default is the current app font. Times New Roman uses your phone's Times New Roman font when it has one, and otherwise Android's built-in serif font for a similar classic look. GrokLink doesn't include a font file.",
                 12, UiKit.MUTED, false);
         fontNote.setPadding(0, UiKit.dp(this, 8), 0, UiKit.dp(this, 8));
         styleCard.addView(fontNote);
@@ -1163,7 +1163,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         styleCard.addView(target(SettingsSearchIndex.KEY_HAPTICS,
                 toggle("Haptic feedback", Prefs.HAPTICS, true)));
         TextView hapticNote = UiKit.text(this,
-                "Uses light tactile ticks for Orbit controls and Settings interactions. Turn this off to disable those haptics.",
+                "Uses light tactile ticks for GrokLink controls and Settings interactions. Turn this off to disable those haptics.",
                 12, UiKit.MUTED, false);
         hapticNote.setPadding(UiKit.dp(this, 4), UiKit.dp(this, 1), 0, UiKit.dp(this, 6));
         styleCard.addView(hapticNote);
@@ -1174,7 +1174,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         styleCard.addView(controlGroup(SettingsSearchIndex.KEY_PAGE_TRANSITIONS,
                 label("Page transitions"), pageTransitionSelector(), null));
         TextView transitionNote = UiKit.text(this,
-                "How full-screen Orbit pages move when you open and leave them. Slide brings a page in from the right and sends it back out on the way back. Fade & settle uses a short fade with a small upward settle. None changes pages immediately. Android's own animation settings still apply.",
+                "How full-screen GrokLink pages move when you open and leave them. Slide brings a page in from the right and sends it back out on the way back. Fade & settle uses a short fade with a small upward settle. None changes pages immediately. Android's own animation settings still apply.",
                 12, UiKit.MUTED, false);
         transitionNote.setPadding(0, UiKit.dp(this, 8), 0, 0);
         styleCard.addView(transitionNote);
@@ -1186,10 +1186,10 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         tagSectionCard(gestureCard, "appearance");
         gestureCard.addView(target(SettingsSearchIndex.KEY_SWIPE_BACK,
                 toggle("Swipe to go back",
-                "Use Orbit's interactive edge gesture when returning to the previous screen. The "
+                "Use GrokLink's interactive edge gesture when returning to the previous screen. The "
                         + "page follows your finger and the screen you came from appears behind it, "
-                        + "across conversations, Settings and Orbit's other pages. Turn this off to "
-                        + "use Orbit's page transition instead. Back itself always works either "
+                        + "across conversations, Settings and GrokLink's other pages. Turn this off to "
+                        + "use GrokLink's page transition instead. Back itself always works either "
                         + "way, from the gesture, the navigation buttons, and every Back control.",
                 Prefs.ENHANCED_CHAT_BACK, true)));
         gestureCard.addView(target(SettingsSearchIndex.KEY_CHAT_SWIPE,
@@ -1200,7 +1200,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 Prefs.CHAT_SWIPE_ACTIONS, true)));
         page.addView(gestureCard);
 
-        TextView footer = UiKit.text(this, "Orbit " + BuildConfig.VERSION_NAME + " • Power Assistant", 12, UiKit.MUTED, false);
+        TextView footer = UiKit.text(this, "GrokLink " + BuildConfig.VERSION_NAME + "\nGrokLink is a modified fork of Orbit Assistant by lpnovi (MPL-2.0); not affiliated with xAI.", 12, UiKit.MUTED, false);
         footer.setGravity(Gravity.CENTER);
         footer.setOnClickListener(v -> handleLeloSecretTap());
         footer.setOnLongClickListener(v -> {
@@ -1231,7 +1231,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                     .addCategory(Intent.CATEGORY_BROWSABLE));
         } catch (Exception e) {
             ChatGptBrowserAuth.cancel();
-            showBrowserSignInFailure("Orbit could not open a web browser on this phone.", true);
+            showBrowserSignInFailure("GrokLink could not open a web browser on this phone.", true);
             return;
         }
         updateChatGptStatus();
@@ -1282,19 +1282,19 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private void showDeviceCode(ChatGptAuth.DeviceCode code) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("Orbit ChatGPT code", code.userCode));
+        if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Sign in with ChatGPT")
                 .setMessage("Your one-time code is:\n\n" + code.userCode +
-                        "\n\nIt has been copied to your clipboard. Open OpenAI's sign-in page, sign into your normal ChatGPT account, and enter this code. Orbit will finish connecting automatically.")
+                        "\n\nIt has been copied to your clipboard. Open OpenAI's sign-in page, sign into your normal ChatGPT account, and enter this code. GrokLink will finish connecting automatically.")
                 .setPositiveButton("Open ChatGPT sign-in", (d, which) -> {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(code.verificationUrl))); }
                     catch (Exception e) { Toast.makeText(this, code.verificationUrl, Toast.LENGTH_LONG).show(); }
                 })
                 .setNeutralButton("Copy code", (d, which) -> {
                     ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Orbit ChatGPT code", code.userCode));
+                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
                     Toast.makeText(this, "Code copied", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Close", null)
@@ -1344,8 +1344,8 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         if (chatGptCodeSignIn != null) chatGptCodeSignIn.setVisibility(connected ? View.GONE : View.VISIBLE);
         if (chatGptHelp != null) {
             chatGptHelp.setText(connected
-                    ? "Orbit is using this account's ChatGPT/Codex allowance. No API key is needed."
-                    : "Sign in with your normal ChatGPT account in your browser. Orbit uses your "
+                    ? "GrokLink is using this account's ChatGPT/Codex allowance. No API key is needed."
+                    : "Sign in with your normal ChatGPT account in your browser. GrokLink uses your "
                             + "account-backed ChatGPT/Codex allowance and does not need an OpenAI API key.");
         }
         if (!connected && ChatGptBrowserAuth.inProgress()) {
@@ -1376,13 +1376,27 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         // its model, requests already fall back to ChatGPT, and this block must describe the
         // provider that actually answers.
         providerDetailsFor = AiProviders.active(this).id();
+        if (Prefs.PROVIDER_XAI.equals(providerDetailsFor)) {
+            TextView grokHelp = UiKit.text(this,
+                    "GrokLink uses only xAI's Grok: sign in with SuperGrok or save an xAI API key. "
+                            + AiProviders.byId(Prefs.PROVIDER_XAI).statusDetail(this) + ".",
+                    13, UiKit.MUTED, false);
+            grokHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
+            container.addView(grokHelp);
+            Button manageGrok = secondaryButton("Manage Grok connection");
+            manageGrok.setOnClickListener(v ->
+                    startActivity(new Intent(this, AiProvidersActivity.class)));
+            container.addView(manageGrok, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
+            return;
+        }
         if (Prefs.PROVIDER_LOCAL.equals(providerDetailsFor)) {
             TextView localHelp = UiKit.text(this,
-                    "Orbit Local answers on this phone with no account and no internet. Your ChatGPT sign-in, if present, stays securely saved but inactive while Orbit Local is selected.",
+                    "GrokLink Local answers on this phone with no account and no internet. Your ChatGPT sign-in, if present, stays securely saved but inactive while GrokLink Local is selected.",
                     13, UiKit.MUTED, false);
             localHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
             container.addView(localHelp);
-            Button manageLocal = secondaryButton("Manage Orbit Local");
+            Button manageLocal = secondaryButton("Manage GrokLink Local");
             manageLocal.setOnClickListener(v ->
                     startActivity(new Intent(this, LocalAiActivity.class)));
             container.addView(manageLocal, new LinearLayout.LayoutParams(
@@ -1391,7 +1405,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         }
         if (Prefs.PROVIDER_RELAY.equals(providerDetailsFor)) {
             TextView relayHelp = UiKit.text(this,
-                    "Advanced fallback: Orbit calls a private HTTPS relay you control. Your OpenAI API key stays on that server and is never stored in Orbit. ChatGPT credentials, if present, remain securely saved but inactive while this provider is selected.",
+                    "Advanced fallback: GrokLink calls a private HTTPS relay you control. Your OpenAI API key stays on that server and is never stored in GrokLink. ChatGPT credentials, if present, remain securely saved but inactive while this provider is selected.",
                     13, UiKit.MUTED, false);
             relayHelp.setPadding(0, 0, 0, UiKit.dp(this, 12));
             container.addView(relayHelp);
@@ -1419,12 +1433,12 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                     Toast.makeText(this, "Relay settings saved securely", Toast.LENGTH_SHORT).show();
                 } catch (Exception error) {
                     showOrbitMessageDialog("Could not save relay settings",
-                            "Orbit could not securely save the optional relay access token.");
+                            "GrokLink could not securely save the optional relay access token.");
                 }
             });
 
             TextView future = UiKit.text(this,
-                    "More provider options, including Claude and Gemini, are planned for future Orbit versions.",
+                    "More provider options, including Claude and Gemini, are planned for future GrokLink versions.",
                     11, UiKit.MUTED, false);
             future.setPadding(0, UiKit.dp(this, 10), 0, 0);
             container.addView(future);
@@ -1468,12 +1482,12 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         chatGptSignOut.setOnClickListener(v -> {
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle("Sign out of ChatGPT?")
-                    .setMessage("Orbit forgets this ChatGPT connection on this phone. You can sign in again at any time.")
+                    .setMessage("GrokLink forgets this ChatGPT connection on this phone. You can sign in again at any time.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Sign out", (d, w) -> {
                         ChatGptAuth.logout(this);
                         updateChatGptStatus();
-                        Toast.makeText(this, "Signed out of ChatGPT in Orbit", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Signed out of ChatGPT in GrokLink", Toast.LENGTH_SHORT).show();
                     })
                     .create();
             styleOrbitDialog(dialog, true);
@@ -1481,7 +1495,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         });
 
         TextView experimental = UiKit.text(this,
-                "Orbit signs in through OpenAI's public Codex OAuth sign-in (browser, or a one-time code). Because OpenAI does not document the Codex backend as a general third-party mobile API, this integration is experimental and the API relay remains available as an explicit fallback.",
+                "GrokLink signs in through OpenAI's public Codex OAuth sign-in (browser, or a one-time code). Because OpenAI does not document the Codex backend as a general third-party mobile API, this integration is experimental and the API relay remains available as an explicit fallback.",
                 12, UiKit.MUTED, false);
         experimental.setPadding(0, UiKit.dp(this, 8), 0, 0);
         container.addView(experimental);
@@ -1615,7 +1629,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
             new Thread(() -> {
                 try {
                     OrbitBackupManager.exportTo(getApplicationContext(), uri);
-                    runOnUiThread(() -> Toast.makeText(this, "Orbit backup saved", Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, "GrokLink backup saved", Toast.LENGTH_LONG).show());
                 } catch (Exception e) {
                     runOnUiThread(() -> showBackupError("Could not export backup", e));
                 }
@@ -1635,7 +1649,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private void confirmRestore(OrbitBackupManager.PreparedRestore prepared) {
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Restore Orbit backup?")
+                .setTitle("Restore GrokLink backup?")
                 .setMessage(prepared.confirmationMessage())
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Restore", (d, which) -> runRestore(prepared))
@@ -1645,14 +1659,14 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     }
 
     private void runRestore(OrbitBackupManager.PreparedRestore prepared) {
-        Toast.makeText(this, "Restoring Orbit backup…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Restoring GrokLink backup…", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             try {
                 OrbitBackupManager.restore(getApplicationContext(), prepared);
                 runOnUiThread(() -> {
                     UiKit.syncTheme(this);
                     Toast.makeText(this,
-                            "Orbit backup restored. Review Android permissions and default-assistant status.",
+                            "GrokLink backup restored. Review Android permissions and default-assistant status.",
                             Toast.LENGTH_LONG).show();
                     recreate();
                 });
@@ -1664,7 +1678,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private void showBackupError(String title, Exception error) {
         String message = error == null || error.getMessage() == null || error.getMessage().trim().isEmpty()
-                ? "Orbit could not complete this backup operation." : error.getMessage();
+                ? "GrokLink could not complete this backup operation." : error.getMessage();
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
@@ -1677,10 +1691,10 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private void updateAssistantStatus() {
         if (assistantStatus == null) return;
         boolean active = OrbitSetupHelper.isOrbitAssistantActive(this);
-        assistantStatus.setText(active ? "✓ Orbit is your default assistant" : "○ Orbit is not the active assistant yet");
+        assistantStatus.setText(active ? "✓ GrokLink is your default assistant" : "○ GrokLink is not the active assistant yet");
         assistantStatus.setTextColor(active ? UiKit.SUCCESS : UiKit.TEXT);
         if (assistantAction != null) {
-            assistantAction.setText(active ? "Manage default assistant" : "Make Orbit default assistant");
+            assistantAction.setText(active ? "Manage default assistant" : "Make GrokLink default assistant");
             assistantAction.setEnabled(true);
             assistantAction.setAlpha(1f);
         }
@@ -1902,17 +1916,17 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     }
 
     /** What the Vault's switch and its erase control say, in the words the screen shows. */
-    static final String VAULT_TOGGLE_LABEL = "Use Orbit Vault";
+    static final String VAULT_TOGGLE_LABEL = "Use GrokLink Vault";
     static final String VAULT_TOGGLE_HELP =
-            "Save text, links, images and useful Orbit answers for later. Everything stays on this "
-                    + "device, and Orbit uses a saved item only when you choose it yourself.";
-    static final String VAULT_OPEN_LABEL = "Open Orbit Vault";
+            "Save text, links, images and useful GrokLink answers for later. Everything stays on this "
+                    + "device, and GrokLink uses a saved item only when you choose it yourself.";
+    static final String VAULT_OPEN_LABEL = "Open GrokLink Vault";
     static final String SMART_VAULT_OPEN_LABEL = "Smart Vault";
     static final String VAULT_DELETE_LABEL = "Delete Vault data";
     static final String VAULT_DELETE_TITLE = "Delete all Vault data?";
     static final String VAULT_DELETE_MESSAGE =
-            "All items saved in Orbit Vault and their local media will be removed from this "
-                    + "device. This cannot be undone.\n\nYour chats, Orbit Memory, your providers "
+            "All items saved in GrokLink Vault and their local media will be removed from this "
+                    + "device. This cannot be undone.\n\nYour chats, GrokLink Memory, your providers "
                     + "and the rest of your settings are not affected.";
 
     /**
@@ -2072,7 +2086,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         row.addView(arrow);
 
         row.setContentDescription("Theme Studio. " + themeSummaryLine(active)
-                + ". Opens Orbit's color designer.");
+                + ". Opens GrokLink's color designer.");
         row.setOnClickListener(v -> startActivity(new Intent(this, ThemeStudioActivity.class)));
 
         LinearLayout holder = new LinearLayout(this);
@@ -2080,7 +2094,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         holder.addView(row, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView note = UiKit.text(this,
-                "Design Orbit's colors with live previews, presets and your own saved themes.",
+                "Design GrokLink's colors with live previews, presets and your own saved themes.",
                 12, UiKit.MUTED, false);
         note.setPadding(0, UiKit.dp(this, 10), 0, 0);
         holder.addView(note);
@@ -2147,7 +2161,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
 
     private View fontSelector() {
         String[] keys = new String[]{"orbit_default", "times_new_roman", "light", "condensed", "monospace", "casual"};
-        String[] labels = new String[]{"Orbit Default", "Times New Roman", "Light", "Condensed", "Monospace", "Casual"};
+        String[] labels = new String[]{"GrokLink Default", "Times New Roman", "Light", "Condensed", "Monospace", "Casual"};
         String selected = Prefs.appFont(this);
         int selectedIndex = indexOf(keys, selected);
         LinearLayout selector = fontMenuSelector(keys, labels, selectedIndex, (position, label) -> {
@@ -2200,7 +2214,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private View overlayCard() {
         LinearLayout card = card();
         tagSectionCard(card, "appearance");
-        TextView intro = UiKit.text(this, "Customize how Orbit appears over other apps.",
+        TextView intro = UiKit.text(this, "Customize how GrokLink appears over other apps.",
                 13, UiKit.MUTED, false);
         intro.setPadding(UiKit.dp(this, 2), 0, 0, UiKit.dp(this, 12));
         card.addView(intro);
@@ -2216,7 +2230,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         card.addView(controlGroup(SettingsSearchIndex.KEY_OVERLAY_STYLE,
                 styleLabel, overlayStyleSelector(), null));
         TextView styleNote = UiKit.text(this,
-                "Modern is Orbit's full floating assistant. Float is compact and grows only when a conversation needs the room; on wider screens it rests in the bottom-right corner, and tapping its handle folds it into a small Peek that keeps your chat going. Classic is the original overlay. Every style works the same way, and changes apply the next time you open the assistant.",
+                "Modern is GrokLink's full floating assistant. Float is compact and grows only when a conversation needs the room; on wider screens it rests in the bottom-right corner, and tapping its handle folds it into a small Peek that keeps your chat going. Classic is the original overlay. Every style works the same way, and changes apply the next time you open the assistant.",
                 12, UiKit.MUTED, false);
         styleNote.setPadding(0, UiKit.dp(this, 2), 0, UiKit.dp(this, 6));
         card.addView(styleNote);
@@ -2238,7 +2252,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 "Use screen and Select area. Also in Attach, under Screen.", Prefs.OVERLAY_SHOW_SCREEN));
         quick.addView(overlayToggle("Attach", null, Prefs.OVERLAY_SHOW_ATTACH));
         quick.addView(overlayToggle("Voice",
-                "Auto-listen still works, and the mic appears while Orbit is listening.",
+                "Auto-listen still works, and the mic appears while GrokLink is listening.",
                 Prefs.OVERLAY_SHOW_VOICE));
         card.addView(target(SettingsSearchIndex.KEY_OVERLAY_QUICK_CONTROLS, quick));
 

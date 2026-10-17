@@ -149,7 +149,7 @@ public class OverlayCustomizationTest {
             View root = overlay(style.id);
             assertNotNull(style.id, input(root));
             assertEquals(style.id, View.VISIBLE, find(root, "Send message").getVisibility());
-            assertEquals(style.id, View.VISIBLE, find(root, "Close Orbit").getVisibility());
+            assertEquals(style.id, View.VISIBLE, find(root, "Close GrokLink").getVisibility());
             assertEquals(style.id, View.VISIBLE, find(root, "More options").getVisibility());
             find(root, "More options").performClick();
             View menu = latestPopup();
@@ -231,14 +231,14 @@ public class OverlayCustomizationTest {
         assertSame(OverlayStyle.CUTIE, preview(activity).style());
 
         // Seven taps on the footer turn Lelo mode off; the page rebuilds in place.
-        TextView footer = startsWith(activity.getWindow().getDecorView(), "Orbit " + BuildConfig.VERSION_NAME);
+        TextView footer = startsWith(activity.getWindow().getDecorView(), "GrokLink " + BuildConfig.VERSION_NAME);
         for (int i = 0; i < 7; i++) footer.performClick();
         ShadowLooper.idleMainLooper();
         assertFalse(Prefs.leloMode(context));
         assertSame("safe public fallback", OverlayStyle.MODERN, preview(activity).style());
         assertFalse(OverlayStyle.choices(context).contains(OverlayStyle.CUTIE));
 
-        footer = startsWith(activity.getWindow().getDecorView(), "Orbit " + BuildConfig.VERSION_NAME);
+        footer = startsWith(activity.getWindow().getDecorView(), "GrokLink " + BuildConfig.VERSION_NAME);
         for (int i = 0; i < 7; i++) footer.performClick();
         ShadowLooper.idleMainLooper();
         assertSame("the stored choice comes back", OverlayStyle.CUTIE, preview(activity).style());

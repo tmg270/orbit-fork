@@ -294,7 +294,7 @@ public final class RoutineBranchRemovalTest {
         List<AssistantReply.Action> remaining = editor.editingSteps();
         assertTrue(RoutineBranch.structureValid(remaining));
         RoutineStore.Routine rewritten = RoutineStore.create("Rewritten", remaining);
-        assertTrue("the remainder has to be a routine Orbit will store",
+        assertTrue("the remainder has to be a routine GrokLink will store",
                 RoutineStore.upsert(context, rewritten));
 
         RoutineStore.Routine loaded = RoutineStore.findById(context, rewritten.id);

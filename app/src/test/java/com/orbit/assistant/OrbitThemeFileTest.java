@@ -158,7 +158,7 @@ public final class OrbitThemeFileTest {
             OrbitThemeFileCodec.decode((byte[]) null);
             fail("a null document must be refused");
         } catch (OrbitThemeFileCodec.ThemeFileException expected) {
-            assertEquals("This isn't a supported Orbit theme.", expected.getMessage());
+            assertEquals("This isn't a supported GrokLink theme.", expected.getMessage());
         }
         try {
             OrbitThemeFileCodec.decode(new byte[0]);
@@ -221,7 +221,7 @@ public final class OrbitThemeFileTest {
             fail("a newer schema must be refused");
         } catch (OrbitThemeFileCodec.ThemeFileException expected) {
             assertTrue(expected.newerVersion);
-            assertEquals("This theme was made for a newer version of Orbit.", expected.getMessage());
+            assertEquals("This theme was made for a newer version of GrokLink.", expected.getMessage());
         }
         try {
             OrbitThemeFileCodec.decode(document(9999));
@@ -242,14 +242,14 @@ public final class OrbitThemeFileTest {
     @Test public void anImportedFileCannotClaimBuiltInIdentity() throws Exception {
         OrbitTheme imported = OrbitThemeFileCodec.decode(
                 "{\"format\":\"orbit.theme\",\"schema\":2,\"id\":\"" + OrbitTheme.ID_AMOLED + "\","
-                + "\"name\":\"Orbit AMOLED\",\"builtIn\":true,\"accent\":\"dynamic\","
+                + "\"name\":\"GrokLink AMOLED\",\"builtIn\":true,\"accent\":\"dynamic\","
                 + "\"userBubble\":\"classic\",\"assistantBubble\":\"classic\","
                 + "\"surface\":\"classic\",\"background\":\"classic\",\"amoled\":true}");
 
         assertFalse("an external file may not declare itself built in", imported.builtIn);
         assertNotEquals(OrbitTheme.ID_AMOLED, imported.id);
         assertFalse("nor take a reserved built-in id", OrbitTheme.isBuiltInId(imported.id));
-        assertNotNull("Orbit's own preset is still there", OrbitTheme.builtIn(OrbitTheme.ID_AMOLED));
+        assertNotNull("GrokLink's own preset is still there", OrbitTheme.builtIn(OrbitTheme.ID_AMOLED));
         assertTrue(OrbitTheme.builtIn(OrbitTheme.ID_AMOLED).builtIn);
     }
 
@@ -358,7 +358,7 @@ public final class OrbitThemeFileTest {
             fail("an oversized theme file must be refused");
         } catch (OrbitThemeFileCodec.ThemeFileException expected) {
             assertFalse(expected.newerVersion);
-            assertEquals("This file is too large to be an Orbit theme.", expected.getMessage());
+            assertEquals("This file is too large to be an GrokLink theme.", expected.getMessage());
         }
     }
 
@@ -370,7 +370,7 @@ public final class OrbitThemeFileTest {
             OrbitThemeFileCodec.read(new ByteArrayInputStream(huge));
             fail("an oversized stream must be refused");
         } catch (OrbitThemeFileCodec.ThemeFileException expected) {
-            assertEquals("This file is too large to be an Orbit theme.", expected.getMessage());
+            assertEquals("This file is too large to be an GrokLink theme.", expected.getMessage());
         }
     }
 
@@ -393,7 +393,7 @@ public final class OrbitThemeFileTest {
                 OrbitThemeFileCodec.fileNameFor("My / theme"));
         assertEquals("Custom-theme" + OrbitThemeFileCodec.FILE_SUFFIX,
                 OrbitThemeFileCodec.fileNameFor("   "));
-        assertEquals("Orbit-theme" + OrbitThemeFileCodec.FILE_SUFFIX,
+        assertEquals("GrokLink-theme" + OrbitThemeFileCodec.FILE_SUFFIX,
                 OrbitThemeFileCodec.fileNameFor("///"));
         for (OrbitTheme preset : OrbitTheme.builtIns()) {
             String name = OrbitThemeFileCodec.fileNameFor(preset);
@@ -509,7 +509,7 @@ public final class OrbitThemeFileTest {
         } catch (OrbitThemeFileCodec.ThemeFileException expected) {
             assertFalse("the message must not leak a parser error",
                     expected.getMessage().contains("JSON"));
-            assertTrue("the message must be one Orbit wrote",
+            assertTrue("the message must be one GrokLink wrote",
                     expected.getMessage().startsWith("This "));
         }
     }

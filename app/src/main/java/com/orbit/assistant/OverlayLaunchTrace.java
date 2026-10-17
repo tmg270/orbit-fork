@@ -426,16 +426,16 @@ public final class OverlayLaunchTrace {
             return "the overlay was drawn and no ending was recorded";
         }
         if (EXPECTED_DISMISS.equals(status)) {
-            return "Orbit closed the overlay itself";
+            return "GrokLink closed the overlay itself";
         }
         if (INTERNAL_TRANSITION.equals(status)) {
-            return "Orbit handed off to another of its own screens";
+            return "GrokLink handed off to another of its own screens";
         }
         if (SYSTEM_HIDE.equals(status)) {
-            return "the overlay was drawn, then hidden without Orbit asking";
+            return "the overlay was drawn, then hidden without GrokLink asking";
         }
         if (HIDDEN_BEFORE_VISIBLE.equals(status)) {
-            return "the overlay was hidden before any frame was drawn, and Orbit did not ask";
+            return "the overlay was hidden before any frame was drawn, and GrokLink did not ask";
         }
         if (INCOMPLETE.equals(status)) {
             return "preparation began, nothing was drawn, and no ending arrived";
@@ -464,12 +464,12 @@ public final class OverlayLaunchTrace {
     /** The pasteable overlay launch report. */
     public static String report(Context context) {
         List<Attempt> all = attempts(context);
-        StringBuilder b = new StringBuilder("Orbit overlay launch diagnostics\n");
+        StringBuilder b = new StringBuilder("GrokLink overlay launch diagnostics\n");
         b.append("Version: ").append(versionOf(context)).append('\n');
         b.append("This process: ").append(PROCESS_TOKEN).append('\n');
         b.append("Stored attempts: ").append(all.size()).append('\n');
         if (all.isEmpty()) {
-            b.append("\nNo Side-button overlay launch has been recorded yet. Open Orbit with the "
+            b.append("\nNo Side-button overlay launch has been recorded yet. Open GrokLink with the "
                     + "Side-button gesture, then copy this again.\n");
             return b.toString();
         }

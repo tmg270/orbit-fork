@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * {@link AssistantReply#sourceUrls}.
  *
  * <p><b>A hint is not a citation.</b> {@code sourceUrls} means "the search reported consulting this
- * page", and Orbit's "Open source" control makes that claim to the user about the answer's facts. A
+ * page", and GrokLink's "Open source" control makes that claim to the user about the answer's facts. A
  * hint means only "a picture may be here". It never merges into the source list, never becomes a
  * citation, never appears as provenance for anything the answer said, and is used for one thing:
  * finding a photograph. Where a hint does produce a picture, that picture's own source page is the

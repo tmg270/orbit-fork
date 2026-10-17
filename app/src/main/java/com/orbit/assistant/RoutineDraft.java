@@ -163,7 +163,7 @@ public final class RoutineDraft {
                     rejected.add((type.isEmpty() ? "(none)" : type) + " — "
                             + (RoutineActionCatalog.isSupported(type)
                                     ? "parameters failed validation" : "unsupported action type"));
-                    addWarning(warnings, "Orbit couldn't add: "
+                    addWarning(warnings, "GrokLink couldn't add: "
                             + describeRejected(step.optString("describe", ""), type));
                     continue;
                 }
@@ -190,7 +190,7 @@ public final class RoutineDraft {
         // Kept for a planner that still answers in the pre-v0.7.5.0 shape: branching is supported
         // now, so this only matters when one was asked for and none survived into the draft.
         if (root.optBoolean("elseRequested", false) && !hasBranch(actions)) {
-            addWarning(warnings, "Orbit couldn't build the \"otherwise\" branch. Add it in the "
+            addWarning(warnings, "GrokLink couldn't build the \"otherwise\" branch. Add it in the "
                     + "IF step before saving.");
         }
 
@@ -302,7 +302,7 @@ public final class RoutineDraft {
             }
         }
         if (stripped) {
-            addWarning(warnings, "Orbit couldn't build the \"otherwise\" branch from that plan. "
+            addWarning(warnings, "GrokLink couldn't build the \"otherwise\" branch from that plan. "
                     + "Add it in the IF step before saving.");
         }
     }

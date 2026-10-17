@@ -142,7 +142,7 @@ final class SmartVaultText {
      * <p>In order: the query itself, ignoring case and line breaks, so "orbit purple" finds a
      * screenshot line reading "ORBIT\nPURPLE 7294"; otherwise the tightest place where the most
      * different query words occur together; otherwise nothing. Beta 1 took the first place any one
-     * word occurred, so a screenshot whose header said "Orbit" showed the header rather than the
+     * word occurred, so a screenshot whose header said "GrokLink" showed the header rather than the
      * line the user was looking for.
      *
      * @param terms the query's search terms, as {@link #terms} made them

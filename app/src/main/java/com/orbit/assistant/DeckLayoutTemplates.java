@@ -26,9 +26,9 @@ public final class DeckLayoutTemplates {
     }
 
     private static final List<Template> TEMPLATES = Collections.unmodifiableList(Arrays.asList(
-            new Template(ESSENTIALS, "Orbit Essentials", "Orbit's everyday destinations and device controls"),
+            new Template(ESSENTIALS, "GrokLink Essentials", "GrokLink's everyday destinations and device controls"),
             new Template(FOCUS, "Focus", "A quieter Deck for conversations, reminders, and routines"),
-            new Template(COMMAND_CENTER, "Command Center", "A structured dashboard for Orbit tools and actions")
+            new Template(COMMAND_CENTER, "Command Center", "A structured dashboard for GrokLink tools and actions")
     ));
 
     private DeckLayoutTemplates() {}
@@ -77,7 +77,7 @@ public final class DeckLayoutTemplates {
     }
 
     private static void commandCenter(Context context, List<DeckItem> items) {
-        items.add(new DeckSection(DeckTile.newInstanceId(), "Orbit"));
+        items.add(new DeckSection(DeckTile.newInstanceId(), "GrokLink"));
         addItem(context, items, DeckTileRegistry.TYPE_NEW_CHAT, DeckTile.Size.WIDE);
         addItem(context, items, DeckTileRegistry.TYPE_CAPABILITIES, DeckTile.Size.STANDARD);
         addItem(context, items, DeckTileRegistry.TYPE_SETTINGS, DeckTile.Size.STANDARD);

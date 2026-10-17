@@ -85,10 +85,10 @@ public final class ComposerTrace {
     /** A pasteable report, or a short note when nothing has been recorded yet. */
     public static synchronized String report() {
         if (EVENTS.isEmpty()) {
-            return "Orbit typing diagnostics\n\nNo composer activity recorded yet. "
+            return "GrokLink typing diagnostics\n\nNo composer activity recorded yet. "
                     + "Reproduce the problem first, then copy this again.";
         }
-        StringBuilder b = new StringBuilder("Orbit typing diagnostics\n");
+        StringBuilder b = new StringBuilder("GrokLink typing diagnostics\n");
         b.append("Events: ").append(EVENTS.size()).append("\n\n");
         for (String event : EVENTS) b.append(event).append('\n');
         return b.toString();

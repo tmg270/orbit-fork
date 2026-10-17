@@ -107,7 +107,7 @@ public final class OnboardingState {
      * A preference Orbit writes by itself on a brand-new install, holding the value it writes.
      *
      * <p>Applying the theme, which Chats does before it asks this class anything, stamps the theme
-     * schema and names the untouched appearance "Orbit Default". Counting those as evidence of an
+     * schema and names the untouched appearance "GrokLink Default". Counting those as evidence of an
      * earlier install made every fresh install skip onboarding. Only the exact fresh values are
      * ignored: a theme the user actually chose or named still identifies an existing install.
      */

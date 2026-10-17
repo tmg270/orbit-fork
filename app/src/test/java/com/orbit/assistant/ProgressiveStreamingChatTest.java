@@ -234,7 +234,7 @@ public final class ProgressiveStreamingChatTest {
 
         activity.setFollowBottomForTest(false);
         for (int i = 0; i < 30; i++) OrbitRequestManager.dispatchDelta(id, "line " + i);
-        assertFalse("Orbit must leave a reader where they are",
+        assertFalse("GrokLink must leave a reader where they are",
                 activity.followBottomForTest());
 
         chat.pause().stop().destroy();

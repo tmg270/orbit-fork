@@ -236,7 +236,7 @@ public final class OrbitProEntitlementTest {
         assertFalse("a registered provider that does not entitle leaves it Free",
                 OrbitProEntitlement.resolve(false, true,
                         Collections.singletonList(new NeverPro()), context));
-        assertFalse("and an empty list is Free, which is Orbit today",
+        assertFalse("and an empty list is Free, which is GrokLink today",
                 OrbitProEntitlement.resolve(false, true, Collections.emptyList(), context));
     }
 
@@ -335,7 +335,7 @@ public final class OrbitProEntitlementTest {
                 if (candidate.getFileName().toString().equals(free)) source = candidate;
             }
             assertNotNull(free + " must exist to be checked", source);
-            assertFalse(free + " was free before Orbit Pro and must not gate on it",
+            assertFalse(free + " was free before GrokLink Pro and must not gate on it",
                     read(source).contains("OrbitProEntitlement.hasPro("));
         }
     }
@@ -345,7 +345,7 @@ public final class OrbitProEntitlementTest {
         for (Path source : mainSources()) {
             String body = read(source);
             for (String selling : new String[]{"\"Upgrade to Pro\"", "\"Unlock Pro\"",
-                    "\"Restore purchase", "\"Buy Orbit Pro", "\"Subscribe"}) {
+                    "\"Restore purchase", "\"Buy GrokLink Pro", "\"Subscribe"}) {
                 assertFalse(source.getFileName() + " must not offer a purchase that does not exist",
                         body.contains(selling));
             }

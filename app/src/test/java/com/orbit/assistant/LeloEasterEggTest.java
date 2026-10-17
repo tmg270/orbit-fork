@@ -120,8 +120,8 @@ public final class LeloEasterEggTest {
 
     @Test public void withLeloModeOffTheTitleIsTheOrbitTitle() {
         ActivityController<MainActivity> controller = chats();
-        assertEquals("Orbit", titleOf(controller.get()));
-        assertEquals("Orbit", UiKit.appTitle(context));
+        assertEquals("GrokLink", titleOf(controller.get()));
+        assertEquals("GrokLink", UiKit.appTitle(context));
         controller.pause().stop().destroy();
     }
 
@@ -193,7 +193,7 @@ public final class LeloEasterEggTest {
         String lower = note.toLowerCase(Locale.US);
         assertTrue(lower.contains("wanted and needed"));
         assertTrue(lower.contains("never forget"));
-        assertEquals("and it is the one string Orbit keeps for it", UiKit.LELO_NOTE, note);
+        assertEquals("and it is the one string GrokLink keeps for it", UiKit.LELO_NOTE, note);
         controller.pause().stop().destroy();
     }
 
@@ -258,7 +258,7 @@ public final class LeloEasterEggTest {
      */
     @Test public void enablingItFromSettingsChangesTheHeaderOnReturn() {
         ActivityController<MainActivity> controller = chats();
-        assertEquals("Orbit", titleOf(controller.get()));
+        assertEquals("GrokLink", titleOf(controller.get()));
 
         controller.pause();
         leloMode(true);
@@ -279,7 +279,7 @@ public final class LeloEasterEggTest {
         controller.resume();
 
         MainActivity activity = controller.get();
-        assertEquals("Orbit", titleOf(activity));
+        assertEquals("GrokLink", titleOf(activity));
         assertTrue("the note must be gone, not hidden", notes(activity).isEmpty());
         assertEquals(2, titleColumn(activity).getChildCount());
         controller.pause().stop().destroy();
@@ -344,8 +344,8 @@ public final class LeloEasterEggTest {
         assertEquals("com.orbit.assistant", BuildConfig.APPLICATION_ID);
         String strings = ComponentUninstallTest.readRepositoryFile(
                 "app/src/main/res/values/strings.xml");
-        assertTrue("the app name is still Orbit's",
-                strings.contains("<string name=\"app_name\">Orbit Assistant</string>"));
+        assertTrue("the app name is still GrokLink's",
+                strings.contains("<string name=\"app_name\">GrokLink</string>"));
         assertFalse("and nothing in resources knows about Lelo",
                 strings.contains("Lelo"));
     }
@@ -377,8 +377,8 @@ public final class LeloEasterEggTest {
     @Test public void withLeloModeOffTheOverlayTitleIsOrbit() {
         List<TextView> overlay = overlayTextViews();
 
-        assertTrue("the overlay header must read Orbit with the mode off",
-                anyTextIs(overlay, "Orbit"));
+        assertTrue("the overlay header must read GrokLink with the mode off",
+                anyTextIs(overlay, "GrokLink"));
         for (TextView t : overlay) {
             String value = t.getText() == null ? "" : t.getText().toString();
             assertFalse("Lelo's Cutie must not reach the overlay with the mode off",
@@ -392,8 +392,8 @@ public final class LeloEasterEggTest {
 
         assertTrue("the Side-button overlay must be renamed too",
                 anyTextIs(overlay, "Lelo's Cutie"));
-        assertFalse("and the Orbit title must not still be sitting beside it",
-                anyTextIs(overlay, "Orbit"));
+        assertFalse("and the GrokLink title must not still be sitting beside it",
+                anyTextIs(overlay, "GrokLink"));
     }
 
     /**
@@ -424,7 +424,7 @@ public final class LeloEasterEggTest {
         assertTrue("and so must the full app", chats.contains("UiKit.appTitle(this)"));
 
         assertFalse("the overlay must not hardcode a title of its own",
-                overlay.contains("UiKit.text(c, \"Orbit\""));
+                overlay.contains("UiKit.text(c, \"GrokLink\""));
         assertFalse("nor read the preference itself", overlay.contains("Prefs.leloMode"));
         assertFalse("nor name the Lelo title", overlay.contains("LELO_TITLE"));
         assertFalse("nor carry the personal note", overlay.contains("LELO_NOTE"));

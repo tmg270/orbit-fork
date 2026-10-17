@@ -77,8 +77,8 @@ public class DiagnosticsTypographyTest {
     private static Map<String, State> headings(View root) {
         Map<String, State> out = new LinkedHashMap<>();
         for (String title : new String[]{"Request flow", "Thinking updates", "AI selection",
-                "Screen & app context", "Memory", "Calendar", "Rich Answers", "Orbit Local",
-                "Actions & utilities", "Routines", "Orbit Deck", "Gestures", "Advanced"}) {
+                "Screen & app context", "Memory", "Calendar", "Rich Answers", "GrokLink Local",
+                "Actions & utilities", "Routines", "GrokLink Deck", "Gestures", "Advanced"}) {
             out.put(title, new State(find(root, title)));
         }
         return out;

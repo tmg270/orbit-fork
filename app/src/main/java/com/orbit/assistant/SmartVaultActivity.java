@@ -195,8 +195,8 @@ public final class SmartVaultActivity extends Activity {
 
         if (!Prefs.vaultEnabled(this)) {
             LinearLayout off = card();
-            off.addView(UiKit.text(this, "Orbit Vault is turned off", 15, UiKit.TEXT, true));
-            off.addView(muted("Turn Orbit Vault on in Settings to use Smart Vault."));
+            off.addView(UiKit.text(this, "GrokLink Vault is turned off", 15, UiKit.TEXT, true));
+            off.addView(muted("Turn GrokLink Vault on in Settings to use Smart Vault."));
             page.addView(off, cardLp());
             return;
         }
@@ -283,7 +283,7 @@ public final class SmartVaultActivity extends Activity {
         delete.setOnClickListener(v -> confirmDeleteData());
         manage.addView(delete, buttonLp(9));
         manage.addView(muted("Deleting removes recognised text, page text, the index and "
-                + "Orbit's suggestions. Your items, notes, own titles and kept topics stay."));
+                + "GrokLink's suggestions. Your items, notes, own titles and kept topics stay."));
         page.addView(manage, cardLp());
 
         page.addView(details());
@@ -501,7 +501,7 @@ public final class SmartVaultActivity extends Activity {
             itemsBody.addView(muted("Every item already has suggestions."));
         } else {
             itemsBody.addView(muted(without.size() + (without.size() == 1 ? " item has"
-                    : " items have") + " no suggestions. Orbit only sends them to your AI "
+                    : " items have") + " no suggestions. GrokLink only sends them to your AI "
                     + "provider if you ask."));
             Button suggest = UiKit.button(this, "Suggest details for these items", false);
             suggest.setOnClickListener(v -> confirmBatch(without));
@@ -573,7 +573,7 @@ public final class SmartVaultActivity extends Activity {
         String providerName = SmartVault.providerName(this);
         List<String> batch = ids.size() > SmartVault.MAX_BATCH
                 ? ids.subList(0, SmartVault.MAX_BATCH) : ids;
-        String message = "Orbit will send " + batch.size()
+        String message = "GrokLink will send " + batch.size()
                 + (batch.size() == 1 ? " saved item" : " saved items")
                 + " to " + providerName + ", one at a time, for a suggested title, "
                 + "summary and topics. This uses your AI allowance: about one small request per "
@@ -600,7 +600,7 @@ public final class SmartVaultActivity extends Activity {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Delete Smart Vault data?")
                 .setMessage("Removes recognised text, page text, the search index and every "
-                        + "suggestion Orbit wrote. Your saved items, notes, your own titles and "
+                        + "suggestion GrokLink wrote. Your saved items, notes, your own titles and "
                         + "kept topics are not touched. The search model stays until you remove it.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Delete", (d, w) -> {

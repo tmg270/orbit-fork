@@ -83,7 +83,7 @@ public final class ComponentInstallHandoffTest {
         try {
             OrbitLocalInstaller.launchInstaller(activity, apk);
         } catch (Exception e) {
-            assertEquals("a correctly placed component must never be refused by Orbit's own "
+            assertEquals("a correctly placed component must never be refused by GrokLink's own "
                             + "checks; it may only fail at the platform handoff",
                     OrbitLocalInstaller.InstallStage.FILEPROVIDER_URI.message, e.getMessage());
         }
@@ -100,7 +100,7 @@ public final class ComponentInstallHandoffTest {
         try (FileOutputStream out = new FileOutputStream(stray)) {
             out.write(new byte[]{1, 2, 3, 4});
         }
-        expectRefusal(stray, "an APK outside Orbit's component directory");
+        expectRefusal(stray, "an APK outside GrokLink's component directory");
         assertNull(shadowOf(activity).getNextStartedActivity());
     }
 
@@ -165,7 +165,7 @@ public final class ComponentInstallHandoffTest {
         String recorded = DiagnosticStore.prefs(context).getString("last_error", "");
         assertTrue("the stage must be recorded for Beta diagnosis, was: " + recorded,
                 recorded.contains("OUTSIDE_COMPONENT_DIRECTORY"));
-        assertTrue(recorded.contains("Orbit Local component installer"));
+        assertTrue(recorded.contains("GrokLink Local component installer"));
     }
 
     // ---- the main updater is untouched ---------------------------------------------------------------------
@@ -210,7 +210,7 @@ public final class ComponentInstallHandoffTest {
     private void expectRefusal(File apk, String why) {
         try {
             OrbitLocalInstaller.launchInstaller(activity, apk);
-            fail("Orbit must refuse to install " + why);
+            fail("GrokLink must refuse to install " + why);
         } catch (Exception expected) {
             assertNotNull("a refusal must explain itself", expected.getMessage());
         }

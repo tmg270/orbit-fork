@@ -121,11 +121,11 @@ public final class OrbitLocalInstaller {
                 int status = connection.getResponseCode();
                 requireHttpsFinalUrl(connection);
                 if (status < 200 || status >= 300) {
-                    throw new InstallException("The Orbit Local download failed (HTTP " + status + ").");
+                    throw new InstallException("The GrokLink Local download failed (HTTP " + status + ").");
                 }
                 long contentLength = connection.getContentLengthLong();
                 if (contentLength > MAX_APK_BYTES) {
-                    throw new InstallException("The Orbit Local component is unexpectedly large.");
+                    throw new InstallException("The GrokLink Local component is unexpectedly large.");
                 }
 
                 long total = 0L;
@@ -137,7 +137,7 @@ public final class OrbitLocalInstaller {
                     while ((read = in.read(buffer)) != -1) {
                         total += read;
                         if (total > MAX_APK_BYTES) {
-                            throw new InstallException("The Orbit Local download exceeded its safe size limit.");
+                            throw new InstallException("The GrokLink Local download exceeded its safe size limit.");
                         }
                         out.write(buffer, 0, read);
                         long denominator = expected.sizeBytes > 0L ? expected.sizeBytes : contentLength;
@@ -151,7 +151,7 @@ public final class OrbitLocalInstaller {
                     out.getFD().sync();
                 }
                 if (!part.renameTo(output)) {
-                    throw new InstallException("Orbit could not finish preparing the component.");
+                    throw new InstallException("GrokLink could not finish preparing the component.");
                 }
                 callback.onVerifying();
                 verify(app, output, expected);
@@ -163,7 +163,7 @@ public final class OrbitLocalInstaller {
                 Log.w(TAG, "component install failed: " + e.getClass().getSimpleName());
                 callback.onError(e instanceof InstallException && e.getMessage() != null
                         ? e.getMessage()
-                        : "Orbit could not download the Orbit Local component.");
+                        : "GrokLink could not download the GrokLink Local component.");
             } finally {
                 if (connection != null) connection.disconnect();
             }
@@ -203,7 +203,7 @@ public final class OrbitLocalInstaller {
         static Expected from(JSONObject manifest) throws Exception {
             JSONObject component = manifest == null ? null : manifest.optJSONObject("component");
             if (component == null) {
-                throw new InstallException("This Orbit release does not publish an Orbit Local component.");
+                throw new InstallException("This GrokLink release does not publish an GrokLink Local component.");
             }
             Expected expected = new Expected(
                     component.optString("packageName", "").trim(),
@@ -216,25 +216,25 @@ public final class OrbitLocalInstaller {
                     component.optLong("apkSize", -1L));
 
             if (!OrbitLocalComponent.PACKAGE.equals(expected.packageName)) {
-                throw new InstallException("The Orbit Local component metadata names the wrong package.");
+                throw new InstallException("The GrokLink Local component metadata names the wrong package.");
             }
             if (!assetName().equals(expected.assetName)) {
-                throw new InstallException("The Orbit Local component does not match this Orbit version.");
+                throw new InstallException("The GrokLink Local component does not match this GrokLink version.");
             }
             // Both halves of the version, not just the name: the component and the main app are
             // released in lockstep, and a mismatched versionCode is a mismatched build.
             if (!BuildConfig.VERSION_NAME.equals(expected.versionName)
                     || expected.versionCode != BuildConfig.VERSION_CODE) {
-                throw new InstallException("The Orbit Local component does not match this Orbit version.");
+                throw new InstallException("The GrokLink Local component does not match this GrokLink version.");
             }
             if (expected.protocol != OrbitLocalComponent.PROTOCOL_VERSION) {
-                throw new InstallException("The Orbit Local component uses an incompatible interface.");
+                throw new InstallException("The GrokLink Local component uses an incompatible interface.");
             }
             if (!expected.sha256.matches("^[0-9a-fA-F]{64}$")) {
-                throw new InstallException("The Orbit Local component checksum is malformed.");
+                throw new InstallException("The GrokLink Local component checksum is malformed.");
             }
             if (!normalize(expected.certificateSha256).equals(normalize(CERTIFICATE_SHA256))) {
-                throw new InstallException("The Orbit Local component certificate metadata is invalid.");
+                throw new InstallException("The GrokLink Local component certificate metadata is invalid.");
             }
             return expected;
         }
@@ -276,7 +276,7 @@ public final class OrbitLocalInstaller {
         }
         String certificate = hex(MessageDigest.getInstance("SHA-256").digest(signers[0].toByteArray()));
         if (!normalize(certificate).equals(normalize(CERTIFICATE_SHA256))) {
-            throw new InstallException("The downloaded component is not signed by Orbit's permanent certificate.");
+            throw new InstallException("The downloaded component is not signed by GrokLink's permanent certificate.");
         }
     }
 
@@ -299,7 +299,7 @@ public final class OrbitLocalInstaller {
     enum InstallStage {
         APK_MISSING("The verified component file is no longer available. Download it again."),
         OUTSIDE_COMPONENT_DIRECTORY("The verified component file is unavailable."),
-        FILEPROVIDER_URI("Orbit could not share the component with Android's installer."),
+        FILEPROVIDER_URI("GrokLink could not share the component with Android's installer."),
         NO_INSTALLER("This device has no package installer available."),
         START_ACTIVITY("Android could not open the package installer.");
 
@@ -371,7 +371,7 @@ public final class OrbitLocalInstaller {
         if (failure != null) {
             try {
                 DiagnosticStore.recordError(context.getApplicationContext(),
-                        "Orbit Local component installer: " + detail);
+                        "GrokLink Local component installer: " + detail);
             } catch (Throwable ignored) {
                 // Diagnostics must never be the reason an install fails.
             }
@@ -379,7 +379,7 @@ public final class OrbitLocalInstaller {
     }
 
     // Removal lives in OrbitLocalUninstaller. It was here, as a fire-and-forget ACTION_DELETE
-    // wrapped in a silent catch, and that combination is what made "Remove Orbit Local" do nothing
+    // wrapped in a silent catch, and that combination is what made "Remove GrokLink Local" do nothing
     // at all on a real device without so much as a message.
 
     // ---- the installer cache ----------------------------------------------------------------------
@@ -470,7 +470,7 @@ public final class OrbitLocalInstaller {
 
     private static String downloadUrl(String tag, String assetName) throws Exception {
         if (!OrbitVersion.isValidTag(tag) || !assetName.matches("^[A-Za-z0-9._-]+$")) {
-            throw new InstallException("The Orbit Local asset reference is malformed.");
+            throw new InstallException("The GrokLink Local asset reference is malformed.");
         }
         return OrbitEdition.releaseDownloadBase() + tag + "/" + assetName;
     }
@@ -481,7 +481,7 @@ public final class OrbitLocalInstaller {
             int status = connection.getResponseCode();
             requireHttpsFinalUrl(connection);
             if (status < 200 || status >= 300) {
-                throw new InstallException("The Orbit Local release information could not be read (HTTP "
+                throw new InstallException("The GrokLink Local release information could not be read (HTTP "
                         + status + ").");
             }
             try (InputStream in = connection.getInputStream();
@@ -504,7 +504,7 @@ public final class OrbitLocalInstaller {
     private static HttpURLConnection open(String value) throws Exception {
         URL url = new URL(value);
         if (!"https".equalsIgnoreCase(url.getProtocol())) {
-            throw new InstallException("Orbit Local downloads require HTTPS.");
+            throw new InstallException("GrokLink Local downloads require HTTPS.");
         }
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(15000);

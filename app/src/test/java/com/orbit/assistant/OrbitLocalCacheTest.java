@@ -67,7 +67,7 @@ public final class OrbitLocalCacheTest {
 
     @Test public void aConfirmedInstallationAlsoClearsInterruptedDownloads() {
         write(currentAssetName() + ".part", 4096L);
-        write("Orbit-Local-v0.7.7.5-beta.1.apk", 1024L);
+        write("GrokLink-Local-v0.7.7.5-beta.1.apk", 1024L);
 
         OrbitLocalInstaller.cleanupAfterInstall(context);
 
@@ -78,9 +78,9 @@ public final class OrbitLocalCacheTest {
 
     /** An installer built for another Orbit release can never be installed by this one. */
     @Test public void installersFromOtherOrbitVersionsArePruned() {
-        write("Orbit-Local-v0.7.7.5-beta.1.apk", 35_000_000L);
-        write("Orbit-Local-v0.7.7.5-beta.2.apk", 35_000_000L);
-        write("Orbit-Local-v0.7.7.4.apk", 35_000_000L);
+        write("GrokLink-Local-v0.7.7.5-beta.1.apk", 35_000_000L);
+        write("GrokLink-Local-v0.7.7.5-beta.2.apk", 35_000_000L);
+        write("GrokLink-Local-v0.7.7.4.apk", 35_000_000L);
         File current = write(currentAssetName(), 35_000_000L);
 
         OrbitLocalInstaller.prune(context, null);
@@ -93,7 +93,7 @@ public final class OrbitLocalCacheTest {
     /** A half-finished download is restarted from zero, so keeping it buys nothing. */
     @Test public void staleFragmentsArePruned() {
         write(currentAssetName() + ".part", 12_000_000L);
-        write("Orbit-Local-v0.7.7.5-beta.1.apk.part", 900L);
+        write("GrokLink-Local-v0.7.7.5-beta.1.apk.part", 900L);
 
         OrbitLocalInstaller.prune(context, null);
 
@@ -119,7 +119,7 @@ public final class OrbitLocalCacheTest {
     @Test public void theInstallerInUseIsNeverRemoved() {
         File inUse = write(currentAssetName(), 35_000_000L);
         inUse.setLastModified(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000L);
-        write("Orbit-Local-v0.7.7.5-beta.1.apk", 1024L);
+        write("GrokLink-Local-v0.7.7.5-beta.1.apk", 1024L);
 
         OrbitLocalInstaller.prune(context, inUse);
 
@@ -180,7 +180,7 @@ public final class OrbitLocalCacheTest {
     @Test public void unrelatedCacheDirectoriesAreUntouched() throws Exception {
         File updates = new File(context.getCacheDir(), "updates");
         File camera = new File(context.getCacheDir(), "orbit_picker_camera");
-        File pendingUpdate = new File(updates, "Orbit-Assistant-v0.7.7.5-beta.3.apk");
+        File pendingUpdate = new File(updates, "GrokLink-Assistant-v0.7.7.5-beta.3.apk");
         File photo = new File(camera, "capture.jpg");
         writeAt(pendingUpdate, 2048L);
         writeAt(photo, 512L);
@@ -189,7 +189,7 @@ public final class OrbitLocalCacheTest {
         OrbitLocalInstaller.prune(context, null);
         OrbitLocalInstaller.cleanupAfterInstall(context);
 
-        assertTrue("the pending Orbit update installer belongs to the updater",
+        assertTrue("the pending GrokLink update installer belongs to the updater",
                 pendingUpdate.isFile());
         assertTrue(photo.isFile());
         assertEquals(0, remaining().size());
@@ -207,10 +207,10 @@ public final class OrbitLocalCacheTest {
 
     /** The asset name is version-specific, which is why old ones must be pruned at all. */
     @Test public void eachReleaseHasItsOwnComponentAssetName() {
-        assertEquals("Orbit-Local-v" + BuildConfig.VERSION_NAME + ".apk",
+        assertEquals("GrokLink-Local-v" + BuildConfig.VERSION_NAME + ".apk",
                 OrbitLocalInstaller.assetName());
         assertFalse("beta.2's asset is not this build's",
-                "Orbit-Local-v0.7.7.5-beta.2.apk".equals(OrbitLocalInstaller.assetName()));
+                "GrokLink-Local-v0.7.7.5-beta.2.apk".equals(OrbitLocalInstaller.assetName()));
     }
 
     // ---- helpers --------------------------------------------------------------------------------------

@@ -97,7 +97,7 @@ public final class OrbitExtensionActionExecutor {
             // Validate the fully rendered URL and resolve its host immediately before connecting.
             if (finalUrl.length() > 2048)
                 return DeviceActionExecutor.Result.failed(
-                        "Extension endpoint exceeded Orbit's safe size limit.");
+                        "Extension endpoint exceeded GrokLink's safe size limit.");
             OrbitExtension.validatePublicUrl(finalUrl, false);
             OrbitExtension.validateResolvedPublicHost(finalUrl);
 
@@ -108,7 +108,7 @@ public final class OrbitExtensionActionExecutor {
             byte[] body = renderedBody.toString().getBytes(StandardCharsets.UTF_8);
             if (body.length > OrbitExtension.MAX_POST_BODY_BYTES)
                 return DeviceActionExecutor.Result.failed(
-                        "Extension request exceeded Orbit's safe size limit.");
+                        "Extension request exceeded GrokLink's safe size limit.");
 
             Map<String, String> renderedHeaders = new LinkedHashMap<>();
             for (OrbitExtension.RequestHeader header : action.headers) {
@@ -155,7 +155,7 @@ public final class OrbitExtensionActionExecutor {
             return DeviceActionExecutor.Result.failed(
                     "Extension request failed (HTTP " + status + ")");
         } catch (ResponseTooLargeException ignored) {
-            return DeviceActionExecutor.Result.failed("Extension response exceeded Orbit's safe size limit.");
+            return DeviceActionExecutor.Result.failed("Extension response exceeded GrokLink's safe size limit.");
         } catch (IllegalArgumentException ignored) {
             return DeviceActionExecutor.Result.failed("Extension endpoint is not a public HTTPS address.");
         } catch (Exception ignored) {
@@ -221,7 +221,7 @@ public final class OrbitExtensionActionExecutor {
                             "Extension opened the reviewed URL"));
                 } catch (Exception ignored) {
                     if (completion != null) completion.finish(DeviceActionExecutor.Result.failed(
-                            "Orbit could not open the extension URL."));
+                            "GrokLink could not open the extension URL."));
                 }
             });
         } catch (Exception ignored) {

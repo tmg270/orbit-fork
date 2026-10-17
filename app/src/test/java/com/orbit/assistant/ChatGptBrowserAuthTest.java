@@ -205,7 +205,7 @@ public final class ChatGptBrowserAuthTest {
         ShadowLooper.idleMainLooper();
 
         assertEquals(200, response.status);
-        assertTrue(response.body.contains("Return to Orbit"));
+        assertTrue(response.body.contains("Return to GrokLink"));
         assertTrue(response.body.contains(ChatGptBrowserAuth.RETURN_URI));
         assertEquals(1, recorder.signedIn.get());
         assertEquals("acct-123", recorder.account.accountId);

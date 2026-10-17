@@ -239,7 +239,7 @@ public class RoutineEditorActivity extends Activity {
             LinearLayout empty = card();
             empty.addView(UiKit.text(this, "No steps yet", 15, UiKit.TEXT, true));
             TextView note = UiKit.text(this,
-                    "Add the actions Orbit should perform when this routine runs.",
+                    "Add the actions GrokLink should perform when this routine runs.",
                     12, UiKit.MUTED, false);
             note.setPadding(0, UiKit.dp(this, 5), 0, 0);
             empty.addView(note);
@@ -867,7 +867,7 @@ public class RoutineEditorActivity extends Activity {
         // the stored counts in step with it.
         TextView behavior = UiKit.text(this,
                 "Add the actions for THEN and OTHERWISE on the branch itself. Exactly one path "
-                        + "runs, then Orbit continues with the rest of the Routine.",
+                        + "runs, then GrokLink continues with the rest of the Routine.",
                 11, UiKit.MUTED, false);
         behavior.setLineSpacing(0, 1.1f);
         behavior.setPadding(0, UiKit.dp(this, 12), 0, 0);
@@ -998,7 +998,7 @@ public class RoutineEditorActivity extends Activity {
                 pendingConditionLocationButton.setEnabled(true);
                 pendingConditionLocationButton.setText("Use my current location");
             }
-            Toast.makeText(this, "Orbit could not get the current location.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not get the current location.", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -1025,7 +1025,7 @@ public class RoutineEditorActivity extends Activity {
         form.addView(dialogLabel("App name"));
         EditText app = inputField("Spotify, YouTube, Overwatch…", current, false);
         form.addView(app, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 52)));
-        TextView help = UiKit.text(this, "Orbit resolves the installed app when the routine runs.", 11, UiKit.MUTED, false);
+        TextView help = UiKit.text(this, "GrokLink resolves the installed app when the routine runs.", 11, UiKit.MUTED, false);
         help.setPadding(0, UiKit.dp(this, 7), 0, 0);
         form.addView(help);
         showFormDialog(editIndex < 0 ? "Add Open app" : "Edit Open app", form,
@@ -1101,7 +1101,7 @@ public class RoutineEditorActivity extends Activity {
         unitLp.topMargin = UiKit.dp(this, 8);
         form.addView(unitSelector, unitLp);
         form.addView(dialogLabel("Optional label"));
-        EditText label = inputField("Orbit timer", old == null ? "" : old.params.optString("label", ""), false);
+        EditText label = inputField("GrokLink timer", old == null ? "" : old.params.optString("label", ""), false);
         form.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 52)));
 
         showFormDialog(editIndex < 0 ? "Add Timer" : "Edit Timer", form,
@@ -1114,7 +1114,7 @@ public class RoutineEditorActivity extends Activity {
                     try {
                         String timerLabel = label.getText().toString().trim();
                         JSONObject p = new JSONObject().put("seconds", (int) total)
-                                .put("label", timerLabel.isEmpty() ? "Orbit timer" : timerLabel);
+                                .put("label", timerLabel.isEmpty() ? "GrokLink timer" : timerLabel);
                         putAction(editIndex, new AssistantReply.Action(RoutineActionCatalog.SET_TIMER, p, false));
                         return true;
                     } catch (Exception e) { return formError("Could not save that timer."); }
@@ -1141,7 +1141,7 @@ public class RoutineEditorActivity extends Activity {
         apLp.topMargin = UiKit.dp(this, 8);
         form.addView(apSelector, apLp);
         form.addView(dialogLabel("Optional label"));
-        EditText label = inputField("Orbit alarm", old == null ? "" : old.params.optString("label", ""), false);
+        EditText label = inputField("GrokLink alarm", old == null ? "" : old.params.optString("label", ""), false);
         form.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 52)));
 
         showFormDialog(editIndex < 0 ? "Add Alarm" : "Edit Alarm", form,
@@ -1155,7 +1155,7 @@ public class RoutineEditorActivity extends Activity {
                     try {
                         String alarmLabel = label.getText().toString().trim();
                         JSONObject p = new JSONObject().put("hour", h24).put("minute", m)
-                                .put("label", alarmLabel.isEmpty() ? "Orbit alarm" : alarmLabel);
+                                .put("label", alarmLabel.isEmpty() ? "GrokLink alarm" : alarmLabel);
                         putAction(editIndex, new AssistantReply.Action(RoutineActionCatalog.SET_ALARM, p, false));
                         return true;
                     } catch (Exception e) { return formError("Could not save that alarm."); }
@@ -1256,7 +1256,7 @@ public class RoutineEditorActivity extends Activity {
             routine = existing.withNameAndActions(name, workingActions);
         }
         if (!RoutineStore.upsert(this, routine)) {
-            Toast.makeText(this, "Orbit could not save this routine.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not save this routine.", Toast.LENGTH_SHORT).show();
             return;
         }
         dirty = false;
@@ -1287,7 +1287,7 @@ public class RoutineEditorActivity extends Activity {
     private void offerProposedTrigger(String routineId, RoutineTriggerDraft proposed) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Set up automation?")
-                .setMessage("Orbit suggested running this routine automatically:\n\n"
+                .setMessage("GrokLink suggested running this routine automatically:\n\n"
                         + proposed.summary(this)
                         + "\n\nIt is not scheduled yet. Open Automatic triggers to set it up.")
                 .setNegativeButton("Not now", (d, w) -> finish())

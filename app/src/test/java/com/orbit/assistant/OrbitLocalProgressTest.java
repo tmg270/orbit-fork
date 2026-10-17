@@ -133,7 +133,7 @@ public final class OrbitLocalProgressTest {
             String label = status(state, 1L).stateLabel();
             assertFalse(label + " reads like an enum constant", label.contains("_"));
             assertFalse(label + " reads like an enum constant", label.equals(label.toUpperCase()));
-            assertFalse("WorkManager is Orbit's business, not the user's",
+            assertFalse("WorkManager is GrokLink's business, not the user's",
                     label.toLowerCase().contains("worker"));
         }
     }

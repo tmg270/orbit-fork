@@ -24,7 +24,7 @@ import java.util.List;
  * {@link RoadmapActivity} is what somebody opens in About &amp; updates. Nothing kept them in step,
  * so the in-app page went on presenting 0.7.7-era priorities as next while the repository had moved
  * on through Orbit Deck, Theme Studio and three Vault Betas. Neither document was individually
- * false; together they gave two different answers to "what is Orbit working on?".
+ * false; together they gave two different answers to "what is GrokLink working on?".
  *
  * <p>This is the smallest guard that stops it happening again, and it is deliberately small. There
  * is no Markdown parser, no schema, no generated file, and nothing that runs on a user's phone.
@@ -108,7 +108,7 @@ public final class RoadmapSyncTest {
         int shipped = file.indexOf(RICH_ANSWERS);
         // Anchored on the section heading rather than the first mention of the milestone name:
         // from 0.8.1.0 the Smart Vault Stable entry names it above the active plan too.
-        int current = file.indexOf("## Current - the journey to Orbit 0.9");
+        int current = file.indexOf("## Current - the journey to GrokLink 0.9");
         assertTrue("Rich Answers must still be recorded", shipped >= 0);
         assertTrue("Smart Vault is the active line after the completed Pro Betas", current > shipped);
         assertTrue("Rich Answers is recorded as Stable, not as current work",
@@ -123,10 +123,10 @@ public final class RoadmapSyncTest {
                 file.indexOf("### `0.8.1.0` Stable - Smart Vault") >= 0);
         assertTrue("above the active plan too",
                 file.indexOf("### `0.8.1.0` Stable - Smart Vault") < current);
-        assertTrue("the 0.8.2.0 Orbit Local 2.0 line is recorded as Stable",
-                file.indexOf("### `0.8.2.0` Stable - Orbit Local 2.0") >= 0);
+        assertTrue("the 0.8.2.0 GrokLink Local 2.0 line is recorded as Stable",
+                file.indexOf("### `0.8.2.0` Stable - GrokLink Local 2.0") >= 0);
         assertTrue("above the active plan as well",
-                file.indexOf("### `0.8.2.0` Stable - Orbit Local 2.0") < current);
+                file.indexOf("### `0.8.2.0` Stable - GrokLink Local 2.0") < current);
         assertTrue("the 0.8.3.0 AI Control line is recorded as Stable",
                 file.indexOf("### `0.8.3.0` Stable - AI Control") >= 0);
         assertTrue("above the active plan as well",
@@ -153,16 +153,16 @@ public final class RoadmapSyncTest {
      */
     @Test public void orbitProIsRecordedAsAdditiveRatherThanAsAPaywall() {
         String file = markdown();
-        int at = file.indexOf("### `0.8` - Orbit Pro");
-        assertTrue("Orbit Pro must have its own section in ROADMAP.md", at >= 0);
+        int at = file.indexOf("### `0.8` - GrokLink Pro");
+        assertTrue("GrokLink Pro must have its own section in ROADMAP.md", at >= 0);
         // Bounded by the heading that follows rather than by a character count. The section grows
         // as each Beta records what it shipped, and a fixed window quietly stops covering the
         // commitments it was written to protect - which is exactly what happened to the Play
         // billing line when Beta 2's shipped list was added above it.
         int end = file.indexOf("\n## ", at);
         String section = file.substring(at, end > at ? end : file.length());
-        assertTrue("free Orbit must stay the complete assistant",
-                section.contains("Free Orbit stays the real, complete assistant"));
+        assertTrue("free GrokLink must stay the complete assistant",
+                section.contains("Free GrokLink stays the real, complete assistant"));
         assertTrue("and nothing free may move behind Pro",
                 section.contains("free today is ever placed behind Pro"));
         assertTrue("Theme Studio Pro is named as the first premium feature",
@@ -183,11 +183,11 @@ public final class RoadmapSyncTest {
      */
     @Test public void smartVaultIsNextAndStaysFree() {
         String file = markdown();
-        int pro = file.indexOf("### `0.8` - Orbit Pro");
+        int pro = file.indexOf("### `0.8` - GrokLink Pro");
         int vault = file.indexOf("### Smart Vault");
         assertTrue("Smart Vault must still be planned in ROADMAP.md", vault >= 0);
-        assertTrue("and follows the completed Orbit Pro milestones", vault > pro);
-        assertTrue("it is recorded as a free Orbit feature",
+        assertTrue("and follows the completed GrokLink Pro milestones", vault > pro);
+        assertTrue("it is recorded as a free GrokLink feature",
                 file.substring(vault, Math.min(file.length(), vault + 400)).contains("free"));
 
         String page = inApp();
@@ -248,7 +248,7 @@ public final class RoadmapSyncTest {
         // commitments it was written to protect.
         int end = file.indexOf("### `0.7.8.4` Stable", at);
         String section = file.substring(at, end > at ? end : file.length());
-        assertTrue("inline images must open in the image viewer Orbit already has",
+        assertTrue("inline images must open in the image viewer GrokLink already has",
                 section.contains("image viewer"));
         assertTrue("and reach the Vault through Save to Vault",
                 section.contains("Save to Vault"));
@@ -277,7 +277,7 @@ public final class RoadmapSyncTest {
     @Test public void shippedVaultWorkIsNotOfferedAsFutureInTheApp() {
         String page = inApp();
         for (String shipped : new String[]{"Quick Capture", "Attach from Vault",
-                "Save page to Vault", "Vault and Quick Capture as Orbit Deck destinations"}) {
+                "Save page to Vault", "Vault and Quick Capture as GrokLink Deck destinations"}) {
             assertTrue(shipped + " has shipped and must not be listed as upcoming",
                     !page.contains(shipped));
         }

@@ -58,7 +58,7 @@ public final class OrbitLocalVisibilityTest {
 
     /** The fix itself: Orbit names the component package, exactly and explicitly. */
     @Test public void theComponentPackageIsDeclaredVisible() {
-        assertTrue("Orbit's manifest must declare <package android:name=\""
+        assertTrue("GrokLink's manifest must declare <package android:name=\""
                         + OrbitLocalComponent.PACKAGE + "\" /> inside <queries>, or the component "
                         + "stays invisible to getPackageInfo even once Android has installed it",
                 queriesBlock(mainManifest()).contains(
@@ -88,7 +88,7 @@ public final class OrbitLocalVisibilityTest {
 
     /** Exactly one package is named. A second one needs a reason and a test of its own. */
     @Test public void exactlyOnePackageIsNamed() {
-        assertEquals("Orbit declares visibility of its own component and nothing else",
+        assertEquals("GrokLink declares visibility of its own component and nothing else",
                 java.util.Collections.singletonList(OrbitLocalComponent.PACKAGE),
                 declaredQueryPackages(mainManifest()));
     }
@@ -113,7 +113,7 @@ public final class OrbitLocalVisibilityTest {
      * app that has not requested it is refused by Android before the service is ever reached.
      */
     @Test public void orbitRequestsTheComponentsBindPermission() {
-        assertTrue("Orbit must request " + BIND_PERMISSION + " or bindService is refused",
+        assertTrue("GrokLink must request " + BIND_PERMISSION + " or bindService is refused",
                 mainManifest().contains(
                         "<uses-permission android:name=\"" + BIND_PERMISSION + "\" />"));
     }
@@ -122,7 +122,7 @@ public final class OrbitLocalVisibilityTest {
     @Test public void theComponentProtectsItsServiceWithThatPermission() {
         String manifest = componentManifest();
         assertTrue(manifest.contains("android:name=\"" + BIND_PERMISSION + "\""));
-        assertTrue("signature level is what ties it to Orbit's certificate",
+        assertTrue("signature level is what ties it to GrokLink's certificate",
                 manifest.contains("android:protectionLevel=\"signature\""));
         assertTrue("and the service must actually be protected by it",
                 manifest.contains("android:permission=\"" + BIND_PERMISSION + "\""));
@@ -131,7 +131,7 @@ public final class OrbitLocalVisibilityTest {
     /** The component can read Orbit's certificate back, which is its half of the trust check. */
     @Test public void theComponentCanSeeOrbitInReturn() {
         assertTrue("OrbitLocalService verifies its caller through the package manager, so it must "
-                        + "declare visibility of Orbit rather than rely on the implicit grant",
+                        + "declare visibility of GrokLink rather than rely on the implicit grant",
                 declaredQueryPackages(componentManifest()).contains("com.orbit.assistant"));
     }
 
@@ -140,12 +140,12 @@ public final class OrbitLocalVisibilityTest {
         assertTrue("the component must publish " + OrbitLocalComponent.BIND_ACTION,
                 componentManifest().contains(
                         "<action android:name=\"" + OrbitLocalComponent.BIND_ACTION + "\" />"));
-        assertTrue("and export the service so Orbit can reach it",
+        assertTrue("and export the service so GrokLink can reach it",
                 componentManifest().contains("android:exported=\"true\""));
 
         Intent intent = new Intent(OrbitLocalComponent.BIND_ACTION)
                 .setPackage(OrbitLocalComponent.PACKAGE);
-        assertEquals("Orbit binds by action, scoped to the component package",
+        assertEquals("GrokLink binds by action, scoped to the component package",
                 OrbitLocalComponent.PACKAGE, intent.getPackage());
         assertEquals(OrbitLocalComponent.BIND_ACTION, intent.getAction());
     }
@@ -183,7 +183,7 @@ public final class OrbitLocalVisibilityTest {
                 OrbitLocalComponent.State.UNTRUSTED, OrbitLocalComponent.state(context));
         assertFalse(OrbitLocalComponent.isUsable(context));
         assertEquals(OrbitLocalClient.UNTRUSTED, OrbitLocalClient.unavailableReason(context));
-        assertFalse("and Orbit Local must not become selectable because of it",
+        assertFalse("and GrokLink Local must not become selectable because of it",
                 AiProviders.byId(Prefs.PROVIDER_LOCAL).selectable(context));
     }
 

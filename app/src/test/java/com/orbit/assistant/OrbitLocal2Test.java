@@ -67,7 +67,7 @@ public final class OrbitLocal2Test {
         LocalContextBudget.Result r = fitted(AiRequest.builder()
                 .prompt("In May. What should I pack?")
                 .history(history)
-                .memoryContext("Orbit Memory: the user prefers light luggage.")
+                .memoryContext("GrokLink Memory: the user prefers light luggage.")
                 .build());
         assertEquals(LocalContextBudget.PATH_CHAT, r.path);
         assertTrue(r.prompt.startsWith(OrbitLocalProvider.SYSTEM));
@@ -114,7 +114,7 @@ public final class OrbitLocal2Test {
         assertEquals(1, r.vaultSources.size());
 
         String answer = OrbitLocalProvider.withNotes("Bake it at 200C [1: Salmon dinner].", r);
-        assertTrue("Orbit names what the model read, whatever the model cites",
+        assertTrue("GrokLink names what the model read, whatever the model cites",
                 answer.endsWith("Checked in your Vault: [1] Salmon dinner"));
     }
 
@@ -166,7 +166,7 @@ public final class OrbitLocal2Test {
                 .images(Collections.singletonList(photo))
                 .explicitAttachment(true).build());
         assertTrue(r.imageOnly);
-        assertTrue(OrbitLocalProvider.IMAGE_ONLY_REPLY.startsWith("Orbit Local can't look at pictures"));
+        assertTrue(OrbitLocalProvider.IMAGE_ONLY_REPLY.startsWith("GrokLink Local can't look at pictures"));
         assertTrue(OrbitLocalProvider.IMAGE_ONLY_REPLY.contains("Nothing was sent anywhere"));
         String provider = source("OrbitLocalProvider");
         int imageOnly = provider.indexOf("if (fitted.imageOnly) {");
@@ -180,7 +180,7 @@ public final class OrbitLocal2Test {
         LocalContextBudget.Result r = fitted(AiRequest.builder()
                 .prompt("What is the total?")
                 .images(Collections.singletonList(photo))
-                .screenText("Text Orbit recognised in the saved picture:\nTOTAL 18.20")
+                .screenText("Text GrokLink recognised in the saved picture:\nTOTAL 18.20")
                 .explicitAttachment(true).build());
         assertFalse(r.imageOnly);
         assertTrue(r.prompt.contains("TOTAL 18.20"));
@@ -246,7 +246,7 @@ public final class OrbitLocal2Test {
         Prefs.get(context).edit().putBoolean(Prefs.NOTIFICATION_AI_ENABLED, false).commit();
         NotificationQueryHelper.Prepared prepared =
                 NotificationQueryHelper.prepare(context, "What did I miss?");
-        assertNotNull("Orbit answers itself; no provider sees a thing", prepared.localReply);
+        assertNotNull("GrokLink answers itself; no provider sees a thing", prepared.localReply);
         assertEquals("", prepared.context);
     }
 
@@ -281,8 +281,8 @@ public final class OrbitLocal2Test {
                     @Override public void onError(String message) { error.set(message); }
                 });
         assertNull(reply.get());
-        assertNotNull("without its component, Orbit Local says so", error.get());
-        assertTrue(error.get().contains("Orbit Local"));
+        assertNotNull("without its component, GrokLink Local says so", error.get());
+        assertTrue(error.get().contains("GrokLink Local"));
     }
 
     @Test public void diagnosticsRecordStructureNotContent() {

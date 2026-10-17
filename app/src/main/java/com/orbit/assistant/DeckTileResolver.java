@@ -133,13 +133,13 @@ public final class DeckTileResolver {
         if (c != null && !Prefs.vaultEnabled(c)) {
             return new Resolved(title, VAULT_OFF, definition.iconRes, null,
                     DeckTile.Availability.UNAVAILABLE,
-                    title + ", Orbit shortcut, " + VAULT_OFF + ".");
+                    title + ", GrokLink shortcut, " + VAULT_OFF + ".");
         }
         return destination(tile, definition);
     }
 
     /** What a Vault tile says, and what tapping one says, while the Vault is switched off. */
-    static final String VAULT_OFF = "Orbit Vault is turned off";
+    static final String VAULT_OFF = "GrokLink Vault is turned off";
 
     private static Resolved routine(Context c, DeckTile tile, DeckTileRegistry.Definition definition) {
         String routineId = tile.config(DeckTile.CONFIG_ROUTINE_ID);

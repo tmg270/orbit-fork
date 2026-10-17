@@ -28,7 +28,7 @@ import java.util.List;
  *
  * <p>Android will not show a category under Settings until the app has created it, and Orbit
  * created each one on the way to posting that kind of notification. Two Samsung devices running the
- * same build therefore listed different categories: the tablet had "Orbit updates" because an
+ * same build therefore listed different categories: the tablet had "GrokLink updates" because an
  * update had been offered there, and the phone did not. Nothing was broken — the list was simply
  * describing which parts of Orbit had happened to run.
  */
@@ -68,7 +68,7 @@ public final class OrbitNotificationChannelsTest {
         for (String expected : OrbitNotificationChannels.ids()) {
             assertTrue("Android should list " + expected, ids.contains(expected));
         }
-        assertEquals("and nothing beyond Orbit's own four",
+        assertEquals("and nothing beyond GrokLink's own four",
                 OrbitNotificationChannels.ids().size(), ids.size());
     }
 
@@ -92,9 +92,9 @@ public final class OrbitNotificationChannelsTest {
             assertNotNull(id + " should be described", channel.getDescription());
             assertTrue(id + " should be described", channel.getDescription().length() > 0);
         }
-        assertEquals("Orbit updates",
+        assertEquals("GrokLink updates",
                 manager.getNotificationChannel(OrbitNotificationChannels.UPDATES).getName());
-        assertEquals("Notifies you when a verified Orbit release is available.",
+        assertEquals("Notifies you when a verified GrokLink release is available.",
                 manager.getNotificationChannel(OrbitNotificationChannels.UPDATES).getDescription());
         assertEquals("Reminders",
                 manager.getNotificationChannel(OrbitNotificationChannels.REMINDERS).getName());

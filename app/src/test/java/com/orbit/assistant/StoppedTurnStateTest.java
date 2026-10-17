@@ -181,7 +181,7 @@ public final class StoppedTurnStateTest {
         assertTrue(anchors("c-done").isEmpty());
 
         PendingRequestStore.Item failed = queue("c-failed");
-        PendingRequestStore.markFailed(context, failed.id, "Orbit could not finish this response.");
+        PendingRequestStore.markFailed(context, failed.id, "GrokLink could not finish this response.");
         assertTrue(anchors("c-failed").isEmpty());
     }
 
@@ -700,7 +700,7 @@ public final class StoppedTurnStateTest {
             if (!(v instanceof TextView)) continue;
             String text = ((TextView) v).getText().toString().trim();
             assertFalse("a stop must not offer Retry the way a failure does", text.equals("Retry"));
-            assertFalse("and must not read as a failure", text.startsWith("Orbit could not finish"));
+            assertFalse("and must not read as a failure", text.startsWith("GrokLink could not finish"));
         }
         controller.pause().stop().destroy();
     }

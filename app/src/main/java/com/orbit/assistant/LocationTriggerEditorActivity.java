@@ -194,7 +194,7 @@ public final class LocationTriggerEditorActivity extends Activity {
         location.addView(currentLocationButton, currentLp);
 
         TextView coordinateHelp = UiKit.text(this,
-                "Orbit stores only the coordinates and label you save for this trigger. Current location requires precise location access.",
+                "GrokLink stores only the coordinates and label you save for this trigger. Current location requires precise location access.",
                 11, UiKit.MUTED, false);
         coordinateHelp.setPadding(0, UiKit.dp(this, 7), 0, 0);
         location.addView(coordinateHelp);
@@ -246,7 +246,7 @@ public final class LocationTriggerEditorActivity extends Activity {
         LinearLayout behavior = card();
         behavior.addView(UiKit.text(this, "Background behavior", 14, UiKit.TEXT, true));
         TextView body = UiKit.text(this,
-                "Location triggers use Android's system proximity monitoring. The routine still follows Orbit's normal automatic-run rules: background-safe steps can finish silently, while steps that require Orbit visible or a confirmation use the existing trigger-alert handoff. Android location boundaries are approximate, so a transition can arrive late and very brief passes may not fire.",
+                "Location triggers use Android's system proximity monitoring. The routine still follows GrokLink's normal automatic-run rules: background-safe steps can finish silently, while steps that require GrokLink visible or a confirmation use the existing trigger-alert handoff. Android location boundaries are approximate, so a transition can arrive late and very brief passes may not fire.",
                 12, UiKit.MUTED, false);
         body.setPadding(0, UiKit.dp(this, 6), 0, 0);
         behavior.addView(body);
@@ -284,7 +284,7 @@ public final class LocationTriggerEditorActivity extends Activity {
         String detail;
         String button;
         if (!fine) {
-            detail = "Allow precise location so Orbit can tell when the phone crosses the saved radius.";
+            detail = "Allow precise location so GrokLink can tell when the phone crosses the saved radius.";
             button = "Allow precise location";
         } else if (!background) {
             String label = RoutineLocationTriggerScheduler.backgroundPermissionLabel(this);
@@ -294,7 +294,7 @@ public final class LocationTriggerEditorActivity extends Activity {
             detail = "Android location services are currently off. Turn them on for arrive/leave monitoring.";
             button = "Turn on location";
         } else {
-            detail = "Precise and background location are available. Enabled location triggers can monitor even while Orbit is closed.";
+            detail = "Precise and background location are available. Enabled location triggers can monitor even while GrokLink is closed.";
             button = "Manage location access";
         }
         TextView note = UiKit.text(this, detail, 12, UiKit.MUTED, false);
@@ -330,7 +330,7 @@ public final class LocationTriggerEditorActivity extends Activity {
         String label = RoutineLocationTriggerScheduler.backgroundPermissionLabel(this);
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Allow background location")
-                .setMessage("For arrive/leave Routines to work while Orbit is closed, Android requires Location to be set to “" + label + "”. Open Orbit's app settings, then choose Permissions → Location.")
+                .setMessage("For arrive/leave Routines to work while GrokLink is closed, Android requires Location to be set to “" + label + "”. Open GrokLink's app settings, then choose Permissions → Location.")
                 .setNegativeButton("Not now", null)
                 .setPositiveButton("Open settings", (d, w) -> RoutineLocationTriggerScheduler.openAppLocationSettings(this))
                 .create();
@@ -494,7 +494,7 @@ public final class LocationTriggerEditorActivity extends Activity {
         runOnUiThread(() -> {
             currentLocationButton.setEnabled(true);
             currentLocationButton.setText("Use my current location");
-            Toast.makeText(this, "Orbit could not get a current location fix. Try again outdoors or paste coordinates.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "GrokLink could not get a current location fix. Try again outdoors or paste coordinates.", Toast.LENGTH_LONG).show();
         });
     }
 

@@ -141,7 +141,7 @@ public final class OrbitRequestWorker extends Worker {
             return Result.success();
         }
 
-        if (error == null) error = "Orbit could not finish this response.";
+        if (error == null) error = "GrokLink could not finish this response.";
         String friendly = error.replace("—", "-");
 
         // A stopped execution's "error" may be nothing but the stop itself. The cancellation
@@ -166,9 +166,9 @@ public final class OrbitRequestWorker extends Worker {
             RequestTrace.retryRequested(id, attempt(), "transient");
             return Result.retry();
         }
-        String visible = friendly.startsWith("Orbit could not finish")
+        String visible = friendly.startsWith("GrokLink could not finish")
                 ? friendly
-                : "Orbit could not finish this response: " + friendly;
+                : "GrokLink could not finish this response: " + friendly;
         // Stopping a request is not a failure. Cancelling interrupts this worker, which surfaces
         // here as an ordinary error, so the same gate the success path uses decides whether
         // anything visible gets written at all.
@@ -230,7 +230,7 @@ public final class OrbitRequestWorker extends Worker {
                 if (!stored) {
                     // The chat moved on (cleared, edited, or already at its version limit) while
                     // the retry ran. Nothing is written over it; the retry reports that it failed.
-                    String why = "Orbit could not keep this retry because the chat changed.";
+                    String why = "GrokLink could not keep this retry because the chat changed.";
                     PendingRequestStore.markFailed(c, id, why);
                     AttachmentStore.deleteAll(item.screenshotPaths);
                     OrbitRequestManager.dispatchError(id, why);
@@ -393,19 +393,19 @@ public final class OrbitRequestWorker extends Worker {
                     }
 
                     @Override public void onError(String message) {
-                        errorRef.set(message == null ? "Orbit could not finish this response." : message);
+                        errorRef.set(message == null ? "GrokLink could not finish this response." : message);
                         latch.countDown();
                     }
                 });
 
         try {
             if (!latch.await(timeoutMinutes, TimeUnit.MINUTES)) {
-                return new RequestOutcome(null, "Orbit timed out while waiting for "
+                return new RequestOutcome(null, "GrokLink timed out while waiting for "
                         + AiProviders.forSelection(c, selection).displayName() + ".");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return new RequestOutcome(null, "Orbit request was interrupted.");
+            return new RequestOutcome(null, "GrokLink request was interrupted.");
         }
         return new RequestOutcome(replyRef.get(), errorRef.get());
     }

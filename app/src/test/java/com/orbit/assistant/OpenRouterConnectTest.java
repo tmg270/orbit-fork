@@ -247,17 +247,17 @@ public final class OpenRouterConnectTest {
         assertEquals(Prefs.PROVIDER_OPENROUTER, sonnet.providerId);
         assertEquals(1_000_000, sonnet.contextWindowTokens);
         assertTrue(sonnet.vision);
-        assertFalse("Orbit sends extracted text, not provider files", sonnet.nativeFiles);
+        assertFalse("GrokLink sends extracted text, not provider files", sonnet.nativeFiles);
         assertTrue(sonnet.extractedDocuments);
-        assertFalse("Orbit sends no tools", sonnet.tools);
-        assertFalse("Orbit invokes no OpenRouter web search", sonnet.webSearch);
+        assertFalse("GrokLink sends no tools", sonnet.tools);
+        assertFalse("GrokLink invokes no OpenRouter web search", sonnet.webSearch);
         assertEquals(Arrays.asList(AiStrength.LOW, AiStrength.MEDIUM, AiStrength.HIGH,
                 AiStrength.XHIGH, AiStrength.MAX), sonnet.strengths);
         assertEquals(AiStrength.HIGH, sonnet.defaultStrength);
 
         AiModelSpec deepseek = find(models, "deepseek/deepseek-v4-pro");
         assertFalse("text-only input means no images", deepseek.vision);
-        assertEquals("only efforts Orbit has; 'minimal' is not one",
+        assertEquals("only efforts GrokLink has; 'minimal' is not one",
                 Arrays.asList(AiStrength.HIGH, AiStrength.XHIGH), deepseek.strengths);
 
         AiModelSpec llama = find(models, "meta-llama/llama-3.3-70b-instruct");
@@ -388,7 +388,7 @@ public final class OpenRouterConnectTest {
         assertFalse(plain.has("reasoning"));
         JSONArray content = plain.getJSONArray("messages").getJSONObject(1).getJSONArray("content");
         assertEquals("a text-only model never receives the image", 1, content.length());
-        assertTrue("but it does receive Orbit's extracted text",
+        assertTrue("but it does receive GrokLink's extracted text",
                 content.getJSONObject(0).getString("text").contains("Extracted PDF text"));
 
         JSONObject router = ProviderRequestMapper.openRouter(null, AiRequest.builder()
@@ -530,7 +530,7 @@ public final class OpenRouterConnectTest {
 
     @Test public void openRouterAutoReportsTheDownstreamModelOnlyWhenOpenRouterDoes() throws Exception {
         ResponseDetails served = ResponseDetails.sentWith(OR_AUTO).withServedBy("anthropic/claude-sonnet-5.5");
-        assertFalse("OpenRouter Auto is not Orbit Auto", served.autoRouted());
+        assertFalse("OpenRouter Auto is not GrokLink Auto", served.autoRouted());
         assertEquals(Arrays.asList("Selection=OpenRouter Auto", "Provider=OpenRouter",
                 "Model=OpenRouter Auto", "Answered by=Claude Sonnet 5.5"), rows(served));
         ResponseDetails back = ResponseDetails.fromJson(served.toJson());

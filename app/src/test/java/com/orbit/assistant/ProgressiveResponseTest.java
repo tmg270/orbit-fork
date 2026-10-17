@@ -138,7 +138,7 @@ public final class ProgressiveResponseTest {
         view.update("## Things to try\n", true);
         String text = allText(view);
         assertTrue(text.contains("Things to try"));
-        assertFalse("the hashes are gone as soon as Orbit understands them", text.contains("##"));
+        assertFalse("the hashes are gone as soon as GrokLink understands them", text.contains("##"));
     }
 
     @Test public void listItemsAppearAsTheyArrive() {

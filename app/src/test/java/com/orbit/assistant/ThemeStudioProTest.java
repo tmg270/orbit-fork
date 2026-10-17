@@ -85,9 +85,9 @@ public final class ThemeStudioProTest {
      */
     @Test public void defaultProStyleIsExactlyOrbitsShippedConfiguration() {
         OrbitProStyle style = OrbitProStyle.DEFAULT;
-        assertEquals("bubble roundness must default to Orbit's own corner",
+        assertEquals("bubble roundness must default to GrokLink's own corner",
                 Math.round(UiKit.RADIUS_BUBBLE), style.bubbleRadiusDp);
-        assertEquals("Orbit has never drawn a bubble outline",
+        assertEquals("GrokLink has never drawn a bubble outline",
                 OrbitProStyle.OUTLINE_OFF, style.bubbleOutline);
         assertEquals("glass opacity must default to the shipped fill alpha",
                 OrbitGlass.FILL_ALPHA, style.glassOpacity);
@@ -151,7 +151,7 @@ public final class ThemeStudioProTest {
 
         OrbitTheme active = OrbitThemeStore.active(context);
         assertEquals("violet", active.accent);
-        assertTrue("an install with no premium keys is Orbit as it shipped",
+        assertTrue("an install with no premium keys is GrokLink as it shipped",
                 active.pro.isDefault());
         assertTrue(OrbitThemeStore.activeProStyle(context).isDefault());
     }
@@ -174,7 +174,7 @@ public final class ThemeStudioProTest {
         assertNotNull("a file with no premium block is still a theme", imported);
         assertEquals("From Beta 1", imported.name);
         assertEquals("mint", imported.accent);
-        assertTrue("and gets Orbit's own styling rather than a mixture",
+        assertTrue("and gets GrokLink's own styling rather than a mixture",
                 imported.pro.isDefault());
 
         assertNotNull("the same file still parses through the model",
@@ -227,7 +227,7 @@ public final class ThemeStudioProTest {
         assertNotNull("importing must work on a Free device", imported);
         assertTrue("and the premium values are stored rather than stripped",
                 imported.pro.same(styled()));
-        assertFalse("but Free still draws Orbit's own styling",
+        assertFalse("but Free still draws GrokLink's own styling",
                 OrbitProStyle.resolve(context, imported.pro).same(styled()));
     }
 
@@ -236,7 +236,7 @@ public final class ThemeStudioProTest {
         JSONObject forged = OrbitTheme.builtIn(OrbitTheme.ID_SIGNAL_VIOLET).toJson();
         OrbitTheme imported = OrbitThemeFileCodec.decode(forged.toString());
         assertNotNull(imported);
-        assertFalse("an imported theme is never one of Orbit's premium presets",
+        assertFalse("an imported theme is never one of GrokLink's premium presets",
                 imported.premium());
         assertFalse(imported.builtIn);
         assertFalse(OrbitTheme.ID_SIGNAL_VIOLET.equals(imported.id));
@@ -273,7 +273,7 @@ public final class ThemeStudioProTest {
         assertTrue(OrbitProStyle.live(context).same(styled()));
 
         asFree();
-        assertTrue("Free must draw Orbit's own styling", OrbitProStyle.live(context).isDefault());
+        assertTrue("Free must draw GrokLink's own styling", OrbitProStyle.live(context).isDefault());
         assertTrue("but the values must still be stored, untouched",
                 OrbitThemeStore.activeProStyle(context).same(styled()));
         assertTrue("and the active theme still carries them",
@@ -339,7 +339,7 @@ public final class ThemeStudioProTest {
                 UiKit.accent(context), OrbitProStyle.DEFAULT.withBubbleRadiusDp(26));
         assertTrue("a squarer bubble must actually have a smaller corner",
                 squared.getCornerRadius() < round.getCornerRadius());
-        assertEquals("and the default corner must be Orbit's own",
+        assertEquals("and the default corner must be GrokLink's own",
                 UiKit.dp(context, UiKit.RADIUS_BUBBLE),
                 Math.round(UiKit.bubbleSurface(context, 0xFF202030,
                         UiKit.accent(context), OrbitProStyle.DEFAULT).getCornerRadius()));
@@ -582,7 +582,7 @@ public final class ThemeStudioProTest {
                     OrbitThemeStore.applyActive(context, preset));
             OrbitTheme active = OrbitThemeStore.active(context);
             assertEquals(preset.id, active.id);
-            assertTrue(preset.name + "'s styling must be what Orbit draws",
+            assertTrue(preset.name + "'s styling must be what GrokLink draws",
                     OrbitProStyle.live(context).same(preset.pro));
         }
     }
@@ -623,7 +623,7 @@ public final class ThemeStudioProTest {
                 readSource("MessageStylePreview.java").contains("OrbitProStyle.live("));
 
         asFree();
-        assertTrue("Free previews Orbit's own styling",
+        assertTrue("Free previews GrokLink's own styling",
                 OrbitProStyle.resolve(context, styled()).isDefault());
         asPro();
         assertTrue("Pro previews the draft's styling",
@@ -719,12 +719,12 @@ public final class ThemeStudioProTest {
     @Test public void themeStudioNeverOffersAPurchase() {
         String studio = readSource("ThemeStudioActivity.java");
         for (String selling : new String[]{"\"Upgrade", "\"Unlock Pro", "\"Buy ", "\"Subscribe",
-                "\"Restore purchase", "\"Get Orbit Pro", "\"Continue to checkout"}) {
+                "\"Restore purchase", "\"Get GrokLink Pro", "\"Continue to checkout"}) {
             assertFalse("Theme Studio must not read like a store: " + selling,
                     studio.contains(selling));
         }
         assertTrue("the locked state explains the developer override instead",
-                readSource("ThemeStudioActivity.java").contains("Enable Pro Preview in Orbit Diagnostics"));
+                readSource("ThemeStudioActivity.java").contains("Enable Pro Preview in GrokLink Diagnostics"));
         assertTrue("and only on a build that may honour one, which OrbitProEntitlement decides",
                 readSource("ThemeStudioActivity.java").contains("OrbitProEntitlement.lockedGuidance("));
     }

@@ -108,8 +108,8 @@ public class RoutineTriggersActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this, OrbitDistribution.supportsLocationTriggers()
-                ? "Run this routine automatically on a schedule or when your phone arrives at or leaves a saved area. Every trigger keeps the routine's existing step order and uses Orbit's shared Action Engine."
-                : "Run this routine automatically on a schedule. Every trigger keeps the routine's existing step order and uses Orbit's shared Action Engine.",
+                ? "Run this routine automatically on a schedule or when your phone arrives at or leaves a saved area. Every trigger keeps the routine's existing step order and uses GrokLink's shared Action Engine."
+                : "Run this routine automatically on a schedule. Every trigger keeps the routine's existing step order and uses GrokLink's shared Action Engine.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -216,7 +216,7 @@ public class RoutineTriggersActivity extends Activity {
         precisionCard.addView(UiKit.text(this, exact ? "Precise timing ready" : "Approximate timing", 14,
                 exact ? UiKit.SUCCESS : UiKit.TEXT, true));
         TextView detail = UiKit.text(this, exact
-                        ? "Android allows Orbit to schedule time triggers at the selected minute."
+                        ? "Android allows GrokLink to schedule time triggers at the selected minute."
                         : "Time triggers still run, but Android may delay them, particularly while the phone is idle. Allow Alarms & reminders for minute-level scheduling.",
                 12, UiKit.MUTED, false);
         detail.setPadding(0, UiKit.dp(this, 5), 0, 0);
@@ -231,7 +231,7 @@ public class RoutineTriggersActivity extends Activity {
         boolean notifications = RoutineTriggerNotifier.notificationsAllowed(this);
         boolean runtimeNotifications = RoutineTriggerNotifier.runtimePermissionGranted(this);
         TextView notifyState = UiKit.text(this, notifications
-                        ? "Trigger alerts ready · Orbit can notify you when an automatic routine needs a foreground step."
+                        ? "Trigger alerts ready · GrokLink can notify you when an automatic routine needs a foreground step."
                         : "Trigger alerts are off · fully background-safe routines can still run. Routines that need a tap are skipped rather than partially applied.",
                 11, UiKit.MUTED, false);
         notifyState.setPadding(0, UiKit.dp(this, 9), 0, 0);
@@ -273,17 +273,17 @@ public class RoutineTriggersActivity extends Activity {
         String detail;
         String button;
         if (!fine) {
-            detail = "Arrive/leave automation needs precise location so Orbit can detect a saved radius.";
+            detail = "Arrive/leave automation needs precise location so GrokLink can detect a saved radius.";
             button = "Allow precise location";
         } else if (!background) {
             String option = RoutineLocationTriggerScheduler.backgroundPermissionLabel(this);
-            detail = "To work while Orbit is closed, Android requires Location permission set to “" + option + "”.";
+            detail = "To work while GrokLink is closed, Android requires Location permission set to “" + option + "”.";
             button = "Allow background location";
         } else if (!locationOn) {
             detail = "Android location services are off. Turn them on to monitor arrive/leave triggers.";
             button = "Turn on location";
         } else {
-            detail = "Precise and background location are available. Enabled location triggers can be monitored while Orbit is closed.";
+            detail = "Precise and background location are available. Enabled location triggers can be monitored while GrokLink is closed.";
             button = "Manage location access";
         }
         TextView note = UiKit.text(this, detail, 12, UiKit.MUTED, false);
@@ -319,7 +319,7 @@ public class RoutineTriggersActivity extends Activity {
         String option = RoutineLocationTriggerScheduler.backgroundPermissionLabel(this);
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Allow background location")
-                .setMessage("Android requires background access for location automation. Open Orbit's app settings, choose Permissions → Location, then select “" + option + "”.")
+                .setMessage("Android requires background access for location automation. Open GrokLink's app settings, choose Permissions → Location, then select “" + option + "”.")
                 .setNegativeButton("Not now", null)
                 .setPositiveButton("Open settings", (d, w) -> RoutineLocationTriggerScheduler.openAppLocationSettings(this))
                 .create();

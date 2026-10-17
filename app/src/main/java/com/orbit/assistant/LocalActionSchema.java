@@ -145,7 +145,7 @@ public final class LocalActionSchema {
     public static final String REJECT_UNREQUESTED = "unrequested-action";
 
     /**
-     * The one follow-up the model may name: "undo what Orbit just did".
+     * The one follow-up the model may name: "undo what GrokLink just did".
      *
      * <p>Not an action. It carries no parameters, is never executed as written, and means only
      * "consult {@link RecentActionContext}", which holds what Orbit itself recorded. The model
@@ -461,7 +461,7 @@ public final class LocalActionSchema {
                     if (seconds <= 0 || seconds > MAX_TIMER_SECONDS) {
                         return Validation.reject(REJECT_OUT_OF_RANGE);
                     }
-                    String label = safeLabel(params.optString("label", ""), "Orbit timer");
+                    String label = safeLabel(params.optString("label", ""), "GrokLink timer");
                     return accept(type, new JSONObject()
                             .put("seconds", seconds.intValue()).put("label", label), "timer");
                 }
@@ -473,7 +473,7 @@ public final class LocalActionSchema {
                     if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
                         return Validation.reject(REJECT_OUT_OF_RANGE);
                     }
-                    String label = safeLabel(params.optString("label", ""), "Orbit alarm");
+                    String label = safeLabel(params.optString("label", ""), "GrokLink alarm");
                     return accept(type, new JSONObject()
                             .put("hour", hour.intValue()).put("minute", minute.intValue())
                             .put("label", label), "alarm");

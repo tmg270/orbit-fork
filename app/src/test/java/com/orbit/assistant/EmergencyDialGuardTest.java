@@ -222,7 +222,7 @@ public final class EmergencyDialGuardTest {
         DeviceActionExecutor.executeDetailed(context, action);
 
         for (Intent intent : allStartedActivities()) {
-            assertFalse("Orbit must never place a call itself",
+            assertFalse("GrokLink must never place a call itself",
                     Intent.ACTION_CALL.equals(intent.getAction()));
         }
     }

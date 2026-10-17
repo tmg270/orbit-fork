@@ -53,7 +53,7 @@ public final class OrbitLaunchSequenceTest {
         ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class);
         MainActivity chats = controller.setup().get();
         View mark = findByTag(chats.getWindow().getDecorView(), "orbit_mark");
-        assertNotNull("the Orbit mark must still be on Chats", mark);
+        assertNotNull("the GrokLink mark must still be on Chats", mark);
 
         // Chats itself may open onboarding on a fresh install; drain that before testing the tap.
         org.robolectric.shadows.ShadowApplication app =

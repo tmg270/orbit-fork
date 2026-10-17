@@ -39,7 +39,7 @@ public final class NovaAmoledPresetTest {
         Prefs.get(context).edit().clear().commit();
         OrbitThemeStore.clearForTests(context);
         nova = OrbitTheme.builtIn(OrbitTheme.ID_NOVA_AMOLED);
-        assertNotNull("Orbit must ship Nova AMOLED", nova);
+        assertNotNull("GrokLink must ship Nova AMOLED", nova);
     }
 
     private static float hueOf(int color) {
@@ -114,11 +114,11 @@ public final class NovaAmoledPresetTest {
         double minimum = 1.10d;
         assertTrue("cards vanish into the page",
                 OrbitContrast.contrastRatio(tokens.surface, Color.BLACK) >= minimum);
-        assertTrue("Orbit's reply bubble vanishes into the page",
+        assertTrue("GrokLink's reply bubble vanishes into the page",
                 OrbitContrast.contrastRatio(tokens.assistantBubble, Color.BLACK) >= minimum);
         assertTrue("the card ramp has to keep stepping",
                 OrbitContrast.contrastRatio(tokens.surface2, tokens.surface) > 1.0d);
-        assertTrue("your bubble must not be Orbit's bubble",
+        assertTrue("your bubble must not be GrokLink's bubble",
                 OrbitContrast.contrastRatio(tokens.userBubble, tokens.assistantBubble) >= 1.3d);
     }
 

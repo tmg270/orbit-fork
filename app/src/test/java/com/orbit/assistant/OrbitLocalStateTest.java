@@ -137,7 +137,7 @@ public final class OrbitLocalStateTest {
     /** A stored selection cannot survive the component being gone. */
     @Test public void aStoredLocalSelectionFallsBackWhenTheComponentIsMissing() {
         Prefs.get(context).edit().putString(Prefs.PROVIDER, Prefs.PROVIDER_LOCAL).commit();
-        assertEquals("Orbit must never route chat to a provider that cannot answer",
+        assertEquals("GrokLink must never route chat to a provider that cannot answer",
                 Prefs.PROVIDER_CHATGPT, AiProviders.active(context).id());
     }
 

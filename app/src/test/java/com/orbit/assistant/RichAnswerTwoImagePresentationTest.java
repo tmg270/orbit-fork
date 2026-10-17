@@ -165,7 +165,7 @@ public final class RichAnswerTwoImagePresentationTest {
                 assertFalse("the user's model must not be told about " + internal,
                         instruction.contains(internal));
             }
-            assertFalse("and Orbit never writes an em dash", instruction.contains("—"));
+            assertFalse("and GrokLink never writes an em dash", instruction.contains("—"));
         }
         int rich = client.indexOf("private static final String RICH_ANSWERS_SYSTEM =");
         String visual = client.substring(rich, client.indexOf("\";", rich));

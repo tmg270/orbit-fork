@@ -103,7 +103,7 @@ public final class RoutineConditionEvaluator {
                     Math.min(RoutineTriggerStore.MAX_LOCATION_RADIUS_METERS, radius));
             Location current = RoutineLocationTriggerScheduler.bestLastKnownLocation(c);
             if (current == null) {
-                return Result.unavailable("Orbit could not determine the current location yet");
+                return Result.unavailable("GrokLink could not determine the current location yet");
             }
             float[] distance = new float[1];
             Location.distanceBetween(current.getLatitude(), current.getLongitude(), latitude, longitude, distance);

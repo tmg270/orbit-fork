@@ -130,7 +130,7 @@ public final class OrbitNavigationPolicyTest {
 
     @Test public void chatsIsTheRootAndGetsNoInventedParent() throws Exception {
         assertEquals(OrbitNavigation.Policy.ROOT, OrbitNavigation.policyFor(type("MainActivity")));
-        assertFalse("Back from Chats belongs to Android, not to Orbit",
+        assertFalse("Back from Chats belongs to Android, not to GrokLink",
                 OrbitNavigation.usesPredictive(type("MainActivity")));
     }
 
@@ -150,7 +150,7 @@ public final class OrbitNavigationPolicyTest {
         for (String name : sourceActivities()) {
             if (OrbitNavigation.screenFor(type(name)) == null) unclassified.add(name);
         }
-        assertTrue("every Orbit Activity needs a Back classification; missing: " + unclassified,
+        assertTrue("every GrokLink Activity needs a Back classification; missing: " + unclassified,
                 unclassified.isEmpty());
     }
 
@@ -159,7 +159,7 @@ public final class OrbitNavigationPolicyTest {
         Set<String> source = new HashSet<>(sourceActivities());
         for (String className : OrbitNavigation.all().keySet()) {
             String simple = className.substring(className.lastIndexOf('.') + 1);
-            assertTrue(simple + " is classified but is not an Orbit Activity", source.contains(simple));
+            assertTrue(simple + " is classified but is not an GrokLink Activity", source.contains(simple));
         }
         assertEquals("the four groups must account for the whole table",
                 PREDICTIVE.length + GUARDED.length + LOCAL.length + ROOT.length,
@@ -225,7 +225,7 @@ public final class OrbitNavigationPolicyTest {
         assertNotNull("the source tree must be readable from the test working directory", files);
         List<String> names = new ArrayList<>();
         for (File file : files) names.add(file.getName().replace(".java", ""));
-        assertTrue("Orbit has more than a handful of screens", names.size() > 20);
+        assertTrue("GrokLink has more than a handful of screens", names.size() > 20);
         return names;
     }
 

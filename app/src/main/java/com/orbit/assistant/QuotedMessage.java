@@ -37,8 +37,8 @@ public final class QuotedMessage {
 
     public boolean fromAssistant() { return "assistant".equals(role); }
 
-    /** "Orbit" or "You". */
-    public String speaker() { return fromAssistant() ? "Orbit" : "You"; }
+    /** "GrokLink" or "You". */
+    public String speaker() { return fromAssistant() ? "GrokLink" : "You"; }
 
     /** One line, short enough for a compact card. */
     public String preview() {

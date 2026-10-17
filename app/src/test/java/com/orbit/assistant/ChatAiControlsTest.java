@@ -123,7 +123,7 @@ public final class ChatAiControlsTest {
                 AiSelection.of(Prefs.PROVIDER_LOCAL, OrbitModelCatalog.ORBIT_LOCAL, null));
         ChatActivity chat = open("c1").get();
         assertEquals(View.GONE, chat.strengthPillForTest().getVisibility());
-        assertTrue(chat.modelPillForTest().getText().toString().contains("Orbit Local"));
+        assertTrue(chat.modelPillForTest().getText().toString().contains("GrokLink Local"));
     }
 
     @Test public void changingOneChatChangesOnlyThatChatAndUpdatesInPlace() {

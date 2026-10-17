@@ -35,7 +35,7 @@ final class ApiKeyProviderClient {
     static final String OPENROUTER_CHAT = "https://openrouter.ai/api/v1/chat/completions";
     /** OpenRouter's optional app attribution. Identifies Orbit, never the user. */
     static final String OPENROUTER_REFERER = "https://github.com/lpnovi/Orbit-Assistant";
-    static final String OPENROUTER_TITLE = "Orbit Assistant";
+    static final String OPENROUTER_TITLE = "GrokLink";
     private static final ExecutorService EXEC = Executors.newCachedThreadPool();
 
     private ApiKeyProviderClient() {}
@@ -258,6 +258,8 @@ final class ApiKeyProviderClient {
     static String readXaiStream(InputStream input, AssistantClient.Callback callback,
                                 boolean envelope) throws Exception {
         StringBuilder full = new StringBuilder();
+        StringBuilder reasoning = new StringBuilder();
+        long lastReasoningUi = 0;
         String lastVisible = "";
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
@@ -270,7 +272,20 @@ final class ApiKeyProviderClient {
                 JSONArray choices = event.optJSONArray("choices");
                 JSONObject choice = choices == null ? null : choices.optJSONObject(0);
                 JSONObject delta = choice == null ? null : choice.optJSONObject("delta");
-                if (delta != null && delta.has("content")) {
+                // GrokLink: xAI streams readable reasoning as delta.reasoning_content before the
+                // answer (docs.x.ai streaming guide). Shown live as a dimmed thinking line only
+                // while no answer text has arrived; never stored or sent back.
+                if (delta != null && full.length() == 0 && delta.has("reasoning_content")
+                        && !delta.isNull("reasoning_content")) {
+                    reasoning.append(delta.optString("reasoning_content", ""));
+                    long now = System.currentTimeMillis();
+                    if (now - lastReasoningUi > 350) {
+                        lastReasoningUi = now;
+                        ThinkingUpdate u = ThinkingUpdate.providerSummary(reasoningTail(reasoning));
+                        if (u != null) callback.onThinking(u);
+                    }
+                }
+                if (delta != null && delta.has("content") && !delta.isNull("content")) {
                     full.append(delta.optString("content", ""));
                     if (envelope) {
                         String visible = DeviceActionContract.removeEmDashes(
@@ -358,7 +373,7 @@ final class ApiKeyProviderClient {
             boolean oauth = c != null && SecureStore.OPENROUTER_SOURCE_OAUTH.equals(
                     SecureStore.openRouterKeySource(c));
             return oauth
-                    ? "OpenRouter no longer accepts Orbit's connection. It may have been revoked. "
+                    ? "OpenRouter no longer accepts GrokLink's connection. It may have been revoked. "
                     + "Reconnect OpenRouter in AI Providers."
                     : "The saved OpenRouter API key is invalid or revoked. Update it in AI Providers.";
         }
@@ -459,5 +474,14 @@ final class ApiKeyProviderClient {
         if (Prefs.PROVIDER_ANTHROPIC.equals(provider)) return "Anthropic";
         if (Prefs.PROVIDER_OPENROUTER.equals(provider)) return "OpenRouter";
         return "xAI";
+    }
+
+    /** The last ~110 characters of the reasoning so far, starting at a word boundary. */
+    static String reasoningTail(CharSequence reasoning) {
+        String t = reasoning.toString().replace('\n', ' ').trim();
+        if (t.length() <= 110) return t;
+        t = t.substring(t.length() - 110);
+        int sp = t.indexOf(' ');
+        return "…" + (sp >= 0 ? t.substring(sp + 1) : t);
     }
 }

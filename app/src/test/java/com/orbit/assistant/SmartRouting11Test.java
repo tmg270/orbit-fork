@@ -269,7 +269,7 @@ public final class SmartRouting11Test {
     @Test public void explicitOpenRouterAutoStaysAnExactSelection() {
         AiSelection router = AiSelection.of(Prefs.PROVIDER_OPENROUTER, OrbitModelCatalog.OPENROUTER_AUTO, null);
         AiSelection resolved = AiSelections.resolve(router);
-        assertFalse("OpenRouter Auto is not Orbit Auto", resolved.isAuto());
+        assertFalse("OpenRouter Auto is not GrokLink Auto", resolved.isAuto());
         assertEquals(router, resolved);
         assertEquals("OpenRouter Auto", resolved.label());
     }

@@ -37,7 +37,7 @@ public final class TimerDurationRoutingTest {
     /** The seconds a spoken command puts into the canonical SET_TIMER action. */
     private long timerSeconds(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should act on: " + prompt, reply);
+        assertNotNull("GrokLink should act on: " + prompt, reply);
         assertNotNull("a timer request should carry actions: " + prompt, reply.actions);
         for (AssistantReply.Action action : reply.actions) {
             if ("SET_TIMER".equalsIgnoreCase(action.type)) {
@@ -49,7 +49,7 @@ public final class TimerDurationRoutingTest {
 
     private String spoken(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should act on: " + prompt, reply);
+        assertNotNull("GrokLink should act on: " + prompt, reply);
         return reply.text;
     }
 
@@ -166,7 +166,7 @@ public final class TimerDurationRoutingTest {
 
     @Test public void theRoutineSummaryShowsTheWholeDuration() throws Exception {
         AssistantReply.Action action = new AssistantReply.Action(RoutineActionCatalog.SET_TIMER,
-                new JSONObject().put("seconds", 270).put("label", "Orbit timer"), false);
+                new JSONObject().put("seconds", 270).put("label", "GrokLink timer"), false);
         assertEquals("Starts a 4 minute 30 second timer", RoutineActionCatalog.summary(action));
         assertEquals("Timer · 4 minutes 30 seconds", RoutineActionCatalog.title(action));
     }

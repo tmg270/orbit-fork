@@ -176,7 +176,7 @@ public final class RichAnswerDiscoveryTest {
         for (String type : new String[]{
                 "application/pdf", "image/jpeg", "application/json", "text/plain",
                 "application/octet-stream", null}) {
-            assertFalse(type + " is not a page Orbit reads declarations out of",
+            assertFalse(type + " is not a page GrokLink reads declarations out of",
                     RichAnswerPageFetcher.looksLikeHtml(type));
         }
 

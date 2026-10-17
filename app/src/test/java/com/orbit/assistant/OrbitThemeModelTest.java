@@ -45,7 +45,7 @@ public final class OrbitThemeModelTest {
     @Test public void theDefaultThemeIsOrbitsOwnAppearance() {
         OrbitTheme theme = OrbitTheme.orbitDefault();
         assertEquals(OrbitTheme.ID_DEFAULT, theme.id);
-        assertEquals("Orbit Default", theme.name);
+        assertEquals("GrokLink Default", theme.name);
         assertTrue(theme.builtIn);
         assertEquals(OrbitTheme.DYNAMIC, theme.accent);
         assertEquals(OrbitTheme.CLASSIC, theme.userBubble);
@@ -99,7 +99,7 @@ public final class OrbitThemeModelTest {
         // free set is what every install has and must stay a curated shelf rather than a catalogue;
         // the premium set is smaller still, and a release that quietly grew it to a dozen would be
         // padding the tier rather than designing it.
-        assertTrue("Orbit ships a curated set, not a novelty catalogue",
+        assertTrue("GrokLink ships a curated set, not a novelty catalogue",
                 OrbitTheme.freeBuiltIns().size() >= 5 && OrbitTheme.freeBuiltIns().size() <= 8);
         assertTrue("and a smaller premium set on top of it",
                 OrbitTheme.premiumBuiltIns().size() >= 1

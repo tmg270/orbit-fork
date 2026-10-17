@@ -48,7 +48,7 @@ public final class ThinkingUpdateTest {
     @Test public void everyOrbitProgressStageIsOrbitProgress() {
         for (ThinkingUpdate.Stage stage : ThinkingUpdate.Stage.values()) {
             if (stage == ThinkingUpdate.Stage.PROVIDER_REASONING_SUMMARY) continue;
-            assertEquals(stage + " must be Orbit describing its own execution",
+            assertEquals(stage + " must be GrokLink describing its own execution",
                     ThinkingUpdate.Source.ORBIT_PROGRESS, stage.source());
         }
     }

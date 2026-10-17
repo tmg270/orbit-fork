@@ -70,7 +70,7 @@ public final class ScreenSelectionActivity extends Activity {
         if (callbackToken == null) callbackToken = "";
         Bitmap original = ScreenSelectionStore.load(this, sourcePath);
         if (original == null) {
-            Toast.makeText(this, "Orbit could not open this screen image", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "GrokLink could not open this screen image", Toast.LENGTH_LONG).show();
             if (callbackToken.isEmpty()) cancelAndFinish();
             else failAndFinish();
             return;
@@ -223,7 +223,7 @@ public final class ScreenSelectionActivity extends Activity {
         instruction.setText(crop
                 ? (editor.hasCrop() ? "Drag to move or use the handles to resize"
                 : "Drag to select an area")
-                : "Mark what you want Orbit to notice");
+                : "Mark what you want GrokLink to notice");
         boolean canUndo = !crop && editor.canUndo();
         undoRow.setVisibility(canUndo ? View.VISIBLE : View.GONE);
         undoButton.setEnabled(canUndo);
@@ -253,14 +253,14 @@ public final class ScreenSelectionActivity extends Activity {
     private void saveSelectionToVault() {
         if (editor == null || finished) return;
         if (!Prefs.vaultEnabled(this)) {
-            Toast.makeText(this, "Orbit Vault is turned off", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink Vault is turned off", Toast.LENGTH_SHORT).show();
             return;
         }
         Bitmap result;
         try { result = editor.renderResult(false); }
         catch (Exception e) { result = null; }
         if (result == null) {
-            Toast.makeText(this, "Orbit could not render this selection", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "GrokLink could not render this selection", Toast.LENGTH_LONG).show();
             return;
         }
         // The words on the screen travel with a full-screen save, so the screenshot can be found
@@ -276,7 +276,7 @@ public final class ScreenSelectionActivity extends Activity {
         if (!result.isRecycled()) result.recycle();
         if (saved == null) {
             Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this,
-                    "Orbit could not save this selection"), Toast.LENGTH_LONG).show();
+                    "GrokLink could not save this selection"), Toast.LENGTH_LONG).show();
             return;
         }
         performTick();
@@ -289,7 +289,7 @@ public final class ScreenSelectionActivity extends Activity {
         try { result = editor.renderResult(useFullScreen); }
         catch (Exception e) { result = null; }
         if (result == null) {
-            Toast.makeText(this, "Orbit could not render this selection", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "GrokLink could not render this selection", Toast.LENGTH_LONG).show();
             if (!callbackToken.isEmpty()) failAndFinish();
             return;
         }
@@ -314,7 +314,7 @@ public final class ScreenSelectionActivity extends Activity {
                     finished = false;
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                     refreshControls();
-                    Toast.makeText(this, "Orbit could not save this selection",
+                    Toast.makeText(this, "GrokLink could not save this selection",
                             Toast.LENGTH_LONG).show();
                     return;
                 }

@@ -80,7 +80,7 @@ public final class OrbitVersion {
 
     /** The GitHub Release title, matching the release workflow exactly. */
     public static String releaseTitle(String versionName) {
-        return "Orbit Assistant v" + displayName(versionName);
+        return "GrokLink v" + displayName(versionName);
     }
 
     // ---- tags ---------------------------------------------------------------------------------

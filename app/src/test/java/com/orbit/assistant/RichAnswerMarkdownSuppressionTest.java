@@ -81,7 +81,7 @@ public final class RichAnswerMarkdownSuppressionTest {
     private static List<RichAnswerImage> attached() {
         return Collections.singletonList(structured(
                 "https://cdn.example.org/photos/drake.jpg", "https://example.org/birds/mallard",
-                "Orbit sourced photograph"));
+                "GrokLink sourced photograph"));
     }
 
     private View render(List<RichAnswerImage> richImages) {
@@ -117,7 +117,7 @@ public final class RichAnswerMarkdownSuppressionTest {
         assertFalse("the model's own picture must not be drawn", drawn.contains(MARKDOWN_ALT));
         assertFalse("and it must leave no residue behind either",
                 drawn.contains("Image unavailable"));
-        assertTrue("the structured picture is still there", drawn.contains("Orbit sourced photograph"));
+        assertTrue("the structured picture is still there", drawn.contains("GrokLink sourced photograph"));
         assertTrue("and so is every word of the answer", drawn.contains("green head"));
         assertTrue("ordinary links are untouched", drawn.contains("field guide"));
     }
@@ -168,7 +168,7 @@ public final class RichAnswerMarkdownSuppressionTest {
         String after = allText(render(attached()));
         assertFalse("and after it resolves, it is gone rather than sitting above it",
                 after.contains(MARKDOWN_ALT));
-        assertTrue(after.contains("Orbit sourced photograph"));
+        assertTrue(after.contains("GrokLink sourced photograph"));
     }
 
     /** Both surfaces redraw the whole message, so no old view can survive the transition. */

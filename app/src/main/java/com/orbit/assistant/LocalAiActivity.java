@@ -62,7 +62,7 @@ public final class LocalAiActivity extends Activity {
      * component that is already installed cannot serve it; it can only be removed.
      */
     static final String PLAY_UNAVAILABLE =
-            "Orbit Local isn't available in the Google Play edition of Orbit yet.";
+            "GrokLink Local isn't available in the Google Play edition of GrokLink yet.";
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private LinearLayout cards;
@@ -142,7 +142,7 @@ public final class LocalAiActivity extends Activity {
     }
 
     /**
-     * Settles a "Remove Orbit Local" that was waiting on Android's own uninstall confirmation.
+     * Settles a "Remove GrokLink Local" that was waiting on Android's own uninstall confirmation.
      *
      * <p>The ordering v0.7.7.5 got wrong. It deleted the model, the legacy copy, and the installer
      * cache <em>before</em> asking Android to remove the package — so cancelling Android's
@@ -191,15 +191,15 @@ public final class LocalAiActivity extends Activity {
             // honest thing is to change nothing and say so.
             String reported = OrbitLocalUninstaller.message(lastRemovalStage(this));
             removalMessage = reported.isEmpty()
-                    ? "Orbit Local was not removed. Nothing was deleted." : reported;
+                    ? "GrokLink Local was not removed. Nothing was deleted." : reported;
             return;
         }
         // Confirmed absent. Android took the component and, with it, the model that lived in the
         // component's own private storage — so what is left is only what belongs to Orbit.
         finishOrbitSideRemoval(scope);
         removalMessage = outcome == RemovalOutcome.REMOVED_COMPONENT
-                ? "The Orbit Local component was uninstalled."
-                : "Orbit Local was removed.";
+                ? "The GrokLink Local component was uninstalled."
+                : "GrokLink Local was removed.";
         // A complete removal takes the card that message would have been shown on with it, so the
         // confirmation is said out loud instead of being written somewhere that no longer exists.
         if (!hasAnythingToRemove()) {
@@ -345,14 +345,14 @@ public final class LocalAiActivity extends Activity {
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
-        titles.addView(UiKit.text(this, "Orbit Local", 24, UiKit.TEXT, true));
+        titles.addView(UiKit.text(this, "GrokLink Local", 24, UiKit.TEXT, true));
         titles.addView(UiKit.text(this, "Private AI on your phone", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Orbit Local answers on the phone itself. Conversations never leave the device, and chat keeps working with no internet at all. It is optional: nothing is installed until you ask for it, and everything can be removed again.",
+                "GrokLink Local answers on the phone itself. Conversations never leave the device, and chat keeps working with no internet at all. It is optional: nothing is installed until you ask for it, and everything can be removed again.",
                 13, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.14f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -495,8 +495,8 @@ public final class LocalAiActivity extends Activity {
         card.addView(cloudTitle);
         card.addView(cloud);
         TextView promise = UiKit.text(this,
-                "Orbit Local never passes a request to the cloud. When something needs one, "
-                        + "Orbit says so and you choose.", 12, UiKit.MUTED, false);
+                "GrokLink Local never passes a request to the cloud. When something needs one, "
+                        + "GrokLink says so and you choose.", 12, UiKit.MUTED, false);
         promise.setLineSpacing(0, 1.12f);
         promise.setPadding(0, UiKit.dp(this, 10), 0, 0);
         card.addView(promise);
@@ -540,7 +540,7 @@ public final class LocalAiActivity extends Activity {
     private View componentCard() {
         OrbitLocalComponent.State state = OrbitLocalComponent.state(this);
         LinearLayout card = card();
-        card.addView(UiKit.text(this, "Orbit Local component", 12, UiKit.MUTED, true));
+        card.addView(UiKit.text(this, "GrokLink Local component", 12, UiKit.MUTED, true));
         card.addView(titleRow("On-device AI component",
                 OrbitLocalComponent.stateLabel(state), state == OrbitLocalComponent.State.INSTALLED));
 
@@ -591,9 +591,9 @@ public final class LocalAiActivity extends Activity {
                         + "\nVersion " + OrbitVersion.displayName(
                                 OrbitLocalComponent.installedVersionName(this));
             case UPDATE_REQUIRED:
-                return "The installed component was built for a different version of Orbit. Update it to use Orbit Local again.";
+                return "The installed component was built for a different version of GrokLink. Update it to use GrokLink Local again.";
             case UNTRUSTED:
-                return "A package named Orbit Local is installed but was not published by Orbit, so it will not be used. Remove it, then install Orbit Local from here.";
+                return "A package named GrokLink Local is installed but was not published by GrokLink, so it will not be used. Remove it, then install GrokLink Local from here.";
             default:
                 return "Required to run AI privately on this device · " + size;
         }
@@ -611,10 +611,10 @@ public final class LocalAiActivity extends Activity {
             case NOT_INSTALLED:
                 return PLAY_UNAVAILABLE;
             case UNTRUSTED:
-                return "A package named Orbit Local is installed but was not published by Orbit, "
+                return "A package named GrokLink Local is installed but was not published by GrokLink, "
                         + "so it will not be used. You can remove it here.";
             default:
-                return "An Orbit Local component from the GitHub edition of Orbit is installed. "
+                return "An GrokLink Local component from the GitHub edition of GrokLink is installed. "
                         + "The Google Play edition can't use it. You can uninstall it here.";
         }
     }
@@ -675,7 +675,7 @@ public final class LocalAiActivity extends Activity {
                 // downloads. The component always comes first, because a model without it cannot
                 // run and downloading 1.6 GB into that situation would be indefensible.
                 boolean firstTime = !LocalModelStore.hasLegacyModel(this);
-                Button install = primaryButton(firstTime ? "Set up Orbit Local" : "Install component");
+                Button install = primaryButton(firstTime ? "Set up GrokLink Local" : "Install component");
                 install.setEnabled(allowed);
                 if (!allowed) install.setAlpha(0.5f);
                 install.setOnClickListener(v -> {
@@ -698,24 +698,24 @@ public final class LocalAiActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(UiKit.dp(this, 24), UiKit.dp(this, 20),
                 UiKit.dp(this, 24), UiKit.dp(this, 6));
-        TextView title = UiKit.text(this, "Set up Orbit Local", 20, UiKit.TEXT, true);
+        TextView title = UiKit.text(this, "Set up GrokLink Local", 20, UiKit.TEXT, true);
         title.setAccessibilityHeading(true);
         content.addView(title);
 
-        TextView lead = UiKit.text(this, "Orbit Local needs two optional downloads:",
+        TextView lead = UiKit.text(this, "GrokLink Local needs two optional downloads:",
                 14, UiKit.TEXT, false);
         lead.setPadding(0, UiKit.dp(this, 12), 0, 0);
         content.addView(lead);
 
-        content.addView(setupItem("Orbit Local component · " + componentSizeText(),
-                "Lets Orbit run AI privately on this device."));
+        content.addView(setupItem("GrokLink Local component · " + componentSizeText(),
+                "Lets GrokLink run AI privately on this device."));
         content.addView(setupItem("AI model · "
                         + LocalModelStore.formatBytes(LocalModelStore.MODEL_SIZE_BYTES),
                 "Contains the local AI model itself."));
 
         TextView footer = UiKit.text(this,
                 "Both can be removed later. A separate, optional action model can be added "
-                        + "afterwards if you want Orbit Local to handle phone commands too.",
+                        + "afterwards if you want GrokLink Local to handle phone commands too.",
                 13, UiKit.MUTED, false);
         footer.setLineSpacing(0, 1.13f);
         footer.setPadding(0, UiKit.dp(this, 12), 0, 0);
@@ -803,7 +803,7 @@ public final class LocalAiActivity extends Activity {
     private void launchComponentInstaller(File apk) {
         if (!OrbitUpdater.canRequestPackageInstalls(this)) {
             waitingForInstallPermission = true;
-            installMessage = "Android needs permission to install the component from Orbit. Allow this source, then return to Orbit.";
+            installMessage = "Android needs permission to install the component from GrokLink. Allow this source, then return to GrokLink.";
             rebuild();
             OrbitUpdater.openUnknownSourcesSettings(this);
             return;
@@ -836,7 +836,7 @@ public final class LocalAiActivity extends Activity {
         String pillLabel;
         boolean accentPill;
         if (!componentReady) {
-            pillLabel = "Requires Orbit Local component";
+            pillLabel = "Requires GrokLink Local component";
             accentPill = false;
         } else if (status == null) {
             pillLabel = "Checking…";
@@ -919,12 +919,12 @@ public final class LocalAiActivity extends Activity {
             String base = "Local AI model · about " + size;
             if (!OrbitDistribution.installsOrbitLocalComponent()) return base + "\n" + PLAY_UNAVAILABLE;
             if (LocalModelStore.hasLegacyModel(this)) {
-                return base + "\nYou already have this model on the phone. Install the Orbit Local "
-                        + "component and Orbit can move it across instead of downloading it again.";
+                return base + "\nYou already have this model on the phone. Install the GrokLink Local "
+                        + "component and GrokLink can move it across instead of downloading it again.";
             }
-            return base + "\nInstall the Orbit Local component first.";
+            return base + "\nInstall the GrokLink Local component first.";
         }
-        if (status == null) return "Checking the Orbit Local component…";
+        if (status == null) return "Checking the GrokLink Local component…";
         switch (status.modelState) {
             case OrbitLocalStatus.READY:
                 // The action model is a separate install and does not change what *this* model can
@@ -944,7 +944,7 @@ public final class LocalAiActivity extends Activity {
             case OrbitLocalStatus.VALIDATING:
                 return "Making sure every byte arrived intact before the model is enabled.";
             case OrbitLocalStatus.IMPORTING:
-                return "Moving the model you already downloaded into Orbit Local. Your existing copy is kept until this finishes and verifies.";
+                return "Moving the model you already downloaded into GrokLink Local. Your existing copy is kept until this finishes and verifies.";
             case OrbitLocalStatus.PAUSED:
                 return "You paused this download. Resume any time; already-downloaded data is kept.";
             case OrbitLocalStatus.INTERRUPTED:
@@ -953,10 +953,10 @@ public final class LocalAiActivity extends Activity {
                 return "One-time download · " + size + " · stored only on this device.";
             default:
                 if (LocalModelStore.hasLegacyModel(this)) {
-                    return "You already have this model on the phone from an earlier version of Orbit. "
-                            + "Orbit can move it into Orbit Local instead of downloading " + size + " again.";
+                    return "You already have this model on the phone from an earlier version of GrokLink. "
+                            + "GrokLink can move it into GrokLink Local instead of downloading " + size + " again.";
                 }
-                return "One-time download · about " + size + " · stored only on this device. After that, Orbit Local needs no internet and no account.";
+                return "One-time download · about " + size + " · stored only on this device. After that, GrokLink Local needs no internet and no account.";
         }
     }
 
@@ -1021,10 +1021,10 @@ public final class LocalAiActivity extends Activity {
                 break;
             case OrbitLocalStatus.READY: {
                 if (!Prefs.PROVIDER_LOCAL.equals(AiProviders.active(this).id())) {
-                    Button use = primaryButton("Use Orbit Local");
+                    Button use = primaryButton("Use GrokLink Local");
                     use.setOnClickListener(v -> {
                         if (AiProviders.select(this, Prefs.PROVIDER_LOCAL)) {
-                            Toast.makeText(this, "Orbit Local is now the active provider",
+                            Toast.makeText(this, "GrokLink Local is now the active provider",
                                     Toast.LENGTH_SHORT).show();
                             rebuild();
                         }
@@ -1069,8 +1069,8 @@ public final class LocalAiActivity extends Activity {
             return;
         }
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Existing Orbit Local model found")
-                .setMessage("Orbit can move your existing local model into the new Orbit Local "
+                .setTitle("Existing GrokLink Local model found")
+                .setMessage("GrokLink can move your existing local model into the new GrokLink Local "
                         + "component instead of downloading it again.\n\nYour current copy is kept "
                         + "until the moved copy has been verified, so nothing is lost if this is "
                         + "interrupted.")
@@ -1086,13 +1086,13 @@ public final class LocalAiActivity extends Activity {
                 .setTitle("Not enough space to move the model")
                 .setMessage("Moving the model needs room for a second copy until the first is "
                         + "removed, and this device does not have it.\n\nOrbit can instead delete "
-                        + "the old model and download a fresh copy into Orbit Local. Local AI will "
+                        + "the old model and download a fresh copy into GrokLink Local. Local AI will "
                         + "be unavailable until that download finishes.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Replace with new copy", (d, w) -> {
                     LocalModelStore.deleteLegacy(this);
                     OrbitLocalClient.startModelDownload(this);
-                    Toast.makeText(this, "Downloading the model into Orbit Local",
+                    Toast.makeText(this, "Downloading the model into GrokLink Local",
                             Toast.LENGTH_SHORT).show();
                     bumpRefresh();
                 })
@@ -1109,7 +1109,7 @@ public final class LocalAiActivity extends Activity {
             main.post(() -> {
                 if (isFinishing() || isDestroyed()) return;
                 if (!started) {
-                    Toast.makeText(this, "Orbit Local could not start moving the model",
+                    Toast.makeText(this, "GrokLink Local could not start moving the model",
                             Toast.LENGTH_LONG).show();
                 }
                 bumpRefresh();
@@ -1121,8 +1121,8 @@ public final class LocalAiActivity extends Activity {
     private void confirmReclaimLegacy() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Free up the old copy?")
-                .setMessage("Orbit Local now has its own verified copy of the model. The older copy "
-                        + "stored by Orbit is no longer used, and removing it frees about "
+                .setMessage("GrokLink Local now has its own verified copy of the model. The older copy "
+                        + "stored by GrokLink is no longer used, and removing it frees about "
                         + LocalModelStore.formatBytes(LocalModelStore.legacyBytes(this))
                         + ".\n\nOrbit Local keeps working exactly as it does now.")
                 .setNegativeButton("Keep it", null)
@@ -1155,7 +1155,7 @@ public final class LocalAiActivity extends Activity {
         String pillLabel;
         boolean accentPill = false;
         if (!componentReady) {
-            pillLabel = "Requires Orbit Local component";
+            pillLabel = "Requires GrokLink Local component";
         } else if (status == null) {
             pillLabel = "Checking…";
         } else if (status.actionModelReady()) {
@@ -1199,7 +1199,7 @@ public final class LocalAiActivity extends Activity {
             TextView covers = UiKit.text(this,
                     "Understands: flashlight, brightness, media volume, Do Not Disturb, ringer mode, "
                             + "play/pause/skip, timers, alarms, opening an app, and opening Settings. "
-                            + "Nothing else, and nothing it suggests runs without Orbit checking it first.",
+                            + "Nothing else, and nothing it suggests runs without GrokLink checking it first.",
                     12, UiKit.MUTED, false);
             covers.setLineSpacing(0, 1.13f);
             covers.setPadding(0, UiKit.dp(this, 10), 0, 0);
@@ -1226,7 +1226,7 @@ public final class LocalAiActivity extends Activity {
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.addView(UiKit.text(this, "Use for device commands", 15, UiKit.TEXT, false));
         labels.addView(UiKit.text(this,
-                "Orbit's own command recognition always runs first. This only handles what it cannot.",
+                "GrokLink's own command recognition always runs first. This only handles what it cannot.",
                 12, UiKit.MUTED, false));
         row.addView(labels, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -1264,18 +1264,18 @@ public final class LocalAiActivity extends Activity {
                 : LocalModelStore.formatBytes(status.actionModelSizeBytes);
         if (!componentReady) {
             if (!OrbitDistribution.installsOrbitLocalComponent()) {
-                return "Lets Orbit Local understand phone commands it has no exact wording for, entirely "
+                return "Lets GrokLink Local understand phone commands it has no exact wording for, entirely "
                         + "on the device. " + PLAY_UNAVAILABLE;
             }
-            return "Lets Orbit Local understand phone commands it has no exact wording for, entirely "
-                    + "on the device. Install the Orbit Local component first.";
+            return "Lets GrokLink Local understand phone commands it has no exact wording for, entirely "
+                    + "on the device. Install the GrokLink Local component first.";
         }
-        if (status == null) return "Checking the Orbit Local component…";
+        if (status == null) return "Checking the GrokLink Local component…";
         switch (status.actionModelState) {
             case OrbitLocalStatus.READY:
                 return size + " installed · Works completely offline\n"
                         + "Turns everyday phrasing like \"kill the torch\" or \"a bit quieter\" into an "
-                        + "Orbit action, on the phone. It never chats and never controls Android itself.";
+                        + "GrokLink action, on the phone. It never chats and never controls Android itself.";
             case OrbitLocalStatus.DOWNLOADING:
                 return "Downloading in the background. You can leave this screen or use other apps; "
                         + "the download continues and resumes after any interruption.";
@@ -1293,7 +1293,7 @@ public final class LocalAiActivity extends Activity {
                 return "One-time download · " + size + " · stored only on this device.";
             default:
                 return "Optional · one-time download of " + size + " · stored only on this device.\n"
-                        + "Lets Orbit Local act on phone commands that do not match Orbit's exact wording, "
+                        + "Lets GrokLink Local act on phone commands that do not match GrokLink's exact wording, "
                         + "with no internet and no account. Chat works without it.";
         }
     }
@@ -1361,7 +1361,7 @@ public final class LocalAiActivity extends Activity {
                 ? "About " + size + " of partly downloaded model data will be removed, freeing that "
                         + "storage. You can start the download again at any time."
                 : "About " + size + " of downloaded model data will be removed, freeing that storage. "
-                        + "Orbit Local chat and its own model are not affected, and Orbit's built-in "
+                        + "GrokLink Local chat and its own model are not affected, and GrokLink's built-in "
                         + "command recognition keeps working exactly as it does now.";
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
@@ -1382,7 +1382,7 @@ public final class LocalAiActivity extends Activity {
 
     private View storageCard() {
         LinearLayout card = card();
-        card.addView(UiKit.text(this, "Orbit Local storage", 12, UiKit.MUTED, true));
+        card.addView(UiKit.text(this, "GrokLink Local storage", 12, UiKit.MUTED, true));
 
         long componentBytes = OrbitLocalComponent.installedApkBytes(this);
         long modelBytes = status == null ? 0L : status.modelTotalBytes;
@@ -1400,7 +1400,7 @@ public final class LocalAiActivity extends Activity {
 
         if (total <= 0L) {
             TextView none = UiKit.text(this,
-                    "Orbit Local uses no storage on this device yet. The normal Orbit app is not counted here.",
+                    "GrokLink Local uses no storage on this device yet. The normal GrokLink app is not counted here.",
                     13, UiKit.MUTED, false);
             none.setLineSpacing(0, 1.13f);
             none.setPadding(0, UiKit.dp(this, 6), 0, 0);
@@ -1424,7 +1424,7 @@ public final class LocalAiActivity extends Activity {
         }
         if (legacyBytes > 0L) {
             card.addView(storageLine(
-                    LocalModelStore.hasLegacyModel(this) ? "Earlier Orbit copy" : "Earlier partial download",
+                    LocalModelStore.hasLegacyModel(this) ? "Earlier GrokLink copy" : "Earlier partial download",
                     LocalModelStore.formatBytes(legacyBytes)));
         }
         return card;
@@ -1450,16 +1450,16 @@ public final class LocalAiActivity extends Activity {
     private View removeCard() {
         boolean componentInstalled = OrbitLocalComponent.isInstalled(this);
         LinearLayout card = card();
-        card.addView(UiKit.text(this, "Remove Orbit Local", 12, UiKit.MUTED, true));
+        card.addView(UiKit.text(this, "Remove GrokLink Local", 12, UiKit.MUTED, true));
         TextView details = UiKit.text(this,
                 componentInstalled
-                        ? "Removes everything Orbit Local uses on this device: the component, the "
+                        ? "Removes everything GrokLink Local uses on this device: the component, the "
                                 + "AI model it stores, any model data left by an earlier version of "
-                                + "Orbit, and the downloaded component installer.\n\nOrbit itself, "
+                                + "GrokLink, and the downloaded component installer.\n\nOrbit itself, "
                                 + "your conversations, memories, Routines, settings, and cloud "
                                 + "providers are all untouched."
-                        : "The Orbit Local component is not installed, but model data from an "
-                                + "earlier version of Orbit is still stored on this device. This "
+                        : "The GrokLink Local component is not installed, but model data from an "
+                                + "earlier version of GrokLink is still stored on this device. This "
                                 + "removes it.\n\nOrbit itself, your conversations, memories, "
                                 + "Routines, settings, and cloud providers are all untouched.",
                 13, UiKit.MUTED, false);
@@ -1478,7 +1478,7 @@ public final class LocalAiActivity extends Activity {
         actions.setOrientation(LinearLayout.VERTICAL);
         actions.setPadding(0, UiKit.dp(this, 12), 0, 0);
         Button remove = dangerButton(componentInstalled
-                ? "Remove Orbit Local" : "Remove old local model data");
+                ? "Remove GrokLink Local" : "Remove old local model data");
         remove.setOnClickListener(v -> {
             if (componentInstalled) confirmRemoveOrbitLocal();
             else confirmRemoveLegacyOnly();
@@ -1495,10 +1495,10 @@ public final class LocalAiActivity extends Activity {
                 + LocalModelStore.legacyBytes(this);
         boolean active = Prefs.PROVIDER_LOCAL.equals(AiProviders.active(this).id());
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Remove Orbit Local?")
-                .setMessage("This removes everything Orbit Local uses on this device — the "
+                .setTitle("Remove GrokLink Local?")
+                .setMessage("This removes everything GrokLink Local uses on this device — the "
                         + "component, the AI model, any model data left by an earlier version of "
-                        + "Orbit, and the downloaded installer — freeing about "
+                        + "GrokLink, and the downloaded installer — freeing about "
                         + LocalModelStore.formatBytes(freed)
                         + ".\n\nOrbit itself stays installed. Your conversations, memories, "
                         + "Routines, and settings are not affected, and your cloud providers keep "
@@ -1507,7 +1507,7 @@ public final class LocalAiActivity extends Activity {
                         + "\n\nAndroid asks you to confirm next. Nothing is deleted unless you "
                         + "confirm it there.")
                 .setNegativeButton("Cancel", null)
-                .setPositiveButton("Remove Orbit Local", null)
+                .setPositiveButton("Remove GrokLink Local", null)
                 .create();
         UiKit.styleOrbitDialog(dialog, this, true, () -> {
             Button remove = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
@@ -1536,7 +1536,7 @@ public final class LocalAiActivity extends Activity {
         if (launch == OrbitLocalUninstaller.Launch.NOT_INSTALLED) {
             // Removed from Android Settings while this screen was open. Settle the rest.
             finishOrbitSideRemoval(scope);
-            removalMessage = "Orbit Local was already removed.";
+            removalMessage = "GrokLink Local was already removed.";
         } else {
             // Never silent again. The button did nothing, and the user is told so along with the
             // one thing they can do about it.
@@ -1559,10 +1559,10 @@ public final class LocalAiActivity extends Activity {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Remove old local model data?")
                 .setMessage("About " + LocalModelStore.formatBytes(bytes)
-                        + " of model data stored by an earlier version of Orbit will be deleted, "
+                        + " of model data stored by an earlier version of GrokLink will be deleted, "
                         + "freeing that storage.\n\nOrbit itself, your conversations, memories, "
                         + "Routines, settings, and cloud providers are not affected. You can set "
-                        + "Orbit Local up again at any time.")
+                        + "GrokLink Local up again at any time.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Remove", (d, w) -> {
                     LocalModelStore.deleteLegacy(this);
@@ -1599,7 +1599,7 @@ public final class LocalAiActivity extends Activity {
         boolean active = Prefs.PROVIDER_LOCAL.equals(AiProviders.active(this).id());
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Uninstall the component?")
-                .setMessage("Orbit stops being able to run AI on this device until the component "
+                .setMessage("GrokLink stops being able to run AI on this device until the component "
                         + "is installed again." + modelWarning
                         + (active ? "\n\nChatGPT becomes the active provider." : "")
                         + "\n\nAndroid asks you to confirm next. Nothing is deleted unless you "
@@ -1631,7 +1631,7 @@ public final class LocalAiActivity extends Activity {
             title = "Remove " + LocalModelStore.MODEL_DISPLAY_NAME + "?";
             message = "About " + LocalModelStore.formatBytes(bytes)
                     + " of downloaded model data will be removed, freeing that storage. "
-                    + "The Orbit Local component stays installed, so another model can be "
+                    + "The GrokLink Local component stays installed, so another model can be "
                     + "downloaded without setting it up again."
                     + (active ? " ChatGPT becomes the active provider." : "")
                     + " Your conversations, settings, and other providers are not affected.";

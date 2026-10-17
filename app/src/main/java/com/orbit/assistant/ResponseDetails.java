@@ -119,7 +119,7 @@ public final class ResponseDetails {
     public List<String[]> rows() {
         List<String[]> rows = new ArrayList<>();
         if (answeredByOrbit()) {
-            rows.add(new String[]{"Answered by", "Orbit, on this phone"});
+            rows.add(new String[]{"Answered by", "GrokLink, on this phone"});
         } else {
             if (autoRouted()) {
                 rows.add(new String[]{"Selection", AiSelection.AUTO_LABEL});

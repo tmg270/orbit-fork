@@ -168,7 +168,7 @@ public final class OrbitUpdater {
             try { callback.onResult(checkNow(app)); }
             catch (Exception e) {
                 log("check_failed", diagnostic(e));
-                callback.onError(userMessage(e, "Orbit could not check for updates."));
+                callback.onError(userMessage(e, "GrokLink could not check for updates."));
             }
         });
     }
@@ -218,10 +218,10 @@ public final class OrbitUpdater {
         }
         String tag = releaseJson.optString("tag_name", "").trim();
         if (!OrbitVersion.isStableTag(tag)) {
-            throw new UpdateException("The latest Orbit release tag is malformed.");
+            throw new UpdateException("The latest GrokLink release tag is malformed.");
         }
         if (releaseJson.optJSONArray("assets") == null) {
-            throw new UpdateException("The latest Orbit release has no assets.");
+            throw new UpdateException("The latest GrokLink release has no assets.");
         }
         JSONObject manifest = fetchManifest(releaseJson, tag);
         return evaluateCandidate(releaseJson, manifest, Prefs.CHANNEL_STABLE);
@@ -320,7 +320,7 @@ public final class OrbitUpdater {
     static Release evaluateCandidate(JSONObject release, JSONObject manifest, String channel)
             throws Exception {
         if (!structurallyEligible(release, channel)) {
-            throw new UpdateException("The Orbit release is not an eligible published release.");
+            throw new UpdateException("The GrokLink release is not an eligible published release.");
         }
         String tag = release.optString("tag_name", "").trim();
         JSONArray assets = release.optJSONArray("assets");
@@ -331,7 +331,7 @@ public final class OrbitUpdater {
 
     private static JSONObject fetchManifest(JSONObject release, String tag) throws Exception {
         JSONArray assets = release.optJSONArray("assets");
-        if (assets == null) throw new UpdateException("The Orbit release has no assets.");
+        if (assets == null) throw new UpdateException("The GrokLink release has no assets.");
         JSONObject manifestAsset = uniqueAsset(assets, UPDATE_MANIFEST_NAME);
         requireOfficialAssetUrl(manifestAsset, tag, UPDATE_MANIFEST_NAME);
         return readJson(downloadUrl(tag, UPDATE_MANIFEST_NAME), MAX_JSON_BYTES);
@@ -467,7 +467,7 @@ public final class OrbitUpdater {
             throw new VerificationException("The downloaded APK version does not match the release manifest.");
         }
         if (info.getLongVersionCode() <= BuildConfig.VERSION_CODE) {
-            throw new VerificationException("The downloaded APK is not newer than this Orbit installation.");
+            throw new VerificationException("The downloaded APK is not newer than this GrokLink installation.");
         }
         if (info.signingInfo.hasMultipleSigners()) {
             throw new VerificationException("The downloaded APK has an unexpected signer set.");
@@ -479,7 +479,7 @@ public final class OrbitUpdater {
         String certificate = hex(MessageDigest.getInstance("SHA-256").digest(signers[0].toByteArray()));
         if (!normalizeSha256(certificate).equals(normalizeSha256(CERTIFICATE_SHA256)) ||
                 !normalizeSha256(release.certificateSha256).equals(normalizeSha256(CERTIFICATE_SHA256))) {
-            throw new VerificationException("The downloaded APK is not signed by Orbit's permanent certificate.");
+            throw new VerificationException("The downloaded APK is not signed by GrokLink's permanent certificate.");
         }
         log("verification_complete", "package_version_certificate_valid");
     }
@@ -508,7 +508,7 @@ public final class OrbitUpdater {
                 .putLong(PREF_PENDING_INSTALL_CODE, release.versionCode)
                 .putString(PREF_PENDING_INSTALL_FILE, candidate.getName())
                 .commit();
-        if (!saved) throw new UpdateException("Orbit could not prepare the update installer.");
+        if (!saved) throw new UpdateException("GrokLink could not prepare the update installer.");
         try {
             activity.startActivity(install);
         } catch (Exception e) {
@@ -632,7 +632,7 @@ public final class OrbitUpdater {
             if (release.apkSize > 0L && total != release.apkSize) {
                 throw new VerificationException("The APK download was incomplete.");
             }
-            if (!part.renameTo(output)) throw new UpdateException("Orbit could not finalize the APK download.");
+            if (!part.renameTo(output)) throw new UpdateException("GrokLink could not finalize the APK download.");
             callback.onVerifying();
             verifyDownloadedApk(context, output, release);
             callback.onReady(output);
@@ -648,7 +648,7 @@ public final class OrbitUpdater {
             log(verification ? "verification_failed" : "download_failed", diagnostic(e));
             callback.onError(userMessage(e, verification
                     ? "The downloaded update failed verification."
-                    : "Orbit could not download the update."), verification);
+                    : "GrokLink could not download the update."), verification);
         } finally {
             if (connection != null) connection.disconnect();
         }
@@ -657,7 +657,7 @@ public final class OrbitUpdater {
     private static Release validateManifestAndAssets(String tag, String notes, JSONObject manifest,
                                                      JSONArray assets) throws Exception {
         if (manifest.optInt("schema", -1) != SCHEMA) {
-            throw new UpdateException("The Orbit update manifest schema is unsupported.");
+            throw new UpdateException("The GrokLink update manifest schema is unsupported.");
         }
         String packageName = manifest.optString("packageName", "");
         String versionName = manifest.optString("versionName", "").trim();
@@ -668,14 +668,14 @@ public final class OrbitUpdater {
         Release release = new Release(tag, versionName, versionCode, apkAssetName,
                 apkSha256, certificate, -1L, compactNotes(notes));
         if (!PACKAGE_NAME.equals(packageName)) {
-            throw new UpdateException("The Orbit update manifest has the wrong package name.");
+            throw new UpdateException("The GrokLink update manifest has the wrong package name.");
         }
         validateReleaseFields(release);
         JSONObject apkAsset = uniqueAsset(assets, apkAssetName);
         requireOfficialAssetUrl(apkAsset, tag, apkAssetName);
         long size = apkAsset.optLong("size", -1L);
         if (size <= 0L || size > MAX_APK_BYTES) {
-            throw new UpdateException("The Orbit release APK size is invalid.");
+            throw new UpdateException("The GrokLink release APK size is invalid.");
         }
         return new Release(tag, versionName, versionCode, apkAssetName,
                 apkSha256, certificate, size, compactNotes(notes));
@@ -688,18 +688,18 @@ public final class OrbitUpdater {
         if (release == null || !OrbitVersion.isValid(release.versionName) ||
                 !release.tag.equals(OrbitVersion.tagFor(release.versionName)) ||
                 release.versionCode <= 0L) {
-            throw new UpdateException("The Orbit release version metadata is malformed.");
+            throw new UpdateException("The GrokLink release version metadata is malformed.");
         }
         String expectedAsset = "Orbit-Assistant-v" + release.versionName + ".apk";
         if (!expectedAsset.equals(release.apkAssetName)) {
-            throw new UpdateException("The Orbit release APK name is inconsistent.");
+            throw new UpdateException("The GrokLink release APK name is inconsistent.");
         }
         if (!SHA256_PATTERN.matcher(release.apkSha256).matches()) {
-            throw new UpdateException("The Orbit release APK checksum is malformed.");
+            throw new UpdateException("The GrokLink release APK checksum is malformed.");
         }
         if (!normalizeSha256(release.certificateSha256)
                 .equals(normalizeSha256(CERTIFICATE_SHA256))) {
-            throw new UpdateException("The Orbit release certificate metadata is invalid.");
+            throw new UpdateException("The GrokLink release certificate metadata is invalid.");
         }
     }
 
@@ -708,17 +708,17 @@ public final class OrbitUpdater {
         for (int i = 0; i < assets.length(); i++) {
             JSONObject asset = assets.optJSONObject(i);
             if (asset != null && name.equals(asset.optString("name", ""))) {
-                if (found != null) throw new UpdateException("The Orbit release contains duplicate assets.");
+                if (found != null) throw new UpdateException("The GrokLink release contains duplicate assets.");
                 found = asset;
             }
         }
-        if (found == null) throw new UpdateException("The Orbit release is missing " + name + ".");
+        if (found == null) throw new UpdateException("The GrokLink release is missing " + name + ".");
         return found;
     }
 
     private static void requireOfficialAssetUrl(JSONObject asset, String tag, String name) throws Exception {
         if (!downloadUrl(tag, name).equals(asset.optString("browser_download_url", ""))) {
-            throw new UpdateException("The Orbit release contains an unexpected asset URL.");
+            throw new UpdateException("The GrokLink release contains an unexpected asset URL.");
         }
     }
 
@@ -749,7 +749,7 @@ public final class OrbitUpdater {
     private static HttpURLConnection open(String value, String accept) throws Exception {
         URL url = new URL(value);
         if (!"https".equalsIgnoreCase(url.getProtocol())) {
-            throw new UpdateException("Orbit updates require HTTPS.");
+            throw new UpdateException("GrokLink updates require HTTPS.");
         }
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(15000);
@@ -768,7 +768,7 @@ public final class OrbitUpdater {
 
     private static String downloadUrl(String tag, String assetName) throws Exception {
         if (!OrbitVersion.isValidTag(tag) || !assetName.matches("^[A-Za-z0-9._-]+$")) {
-            throw new UpdateException("The Orbit release asset reference is malformed.");
+            throw new UpdateException("The GrokLink release asset reference is malformed.");
         }
         return OrbitEdition.releaseDownloadBase() + tag + "/" + assetName;
     }

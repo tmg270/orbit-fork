@@ -107,7 +107,7 @@ public final class OrbitVaultBackupTest {
         OrbitVaultItem note = OrbitVaultStore.saveText(context, "Packing list",
                 "Charger\nPassport", "Quick Capture");
         OrbitVaultItem link = OrbitVaultStore.saveLink(context, "Recipe",
-                "https://example.com/sourdough", "Shared to Orbit");
+                "https://example.com/sourdough", "Shared to GrokLink");
         OrbitVaultItem reply = OrbitVaultStore.saveOrbitReply(context, "Feed it twice a day.");
 
         String backup = exported();

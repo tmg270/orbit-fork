@@ -46,7 +46,7 @@ public final class OrbitWidgetActionActivity extends Activity {
             toggleAfterPermission();
         } else {
             Toast.makeText(this,
-                    "Camera access is needed for Orbit to control the flashlight.",
+                    "Camera access is needed for GrokLink to control the flashlight.",
                     Toast.LENGTH_LONG).show();
             finish();
         }

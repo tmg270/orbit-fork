@@ -60,7 +60,7 @@ public final class RoadmapFutureOnlyTest {
             "Choose your update channel",
             // v0.7.7.5 promoted Modular Orbit Local from Beta to Stable, so the component itself
             // is shipped work. Teaching it Orbit's device actions is what genuinely remains.
-            "Modular Orbit Local",
+            "Modular GrokLink Local",
             // v0.7.8.4 beta.1 to beta.3 shipped the Vault itself, saving from Orbit's own
             // surfaces, notes, Ask Orbit, Attach from Vault and the Deck destinations. Betas 4 to
             // 6 finished organization and polish, and the complete line is now Stable.
@@ -68,7 +68,7 @@ public final class RoadmapFutureOnlyTest {
             // "Save to Vault" is deliberately absent from this list: it is shipped, and it is also
             // a real part of the Rich Answers plan, where an inline web image has to reach the
             // Vault through the path that already exists rather than a second one.
-            "Orbit Vault arrives",
+            "GrokLink Vault arrives",
             "Vault organization",
             "Quick Capture",
             "Attach from Vault",
@@ -154,7 +154,7 @@ public final class RoadmapFutureOnlyTest {
         assertTrue(text.contains("LATER"));
         assertTrue(text.contains("EXPLORING"));
 
-        assertTrue("Orbit Pro is the current line", text.contains(OrbitRoadmap.CURRENT));
+        assertTrue("GrokLink Pro is the current line", text.contains(OrbitRoadmap.CURRENT));
     }
 
     /**
@@ -187,10 +187,10 @@ public final class RoadmapFutureOnlyTest {
         int current = text.indexOf(OrbitRoadmap.CURRENT);
         int vault = text.indexOf(OrbitRoadmap.SMART_VAULT);
         assertTrue("Smart Vault is still real planned work", vault >= 0);
-        assertTrue("Orbit Local 2.0 leads the page", current >= 0 && current < vault);
+        assertTrue("GrokLink Local 2.0 leads the page", current >= 0 && current < vault);
         int later = text.indexOf("Vault Pro organization");
         assertTrue("and Smart Vault is still NOW, above LATER", later < 0 || vault < later);
-        assertTrue("and it is still a Free Orbit feature", text.contains("always Free"));
+        assertTrue("and it is still a Free GrokLink feature", text.contains("always Free"));
     }
 
     /**
@@ -203,7 +203,7 @@ public final class RoadmapFutureOnlyTest {
         assertTrue("the current work must be listed first", current >= 0);
 
         for (String older : new String[]{"Local device actions", "Calendar awareness",
-                "More branch points & conditions", "Deeper Android actions", "Cook with Orbit",
+                "More branch points & conditions", "Deeper Android actions", "Cook with GrokLink",
                 "Hybrid Auto", "Proactive screen intelligence"}) {
             int at = text.indexOf(older);
             assertTrue(older + " is still genuinely unfinished and must still be listed", at >= 0);
@@ -231,9 +231,9 @@ public final class RoadmapFutureOnlyTest {
      */
     @Test public void theCookingDirectionIsListedAsFutureWork() {
         String text = roadmapText();
-        assertTrue("the cooking session itself is unbuilt", text.contains("Cook with Orbit"));
+        assertTrue("the cooking session itself is unbuilt", text.contains("Cook with GrokLink"));
         assertTrue("hands-free cooking voice is unbuilt", text.contains("Kitchen hands-free"));
-        assertTrue("Orbit-owned timers are unbuilt", text.contains("Orbit-managed timers"));
+        assertTrue("GrokLink-owned timers are unbuilt", text.contains("GrokLink-managed timers"));
         assertTrue("the Clock app must not be presented as going away",
                 text.contains("Off by default") && text.contains("Clock app stays"));
     }

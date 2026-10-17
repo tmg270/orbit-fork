@@ -33,7 +33,7 @@ public final class NotificationLanguageTest {
     }
 
     private static void recognized(String prompt) {
-        assertTrue("Orbit should read its own notification history for: " + prompt,
+        assertTrue("GrokLink should read its own notification history for: " + prompt,
                 NotificationQueryHelper.looksLikeNotificationQuery(prompt));
     }
 
@@ -127,7 +127,7 @@ public final class NotificationLanguageTest {
     @Test public void withoutNotificationAccessOrbitSaysSoRatherThanFallingThrough() {
         NotificationQueryHelper.Prepared prepared =
                 NotificationQueryHelper.prepare(context, "What notifs have I missed?");
-        assertTrue("a recognized request must stay with Orbit", prepared.recognized);
+        assertTrue("a recognized request must stay with GrokLink", prepared.recognized);
         assertNotNull(prepared.localReply);
         assertTrue(prepared.localReply.text.toLowerCase().contains("notification access"));
     }

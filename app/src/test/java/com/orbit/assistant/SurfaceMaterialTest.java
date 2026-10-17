@@ -298,7 +298,7 @@ public final class SurfaceMaterialTest {
             asFree();
             UiKit.syncTheme(context);
             OrbitGlass.Finish onFree = OrbitGlass.finishFor(OrbitGlass.Palette.live(context));
-            assertEquals("Free draws the material at Orbit's own settings",
+            assertEquals("Free draws the material at GrokLink's own settings",
                     OrbitProStyle.GLASS_OPACITY_DEFAULT, onFree.bodyAlpha);
             assertEquals("but the material itself is still the one chosen",
                     material, OrbitGlass.Palette.live(context).material());

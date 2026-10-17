@@ -119,7 +119,7 @@ public final class OrbitProEntitlement {
     }
 
     /** Shown wherever Orbit Pro is locked and there is no way to unlock it yet. */
-    static final String NOT_YET_PURCHASABLE = "Orbit Pro isn't available for purchase yet.";
+    static final String NOT_YET_PURCHASABLE = "GrokLink Pro isn't available for purchase yet.";
 
     static String lockedGuidance(boolean previewAllowed, String previewInstruction) {
         return previewAllowed ? previewInstruction : NOT_YET_PURCHASABLE;

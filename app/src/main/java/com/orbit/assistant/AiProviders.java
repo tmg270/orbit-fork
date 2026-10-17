@@ -16,16 +16,11 @@ import java.util.List;
  * one exact provider and model, and a deliberately chosen provider is never silently substituted.
  */
 public final class AiProviders {
-    private static final ChatGptProvider CHATGPT = new ChatGptProvider();
-    private static final AnthropicProvider ANTHROPIC = new AnthropicProvider();
     private static final XaiProvider XAI = new XaiProvider();
-    private static final OrbitLocalProvider LOCAL = new OrbitLocalProvider();
-    private static final OpenRouterProvider OPENROUTER = new OpenRouterProvider();
-    private static final RelayProvider RELAY = new RelayProvider();
 
-    /** Presentation order for management UI: recommended first, advanced fallback last. */
+    /** GrokLink: xAI / Grok is the only provider. */
     private static final List<AiProvider> ALL = Collections.unmodifiableList(
-            Arrays.asList(CHATGPT, ANTHROPIC, XAI, LOCAL, OPENROUTER, RELAY));
+            Arrays.asList((AiProvider) XAI));
 
     private AiProviders() {}
 
@@ -33,7 +28,7 @@ public final class AiProviders {
 
     public static AiProvider byId(String id) {
         for (AiProvider p : ALL) if (p.id().equals(id)) return p;
-        return CHATGPT;
+        return XAI;
     }
 
     /** A provider tests put in place of the real ones; never set in production. */
@@ -63,7 +58,7 @@ public final class AiProviders {
         AiProvider override = testOverride;
         if (override != null) return override;
         AiProvider chosen = byId(Prefs.provider(c));
-        return chosen.selectable(c) ? chosen : CHATGPT;
+        return chosen.selectable(c) ? chosen : XAI;
     }
 
     /**

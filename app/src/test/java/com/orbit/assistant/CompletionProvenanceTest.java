@@ -148,7 +148,7 @@ public final class CompletionProvenanceTest {
         OrbitRequestManager.completeIfNotCancelled(context, item.id,
                 CompletionSource.WORKER_RESPONSE, 0, answerWith("13.5", commits, item.id));
         OrbitRequestManager.completeIfNotCancelled(context, item.id,
-                CompletionSource.WORKER_ERROR, 1, answerWith("Orbit could not finish", commits, item.id));
+                CompletionSource.WORKER_ERROR, 1, answerWith("GrokLink could not finish", commits, item.id));
 
         assertTrue(lastRefusal().contains(CompletionSource.WORKER_ERROR.token));
         assertNotEquals(CompletionSource.WORKER_ERROR.token, CompletionSource.WORKER_RESPONSE.token);

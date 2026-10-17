@@ -99,9 +99,9 @@
         android:name=".OrbitApplication"
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="false"
-        android:icon="@drawable/ic_orbit"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_orbit"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Orbit"
         android:usesCleartextTraffic="false">
@@ -442,7 +442,7 @@
         <service
             android:name=".OrbitAutoService"
             android:exported="true"
-            android:label="Orbit">
+            android:label="GrokLink">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
@@ -451,7 +451,7 @@
         <service
             android:name=".OrbitVoiceInteractionService"
             android:exported="true"
-            android:label="Orbit"
+            android:label="GrokLink"
             android:permission="android.permission.BIND_VOICE_INTERACTION">
             <intent-filter>
                 <action android:name="android.service.voice.VoiceInteractionService" />
@@ -468,7 +468,7 @@
 
         <service
             android:name=".OrbitNotificationListenerService"
-            android:label="Orbit notification intelligence"
+            android:label="GrokLink notification intelligence"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -480,7 +480,7 @@
             android:name=".AskOrbitTileService"
             android:exported="true"
             android:icon="@drawable/ic_orbit_tile"
-            android:label="Orbit"
+            android:label="GrokLink"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -491,7 +491,7 @@
             android:name=".OrbitRoutineTileService"
             android:exported="true"
             android:icon="@drawable/ic_routine_tile"
-            android:label="Orbit Routine"
+            android:label="GrokLink Routine"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

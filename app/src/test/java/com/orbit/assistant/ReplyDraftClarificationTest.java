@@ -57,7 +57,7 @@ public final class ReplyDraftClarificationTest {
         ReplyDraftOutcome outcome = ReplyDraftOutcome.parse(
                 "[[ORBIT_ASK]]Which participant are you in this chat, Little Lu or Nimpy Impy?");
         assertEquals(ReplyDraftOutcome.Kind.CLARIFICATION, outcome.kind);
-        assertFalse("Orbit's own question is never something to send", outcome.isSendableDraft());
+        assertFalse("GrokLink's own question is never something to send", outcome.isSendableDraft());
         assertEquals("Which participant are you in this chat, Little Lu or Nimpy Impy?",
                 outcome.text);
     }
@@ -101,7 +101,7 @@ public final class ReplyDraftClarificationTest {
     @Test public void anUnmarkedReplyFailsSafe() {
         ReplyDraftOutcome outcome = ReplyDraftOutcome.parse("Sure, here you go.");
         assertEquals(ReplyDraftOutcome.Kind.UNKNOWN, outcome.kind);
-        assertFalse("a reply Orbit cannot vouch for is not offered for sending",
+        assertFalse("a reply GrokLink cannot vouch for is not offered for sending",
                 outcome.isSendableDraft());
         assertEquals("but the text is untouched", "Sure, here you go.", outcome.text);
     }
@@ -155,12 +155,12 @@ public final class ReplyDraftClarificationTest {
         String answer = "Im neither im Lou and this is a gc";
         assertFalse("the answer is not a draft request by wording",
                 ReplyDraftContext.isDraftRequest(answer));
-        assertFalse("and is not in the flow until Orbit has actually asked something",
+        assertFalse("and is not in the flow until GrokLink has actually asked something",
                 ReplyDraftContext.isReplyDraftTurn(context, CONVERSATION, answer));
 
         ReplyDraftContext.recordOutcome(context, CONVERSATION,
                 ReplyDraftOutcome.Kind.CLARIFICATION);
-        assertTrue("once Orbit has asked, the answer belongs to the flow",
+        assertTrue("once GrokLink has asked, the answer belongs to the flow",
                 ReplyDraftContext.isReplyDraftTurn(context, CONVERSATION, answer));
     }
 

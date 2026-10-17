@@ -37,12 +37,12 @@ public final class AiSelections {
     static final String MIGRATED_CHATS = "ai_selection_chats_migrated";
 
     /** The broadly available default when nothing more specific can be preserved. */
-    public static final AiSelection FALLBACK = AiSelection.of(Prefs.PROVIDER_CHATGPT,
-            OrbitModelCatalog.LUNA, AiStrength.MEDIUM);
+    public static final AiSelection FALLBACK = AiSelection.of(Prefs.PROVIDER_XAI,
+            OrbitModelCatalog.GROK_4_7, AiStrength.MEDIUM);
 
     /** Smart Vault enrichment's fixed configuration. See the class comment for why. */
-    public static final AiSelection SMART_VAULT_ENRICHMENT = AiSelection.of(Prefs.PROVIDER_CHATGPT,
-            OrbitModelCatalog.LUNA, AiStrength.LOW);
+    public static final AiSelection SMART_VAULT_ENRICHMENT = AiSelection.of(Prefs.PROVIDER_XAI,
+            OrbitModelCatalog.GROK_4_7, AiStrength.LOW);
 
     // Legacy intelligence-mode values, read only by migration.
     static final String LEGACY_AUTO = "auto";
@@ -58,7 +58,7 @@ public final class AiSelections {
     /** Providers a selection may name: any provider with a model list. Others become ChatGPT. */
     static String normalizeProvider(String provider) {
         String p = Prefs.normalizeProvider(provider);
-        return OrbitModelCatalog.modelsFor(p).isEmpty() ? Prefs.PROVIDER_CHATGPT : p;
+        return OrbitModelCatalog.modelsFor(p).isEmpty() ? Prefs.PROVIDER_XAI : p;
     }
 
     /**
@@ -113,7 +113,7 @@ public final class AiSelections {
         AiSelection base = current == null ? FALLBACK : current;
         if (base.isAuto()) {
             // Leaving Auto for a named model: the model's own provider, at the model's default.
-            for (String provider : new String[]{Prefs.PROVIDER_CHATGPT, Prefs.PROVIDER_ANTHROPIC,
+            for (String provider : new String[]{Prefs.PROVIDER_XAI, Prefs.PROVIDER_ANTHROPIC,
                     Prefs.PROVIDER_XAI, Prefs.PROVIDER_LOCAL, Prefs.PROVIDER_RELAY,
                     Prefs.PROVIDER_OPENROUTER}) {
                 if (OrbitModelCatalog.spec(provider, model) != null) {
@@ -161,15 +161,15 @@ public final class AiSelections {
         ProviderCatalogRepository.loadCached(c);
         ensureMigrated(c);
         SharedPreferences p = Prefs.get(c);
-        AiSelection stored = resolve(AiSelection.of(p.getString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT),
-                p.getString(Prefs.AI_DEFAULT_MODEL, OrbitModelCatalog.LUNA),
+        AiSelection stored = resolve(AiSelection.of(p.getString(Prefs.PROVIDER, Prefs.PROVIDER_XAI),
+                p.getString(Prefs.AI_DEFAULT_MODEL, OrbitModelCatalog.GROK_4_7),
                 AiStrength.fromId(p.getString(Prefs.AI_DEFAULT_STRENGTH, ""))));
         // A default provider that can no longer answer (Orbit Local after its model was removed)
         // starts new chats on ChatGPT instead, the same rule AiProviders.active() follows, so
         // Settings and new chats agree. New chats show the model they use, so this is never
         // silent; existing chats keep their own selection and say plainly if it cannot run.
         if (!AiProviders.byId(stored.provider).selectable(c)) {
-            return withProvider(stored, Prefs.PROVIDER_CHATGPT);
+            return withProvider(stored, Prefs.PROVIDER_XAI);
         }
         return stored;
     }
@@ -260,11 +260,11 @@ public final class AiSelections {
                 return resolve(AiSelection.of(p, OrbitModelCatalog.successorOf(customModel),
                         effort == null ? AiStrength.LOW : effort));
             case LEGACY_FAST:
-                return resolve(AiSelection.of(p, OrbitModelCatalog.LUNA, AiStrength.LOW));
+                return resolve(AiSelection.of(p, OrbitModelCatalog.GROK_4_7, AiStrength.LOW));
             case LEGACY_DEEP:
                 return resolve(AiSelection.of(p, OrbitModelCatalog.SOL, AiStrength.HIGH));
             default:
-                return resolve(AiSelection.of(p, OrbitModelCatalog.LUNA, AiStrength.MEDIUM));
+                return resolve(AiSelection.of(p, OrbitModelCatalog.GROK_4_7, AiStrength.MEDIUM));
         }
     }
 
@@ -289,17 +289,17 @@ public final class AiSelections {
     private static void migrate(Context c) {
         SharedPreferences p = Prefs.get(c);
         if (!p.contains(Prefs.AI_DEFAULT_MODEL)) {
-            writeGlobalNow(c, fromLegacy(p.getString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT),
+            writeGlobalNow(c, fromLegacy(p.getString(Prefs.PROVIDER, Prefs.PROVIDER_XAI),
                     p.getString(Prefs.INTELLIGENCE_MODE, ""),
                     p.getString(Prefs.MODEL, ""), p.getString(Prefs.REASONING, "")));
         }
         if (!p.getBoolean(MIGRATED_CHATS, false)) {
             SharedPreferences fresh = Prefs.get(c);
             AiSelection global = resolve(AiSelection.of(
-                    fresh.getString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT),
-                    fresh.getString(Prefs.AI_DEFAULT_MODEL, OrbitModelCatalog.LUNA),
+                    fresh.getString(Prefs.PROVIDER, Prefs.PROVIDER_XAI),
+                    fresh.getString(Prefs.AI_DEFAULT_MODEL, OrbitModelCatalog.GROK_4_7),
                     AiStrength.fromId(fresh.getString(Prefs.AI_DEFAULT_STRENGTH, ""))));
-            String provider = fresh.getString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT);
+            String provider = fresh.getString(Prefs.PROVIDER, Prefs.PROVIDER_XAI);
             String model = fresh.getString(Prefs.MODEL, "");
             String reasoning = fresh.getString(Prefs.REASONING, "");
             ConversationStore.migrateSelections(c, legacyMode -> legacyMode == null

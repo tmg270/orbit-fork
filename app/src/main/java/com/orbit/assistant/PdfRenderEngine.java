@@ -48,7 +48,7 @@ public final class PdfRenderEngine {
                 post(() -> callback.onOpened(count));
             } catch (Exception error) {
                 closeResources();
-                post(() -> callback.onOpenError("Orbit could not open this PDF."));
+                post(() -> callback.onOpenError("GrokLink could not open this PDF."));
             }
         });
     }
@@ -78,7 +78,7 @@ public final class PdfRenderEngine {
             } catch (Exception error) {
                 if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
                 post(() -> callback.onRenderError(generation, pageIndex,
-                        "Orbit could not render that page."));
+                        "GrokLink could not render that page."));
             }
         });
     }

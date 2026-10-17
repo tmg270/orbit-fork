@@ -349,7 +349,7 @@ public final class ThemeStudioActivity extends Activity {
     private void explainPremiumPreset(OrbitTheme preset) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(preset.name)
-                .setMessage("An Orbit Pro preset. " + proUnavailableNote())
+                .setMessage("An GrokLink Pro preset. " + proUnavailableNote())
                 .setPositiveButton("OK", null)
                 .create();
         UiKit.styleOrbitDialog(dialog, this, false);
@@ -364,8 +364,8 @@ public final class ThemeStudioActivity extends Activity {
      * never mention a developer preview that it would refuse to honour anyway.
      */
     private String proUnavailableNote() {
-        return OrbitProEntitlement.lockedGuidance("Orbit Pro Preview is off. "
-                + "Enable Pro Preview in Orbit Diagnostics to test advanced styling.");
+        return OrbitProEntitlement.lockedGuidance("GrokLink Pro Preview is off. "
+                + "Enable Pro Preview in GrokLink Diagnostics to test advanced styling.");
     }
 
     // ---- synchronizing the screen to the draft ------------------------------------------------
@@ -540,7 +540,7 @@ public final class ThemeStudioActivity extends Activity {
             applyButton.setEnabled(dirty);
             applyButton.setAlpha(dirty ? 1f : 0.55f);
             applyButton.setContentDescription(dirty
-                    ? "Apply " + draft.name + " to Orbit"
+                    ? "Apply " + draft.name + " to GrokLink"
                     : draft.name + " is already applied");
         }
     }
@@ -606,14 +606,14 @@ public final class ThemeStudioActivity extends Activity {
 
     private void resetToOrbitDefault() {
         selectPreset(OrbitTheme.orbitDefault());
-        Toast.makeText(this, "Orbit Default loaded. Apply to use it.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "GrokLink Default loaded. Apply to use it.", Toast.LENGTH_SHORT).show();
     }
 
     private void leave() {
         if (!isDirty()) { finish(); return; }
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Discard theme changes?")
-                .setMessage("Orbit will keep using " + applied.name + ".")
+                .setMessage("GrokLink will keep using " + applied.name + ".")
                 .setNegativeButton("Keep editing", null)
                 .setPositiveButton("Discard", (d, which) -> finish())
                 .create();
@@ -750,7 +750,7 @@ public final class ThemeStudioActivity extends Activity {
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.addView(UiKit.text(this, "Theme Studio", 26, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Make Orbit yours.", 13, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "Make GrokLink yours.", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
@@ -830,7 +830,7 @@ public final class ThemeStudioActivity extends Activity {
     private View coloursCard() {
         LinearLayout card = card();
         card.addView(cardTitle("Colors"));
-        card.addView(cardNote("Choose Orbit's main colors. Supporting colors, text, links and "
+        card.addView(cardNote("Choose GrokLink's main colors. Supporting colors, text, links and "
                 + "surfaces adapt automatically."));
         card.addView(colourRows, matchWrap(10));
 
@@ -850,7 +850,7 @@ public final class ThemeStudioActivity extends Activity {
         // choice and disturbed the Colors, Presets, Orbit Pro ordering that v0.8.0.0-beta.3 settled.
         // It goes last in this card because it is the one control here that is not a colour.
         card.addView(dividerNote("Floating controls",
-                "The material Orbit's floating search and filter controls are made of."),
+                "The material GrokLink's floating search and filter controls are made of."),
                 matchWrap(16));
         materialSegment = new OrbitSegmented(this);
         materialSegment.setTitle("Floating controls");
@@ -893,7 +893,7 @@ public final class ThemeStudioActivity extends Activity {
         colourRows.addView(colourRow("Your messages", "The bubble your own messages use",
                 tokens.userBubble, draft.userBubble, bubbleSummary(draft.userBubble),
                 anchor -> chooseBubble(anchor, true, tokens)), matchWrap(10));
-        colourRows.addView(colourRow("Orbit's replies", "The bubble Orbit answers in",
+        colourRows.addView(colourRow("GrokLink's replies", "The bubble GrokLink answers in",
                 tokens.assistantBubble, draft.assistantBubble, bubbleSummary(draft.assistantBubble),
                 anchor -> chooseBubble(anchor, false, tokens)), matchWrap(10));
         colourRows.addView(colourRow("Cards", "Panels, sheets and Deck tiles",
@@ -969,7 +969,7 @@ public final class ThemeStudioActivity extends Activity {
     }
 
     private String surfaceSummary(String token) {
-        return OrbitTheme.isHexToken(token) ? "custom " + token : "Orbit default";
+        return OrbitTheme.isHexToken(token) ? "custom " + token : "GrokLink default";
     }
 
     private String backgroundSummary() {
@@ -1018,7 +1018,7 @@ public final class ThemeStudioActivity extends Activity {
         colours.add(user ? tokens.userBubble : tokens.assistantBubble);
 
         String token = user ? draft.userBubble : draft.assistantBubble;
-        String role = user ? "Your messages" : "Orbit's replies";
+        String role = user ? "Your messages" : "GrokLink's replies";
         showColourChoice(anchor, role, labels, colours, indexOfToken(keys, token), index -> {
             if (index < keys.length) {
                 edit(user ? draft.withUserBubble(keys[index]) : draft.withAssistantBubble(keys[index]));
@@ -1037,7 +1037,7 @@ public final class ThemeStudioActivity extends Activity {
         String role = surface ? "Cards" : "Background";
         List<String> labels = new ArrayList<>();
         List<Integer> colours = new ArrayList<>();
-        labels.add("Orbit default");
+        labels.add("GrokLink default");
         colours.add(surface ? UiKit.classicSurface() : UiKit.classicBackground());
         labels.add("Custom color…");
         colours.add(surface ? tokens.surface : tokens.background);
@@ -1141,7 +1141,7 @@ public final class ThemeStudioActivity extends Activity {
         StringBuilder spoken = new StringBuilder("Low contrast. ");
         box.addView(UiKit.text(this, "Low contrast", 13, UiKit.DANGER, true));
         for (OrbitThemeTokens.Check check : failing) {
-            // One ratio format everywhere, and no em dash: "Orbit's replies: 3.0:1".
+            // One ratio format everywhere, and no em dash: "GrokLink's replies: 3.0:1".
             String line = check.label + ": "
                     + String.format(Locale.US, "%.1f", check.ratio) + ":1";
             TextView row = UiKit.text(this, line, 12, UiKit.MUTED, false);
@@ -1177,7 +1177,7 @@ public final class ThemeStudioActivity extends Activity {
         LinearLayout heading = new LinearLayout(this);
         heading.setOrientation(LinearLayout.HORIZONTAL);
         heading.setGravity(Gravity.CENTER_VERTICAL);
-        heading.addView(cardTitle("Orbit Pro"), new LinearLayout.LayoutParams(0,
+        heading.addView(cardTitle("GrokLink Pro"), new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         heading.addView(proMark());
         card.addView(heading);
@@ -1271,7 +1271,7 @@ public final class ThemeStudioActivity extends Activity {
         note.setLineSpacing(0, 1.15f);
         proBody.addView(note, matchWrap(6));
 
-        proBody.setContentDescription("Orbit Pro. Advanced message styling, Liquid Glass and "
+        proBody.setContentDescription("GrokLink Pro. Advanced message styling, Liquid Glass and "
                 + "advanced backgrounds, locked. " + proUnavailableNote());
         proBody.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         what.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
@@ -1293,7 +1293,7 @@ public final class ThemeStudioActivity extends Activity {
         proBody.setContentDescription(null);
 
         TextView intro = UiKit.text(this,
-                "Fine detail on top of your theme. Nothing changes in Orbit until you apply.",
+                "Fine detail on top of your theme. Nothing changes in GrokLink until you apply.",
                 12, UiKit.MUTED, false);
         proBody.addView(intro, matchWrap(0));
 
@@ -1713,7 +1713,7 @@ public final class ThemeStudioActivity extends Activity {
     private View presetsCard() {
         LinearLayout card = card();
         card.addView(cardTitle("Presets"));
-        card.addView(cardNote("Selecting one loads it into the preview. Nothing changes in Orbit "
+        card.addView(cardNote("Selecting one loads it into the preview. Nothing changes in GrokLink "
                 + "until you apply it."));
         card.addView(presetGrid, matchWrap(8));
 
@@ -1726,8 +1726,8 @@ public final class ThemeStudioActivity extends Activity {
         });
         actions.addView(save, new LinearLayout.LayoutParams(0, UiKit.dp(this, 48), 1f));
 
-        Button reset = secondaryButton("Orbit Default");
-        reset.setContentDescription("Reset the preview to Orbit Default");
+        Button reset = secondaryButton("GrokLink Default");
+        reset.setContentDescription("Reset the preview to GrokLink Default");
         reset.setOnClickListener(v -> {
             UiKit.haptic(v, HapticFeedbackConstants.VIRTUAL_KEY);
             resetToOrbitDefault();
@@ -1852,8 +1852,8 @@ public final class ThemeStudioActivity extends Activity {
         // Selection is stated, not only drawn. A ring around a card of colours is exactly the kind
         // of state that disappears for anyone who cannot rely on colour to carry it.
         String spokenBase = preset.name
-                + (preset.premium() ? ", Orbit Pro preset"
-                        : preset.builtIn ? ", Orbit preset" : ", your theme")
+                + (preset.premium() ? ", GrokLink Pro preset"
+                        : preset.builtIn ? ", GrokLink preset" : ", your theme")
                 + (locked ? ", locked" : "")
                 + (preset.note().isEmpty() ? "" : ", " + preset.note());
         UiKit.pressScale(card);
@@ -1894,9 +1894,9 @@ public final class ThemeStudioActivity extends Activity {
         // badge. Locked is stated in words here and in the card's spoken description, so the state
         // never depends on noticing a colour.
         String kindText = preset.premium()
-                ? (locked ? "Orbit Pro · locked" : "Orbit Pro preset")
+                ? (locked ? "GrokLink Pro · locked" : "GrokLink Pro preset")
                 : preset.builtIn
-                ? (note.isEmpty() ? "Orbit preset" : "Orbit preset · " + note)
+                ? (note.isEmpty() ? "GrokLink preset" : "GrokLink preset · " + note)
                 : "Your theme · hold to manage";
         TextView kind = UiKit.text(this, kindText, 10.5f, UiKit.MUTED, false);
         kind.setSingleLine(true);
@@ -1947,7 +1947,7 @@ public final class ThemeStudioActivity extends Activity {
     private void duplicate(OrbitTheme preset) {
         OrbitTheme copy = OrbitThemeStore.duplicatePreset(this, preset.id);
         if (copy == null) {
-            Toast.makeText(this, "Orbit could not duplicate that theme.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not duplicate that theme.", Toast.LENGTH_SHORT).show();
             return;
         }
         onThemeLibraryChanged();
@@ -1957,11 +1957,11 @@ public final class ThemeStudioActivity extends Activity {
     private void confirmDelete(OrbitTheme preset) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Delete " + preset.name + "?")
-                .setMessage("This removes the saved theme. Orbit's own appearance does not change.")
+                .setMessage("This removes the saved theme. GrokLink's own appearance does not change.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Delete", (d, which) -> {
                     if (!OrbitThemeStore.deletePreset(this, preset.id)) {
-                        Toast.makeText(this, "Orbit could not delete that theme.",
+                        Toast.makeText(this, "GrokLink could not delete that theme.",
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -1976,7 +1976,7 @@ public final class ThemeStudioActivity extends Activity {
     private void promptRename(OrbitTheme preset) {
         nameDialog("Rename theme", preset.name, "Save", name -> {
             if (!OrbitThemeStore.renamePreset(this, preset.id, name)) {
-                Toast.makeText(this, "Orbit could not rename that theme.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GrokLink could not rename that theme.", Toast.LENGTH_SHORT).show();
                 return;
             }
             onThemeLibraryChanged();
@@ -1988,7 +1988,7 @@ public final class ThemeStudioActivity extends Activity {
         nameDialog("Save theme", suggestion, "Save", name -> {
             OrbitTheme saved = OrbitThemeStore.savePreset(this, draft.asCustomNamed(name));
             if (saved == null) {
-                Toast.makeText(this, "Orbit could not save that theme.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GrokLink could not save that theme.", Toast.LENGTH_SHORT).show();
                 return;
             }
             // The draft now *is* that preset, so the gallery shows it selected. Saving still does
@@ -2119,7 +2119,7 @@ public final class ThemeStudioActivity extends Activity {
                 // Anything the content provider itself did — a revoked grant, a file that vanished,
                 // a provider that threw. The user gets the same sentence as a bad file, because
                 // from where they are standing it is the same outcome.
-                failure = "Orbit could not open that file.";
+                failure = "GrokLink could not open that file.";
             }
             final OrbitTheme result = imported;
             final String message = failure;
@@ -2136,7 +2136,7 @@ public final class ThemeStudioActivity extends Activity {
         final OrbitTheme subject = theme == null ? draft : theme;
         final String document = OrbitThemeFileCodec.encode(subject);
         if (document.isEmpty()) {
-            showThemeFileError("Theme not exported", "Orbit could not export that theme.");
+            showThemeFileError("Theme not exported", "GrokLink could not export that theme.");
             return;
         }
         new Thread(() -> {
@@ -2155,7 +2155,7 @@ public final class ThemeStudioActivity extends Activity {
                 if (saved) {
                     Toast.makeText(this, subject.name + " exported", Toast.LENGTH_SHORT).show();
                 } else {
-                    showThemeFileError("Theme not exported", "Orbit could not write that file.");
+                    showThemeFileError("Theme not exported", "GrokLink could not write that file.");
                 }
             });
         }, "orbit-theme-export").start();
@@ -2164,7 +2164,7 @@ public final class ThemeStudioActivity extends Activity {
     private void showThemeFileError(String title, String message) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
-                .setMessage(message == null ? "This isn't a supported Orbit theme." : message)
+                .setMessage(message == null ? "This isn't a supported GrokLink theme." : message)
                 .setPositiveButton("OK", null)
                 .create();
         UiKit.styleOrbitDialog(dialog, this, false);
@@ -2201,8 +2201,8 @@ public final class ThemeStudioActivity extends Activity {
 
         boolean dirty = isDirty();
         String note = dirty
-                ? "Orbit will add this to your themes. Your unapplied changes stay in the preview."
-                : "Orbit will add this to your themes and load it into the preview. Your current "
+                ? "GrokLink will add this to your themes. Your unapplied changes stay in the preview."
+                : "GrokLink will add this to your themes and load it into the preview. Your current "
                         + "appearance does not change until you apply it.";
         TextView explanation = UiKit.text(this, note, 12, UiKit.MUTED, false);
         explanation.setPadding(0, UiKit.dp(this, 10), 0, 0);
@@ -2237,7 +2237,7 @@ public final class ThemeStudioActivity extends Activity {
         OrbitTheme saved = OrbitThemeStore.savePreset(this, imported);
         if (saved == null) {
             showThemeFileError("Theme not imported",
-                    "Orbit could not save that theme. You may have reached the limit of "
+                    "GrokLink could not save that theme. You may have reached the limit of "
                             + OrbitThemeStore.MAX_CUSTOM_PRESETS + " saved themes.");
             return;
         }

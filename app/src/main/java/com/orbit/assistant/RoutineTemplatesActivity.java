@@ -76,7 +76,7 @@ public final class RoutineTemplatesActivity extends Activity {
         page.addView(header);
 
         TextView explanation = UiKit.text(this,
-                "Templates use only actions Orbit already supports. Choosing one creates a normal saved Routine that you can rename, reorder, expand with IF conditions, and schedule like any other Routine.",
+                "Templates use only actions GrokLink already supports. Choosing one creates a normal saved Routine that you can rename, reorder, expand with IF conditions, and schedule like any other Routine.",
                 13, UiKit.MUTED, false);
         explanation.setLineSpacing(0, 1.12f);
         LinearLayout.LayoutParams explanationLp = new LinearLayout.LayoutParams(
@@ -89,7 +89,7 @@ public final class RoutineTemplatesActivity extends Activity {
         }
 
         TextView footer = UiKit.text(this,
-                "Templates are built into Orbit and do not run until you create and run the resulting Routine.",
+                "Templates are built into GrokLink and do not run until you create and run the resulting Routine.",
                 11, UiKit.MUTED, false);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(UiKit.dp(this, 8), UiKit.dp(this, 7), UiKit.dp(this, 8), 0);
@@ -219,7 +219,7 @@ public final class RoutineTemplatesActivity extends Activity {
         String name = RoutineTemplateCatalog.uniqueRoutineName(activity, template.suggestedRoutineName);
         RoutineStore.Routine routine = RoutineStore.create(name, template.actions);
         if (!RoutineStore.upsert(activity, routine)) {
-            Toast.makeText(activity, "Orbit could not create this Routine.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "GrokLink could not create this Routine.", Toast.LENGTH_SHORT).show();
             return null;
         }
         activity.startActivity(new Intent(activity, RoutineEditorActivity.class)

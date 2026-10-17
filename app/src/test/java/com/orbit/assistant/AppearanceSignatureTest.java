@@ -56,7 +56,7 @@ public final class AppearanceSignatureTest {
 
         Prefs.get(context).edit().putBoolean(Prefs.AMOLED_MODE, true).commit();
 
-        assertNotEquals("AMOLED changes Orbit's surface colours", before, structural());
+        assertNotEquals("AMOLED changes GrokLink's surface colours", before, structural());
     }
 
     @Test public void appFontChangeDoesNotRequireARebuild() {

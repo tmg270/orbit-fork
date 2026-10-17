@@ -253,8 +253,8 @@ public final class RequestCancellationTest {
         // never be reported to the user as a failure.
         boolean wrote = OrbitRequestManager.completeIfNotCancelled(context, item.id, () -> {
             ConversationStore.appendMessage(context, convo,
-                    new AssistantClient.History("assistant", "Orbit could not finish this response."));
-            PendingRequestStore.markFailed(context, item.id, "Orbit request was interrupted.");
+                    new AssistantClient.History("assistant", "GrokLink could not finish this response."));
+            PendingRequestStore.markFailed(context, item.id, "GrokLink request was interrupted.");
         });
 
         assertFalse(wrote);

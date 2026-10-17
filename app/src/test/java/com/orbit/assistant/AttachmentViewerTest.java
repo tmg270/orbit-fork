@@ -153,7 +153,7 @@ public final class AttachmentViewerTest {
 
     /** And is never made to read a forty-character camera filename to locate itself. */
     @Test public void ascreenReaderIsNotReadAGiantCameraFilename() {
-        String filename = "Screenshot_20260830_211455_Orbit Assistant.jpg";
+        String filename = "Screenshot_20260830_211455_GrokLink.jpg";
         AttachmentViewerModel model = new AttachmentViewerModel(java.util.Collections.singletonList(
                 new AttachmentViewerModel.Item("att-1", "image", filename)), 0, true);
         assertEquals("Image 1 of 1", model.descriptionAt(0));

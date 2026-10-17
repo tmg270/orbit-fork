@@ -39,13 +39,13 @@ public final class QuickSettingsTiles {
     }
 
     public static void requestAddAskTile(android.app.Activity activity, AddTileCallback callback) {
-        requestAddTile(activity, AskOrbitTileService.class, "Orbit", R.drawable.ic_orbit_tile,
+        requestAddTile(activity, AskOrbitTileService.class, "GrokLink", R.drawable.ic_orbit_tile,
                 callback);
     }
 
     public static void requestAddRoutineTile(android.app.Activity activity) {
         requestAddTile(activity, OrbitRoutineTileService.class,
-                "Orbit Routine", R.drawable.ic_routine_tile, null);
+                "GrokLink Routine", R.drawable.ic_routine_tile, null);
     }
 
     private static void requestAddTile(android.app.Activity activity,

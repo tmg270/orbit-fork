@@ -81,8 +81,8 @@ public final class AttachmentStripPolishTest {
      */
     @Test public void photosAreCaptionedByPosition() {
         List<ComposerAttachment> photos = images(
-                "Screenshot_20260830_211455_Orbit Assistant.jpg",
-                "Screenshot_20260830_211502_Orbit Assistant.jpg",
+                "Screenshot_20260830_211455_GrokLink.jpg",
+                "Screenshot_20260830_211502_GrokLink.jpg",
                 "IMG_20260830_2115.jpg");
 
         assertEquals("Photo 1", AttachmentLabels.displayLabel(photos.get(0), 1));
@@ -92,10 +92,10 @@ public final class AttachmentStripPolishTest {
 
     /** The caption is a caption. Nothing underneath it was rewritten. */
     @Test public void theUnderlyingLabelIsNeverMutated() {
-        ComposerAttachment photo = image("Screenshot_20260830_211455_Orbit Assistant.jpg");
+        ComposerAttachment photo = image("Screenshot_20260830_211455_GrokLink.jpg");
         AttachmentLabels.displayLabel(photo, 1);
         assertEquals("history, the model, and diagnostics still need the real name",
-                "Screenshot_20260830_211455_Orbit Assistant.jpg", photo.label);
+                "Screenshot_20260830_211455_GrokLink.jpg", photo.label);
     }
 
     /**

@@ -39,7 +39,7 @@ final class ConversationSheets {
     static AlertDialog showContext(Activity a, ContextEstimate estimate, Runnable onContinue) {
         LinearLayout body = column(a);
         if (estimate == null) {
-            body.addView(note(a, "Orbit is still measuring this chat."));
+            body.addView(note(a, "GrokLink is still measuring this chat."));
         } else {
             TextView headline = UiKit.text(a, estimate.knowsLimit()
                     ? ContextEstimate.approx(estimate.tokens) + " of "
@@ -72,7 +72,7 @@ final class ConversationSheets {
                     body.addView(row(a, row.getKey().label, ContextEstimate.approx(row.getValue())));
                 }
             }
-            StringBuilder notes = new StringBuilder("Estimated. Orbit counts about four characters "
+            StringBuilder notes = new StringBuilder("Estimated. GrokLink counts about four characters "
                     + "of text per token and a fixed amount per image; the AI's own count can differ.");
             if (estimate.olderMessagesNotSent > 0) {
                 notes.append(" Only your most recent messages are sent; the ")
@@ -84,10 +84,10 @@ final class ConversationSheets {
                 notes.append(" Auto picks the model when you send, so no limit is shown here. "
                         + "Each request only goes to a model whose context window fits it.");
             } else if (estimate.fittedByProvider) {
-                notes.append(" Orbit Local fits each request into its own small on-device window, "
+                notes.append(" GrokLink Local fits each request into its own small on-device window, "
                         + "keeping your newest messages and the most relevant parts of attachments.");
             } else if (!estimate.knowsLimit()) {
-                notes.append(" Orbit does not know this model's context window, so no percentage "
+                notes.append(" GrokLink does not know this model's context window, so no percentage "
                         + "is shown.");
             }
             TextView footnote = note(a, notes.toString());
@@ -133,7 +133,7 @@ final class ConversationSheets {
                     + "file or Vault item to keep it for every message."));
             return;
         }
-        body.addView(note(a, "Orbit sends these with every new message in this chat until you "
+        body.addView(note(a, "GrokLink sends these with every new message in this chat until you "
                 + "remove them. They are shown once, where you added them."));
         for (KeptContext item : items) {
             LinearLayout line = new LinearLayout(a);
@@ -188,7 +188,7 @@ final class ConversationSheets {
     static void confirmContinue(Activity a, Runnable onConfirm) {
         AlertDialog dialog = new AlertDialog.Builder(a)
                 .setTitle("Continue in a new chat?")
-                .setMessage("Orbit will write a short summary of this chat and start a new chat "
+                .setMessage("GrokLink will write a short summary of this chat and start a new chat "
                         + "with it, along with anything you kept. This chat stays exactly as it is.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Continue", (d, w) -> onConfirm.run())

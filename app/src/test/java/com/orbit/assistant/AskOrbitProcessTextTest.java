@@ -97,7 +97,7 @@ public final class AskOrbitProcessTextTest {
         String lower = staged.toLowerCase(java.util.Locale.US);
         for (String invented : new String[]{"explain", "summarize", "summarise", "what does",
                 "reply to", "translate"}) {
-            assertFalse("Orbit must not invent the question: " + invented,
+            assertFalse("GrokLink must not invent the question: " + invented,
                     lower.contains(invented));
         }
     }
@@ -238,7 +238,7 @@ public final class AskOrbitProcessTextTest {
 
         String viaSelection = ask(processText(huge.toString())).text;
         String bounded = SharedContentStore.bound(huge.toString());
-        assertEquals("Share and Ask Orbit must bound text identically", bounded, viaSelection);
+        assertEquals("Share and Ask GrokLink must bound text identically", bounded, viaSelection);
     }
 
     // ---- what happens next ---------------------------------------------------------------------------------------
@@ -426,7 +426,7 @@ public final class AskOrbitProcessTextTest {
 
         assertTrue(block.contains("android.intent.action.PROCESS_TEXT"));
         assertTrue(block.contains("android:mimeType=\"text/plain\""));
-        assertFalse("Orbit must not claim it can process every file type",
+        assertFalse("GrokLink must not claim it can process every file type",
                 block.contains("android:mimeType=\"*/*\""));
         assertFalse(block.contains("android:mimeType=\"image/"));
         assertFalse(block.contains("android:mimeType=\"application/"));
@@ -440,7 +440,7 @@ public final class AskOrbitProcessTextTest {
 
     /** The menu label is short and names Orbit. */
     @Test public void themenuLabelIsAskOrbit() {
-        assertEquals("Ask Orbit", context.getString(R.string.process_text_label));
+        assertEquals("Ask GrokLink", context.getString(R.string.process_text_label));
         String manifest = ComponentUninstallTest.readRepositoryFile(
                 "app/src/main/AndroidManifest.xml");
         int start = manifest.indexOf("ProcessTextToOrbitActivity");
@@ -491,7 +491,7 @@ public final class AskOrbitProcessTextTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         if (dialog == null || !dialog.isShowing()) return;
         Button ask = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        assertNotNull("the destination dialog must offer Ask Orbit", ask);
+        assertNotNull("the destination dialog must offer Ask GrokLink", ask);
         assertEquals(ProcessTextToOrbitActivity.ASK_ORBIT, ask.getText().toString());
         ask.performClick();
         // An AlertDialog button press is dispatched through a Handler, so nothing happens until
@@ -508,7 +508,7 @@ public final class AskOrbitProcessTextTest {
      */
     private void assertNoWriteBack() {
         assertNotNull("a doorway must have run", lastShadow);
-        assertEquals("Orbit must never claim to have produced replacement text",
+        assertEquals("GrokLink must never claim to have produced replacement text",
                 Activity.RESULT_CANCELED, lastShadow.getResultCode());
         assertNull("and must never hand back a result Intent", lastShadow.getResultIntent());
     }

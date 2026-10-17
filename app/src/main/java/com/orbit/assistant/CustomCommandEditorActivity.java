@@ -129,7 +129,7 @@ public final class CustomCommandEditorActivity extends Activity {
         page.addView(header);
 
         TextView explanation = UiKit.text(this,
-                "Orbit matches these phrases exactly after ignoring capitalization, extra spaces, ending punctuation, and optional “Orbit” or “please” wrappers.",
+                "GrokLink matches these phrases exactly after ignoring capitalization, extra spaces, ending punctuation, and optional “GrokLink” or “please” wrappers.",
                 13, UiKit.MUTED, false);
         explanation.setLineSpacing(0, 1.12f);
         LinearLayout.LayoutParams explanationLp = new LinearLayout.LayoutParams(
@@ -250,7 +250,7 @@ public final class CustomCommandEditorActivity extends Activity {
             return;
         }
         if (!CustomCommandStore.upsert(this, command)) {
-            showError("Orbit could not save this Custom Command.");
+            showError("GrokLink could not save this Custom Command.");
             return;
         }
         Toast.makeText(this, existing == null ? "Custom Command created." : "Custom Command updated.",

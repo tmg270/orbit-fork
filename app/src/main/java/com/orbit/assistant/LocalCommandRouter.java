@@ -385,7 +385,7 @@ public final class LocalCommandRouter {
      * What the user is timing, as a label for the Clock app, or "" when nothing was named.
      *
      * <p>Timing food is the common case for a phone timer, and a Clock notification that says
-     * "Steak" is far more useful than four identical ones that all say "Orbit timer". Only an
+     * "Steak" is far more useful than four identical ones that all say "GrokLink timer". Only an
      * explicitly named subject is used; nothing is inferred from the rest of the sentence.
      */
     static String timerSubject(String q) {
@@ -467,7 +467,7 @@ public final class LocalCommandRouter {
         // The timer itself is unchanged: Android's own Clock still owns it through SET_TIMER. Only
         // the label improves, so a Clock notification can say what is actually cooking.
         String subject = timerSubject(q);
-        String label = subject.isEmpty() ? "Orbit timer" : subject;
+        String label = subject.isEmpty() ? "GrokLink timer" : subject;
         String forSubject = subject.isEmpty() ? "" : " for " + subject.toLowerCase(Locale.US);
         return new ParsedCommand(
                 action("SET_TIMER", new JSONObject().put("seconds", seconds).put("label", label)),
@@ -501,7 +501,7 @@ public final class LocalCommandRouter {
         if ("am".equals(ap) && hour == 12) hour = 0;
         return new ParsedCommand(
                 action("SET_ALARM", new JSONObject().put("hour", hour).put("minute", minute)
-                        .put("label", "Orbit alarm")),
+                        .put("label", "GrokLink alarm")),
                 "Opening your Clock app with that alarm.", "set an alarm");
     }
 

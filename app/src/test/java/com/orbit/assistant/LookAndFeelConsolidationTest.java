@@ -128,7 +128,7 @@ public final class LookAndFeelConsolidationTest {
             labels.add(((TextView) view).getText().toString().trim());
         }
         for (String gone : new String[]{"Accent", "Conversation colors", "Your bubbles",
-                "Orbit bubbles", "Use true black AMOLED backgrounds"}) {
+                "GrokLink bubbles", "Use true black AMOLED backgrounds"}) {
             assertFalse("Look & Feel still offers a second editor for " + gone,
                     labels.contains(gone));
         }

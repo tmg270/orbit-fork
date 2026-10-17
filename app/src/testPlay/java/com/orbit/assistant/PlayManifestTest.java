@@ -63,7 +63,7 @@ public final class PlayManifestTest {
         for (String permission : expected) {
             assertTrue("the Play edition must keep " + permission, requested().contains(permission));
         }
-        assertTrue("removing an installed Orbit Local component still works on Play",
+        assertTrue("removing an installed GrokLink Local component still works on Play",
                 requested().contains("android.permission.REQUEST_DELETE_PACKAGES"));
     }
 

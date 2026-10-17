@@ -114,7 +114,7 @@ public final class DiagnosticsActivity extends Activity {
         Button back = button("Back");
         back.setOnClickListener(v -> navigation.performBack());
         header.addView(back, new LinearLayout.LayoutParams(UiKit.dp(this, 90), UiKit.dp(this, 44)));
-        TextView title = UiKit.text(this, "Orbit Diagnostics", 24, UiKit.TEXT, true);
+        TextView title = UiKit.text(this, "GrokLink Diagnostics", 24, UiKit.TEXT, true);
         title.setPadding(UiKit.dp(this, 12), 0, 0, 0);
         header.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
@@ -154,26 +154,26 @@ public final class DiagnosticsActivity extends Activity {
 
         Button copySummary = button("Copy summary");
         copySummary.setOnClickListener(v ->
-                copy("Orbit diagnostics summary", summaryReport(), "Summary copied"));
+                copy("GrokLink diagnostics summary", summaryReport(), "Summary copied"));
         page.addView(copySummary, buttonLp(0));
 
         Button copyFull = button("Copy full diagnostics");
         copyFull.setOnClickListener(v ->
-                copy("Orbit diagnostics", fullReport(), "Full diagnostics copied"));
+                copy("GrokLink diagnostics", fullReport(), "Full diagnostics copied"));
         page.addView(copyFull, buttonLp(10));
 
         // Composer/input-method trace for diagnosing typing failures on real hardware. Records
         // state transitions only, never message content. Reproduce the problem, then copy this.
         Button copyTyping = button("Copy typing diagnostics");
         copyTyping.setOnClickListener(v ->
-                copy("Orbit typing diagnostics", ComposerTrace.report(), "Typing diagnostics copied"));
+                copy("GrokLink typing diagnostics", ComposerTrace.report(), "Typing diagnostics copied"));
         page.addView(copyTyping, buttonLp(10));
 
         // Persistent Side-button launch trace. Unlike the typing trace this survives process death
         // and reboots, because the failure it exists for may end the process before anyone can get
         // here. Lifecycle milestones and state only, never conversation or screen content.
         Button copyOverlay = button("Copy overlay launch diagnostics");
-        copyOverlay.setOnClickListener(v -> copy("Orbit overlay launch diagnostics",
+        copyOverlay.setOnClickListener(v -> copy("GrokLink overlay launch diagnostics",
                 OverlayLaunchTrace.report(this), "Overlay launch diagnostics copied"));
         page.addView(copyOverlay, buttonLp(10));
 
@@ -181,7 +181,7 @@ public final class DiagnosticsActivity extends Activity {
         // somebody needs after a visual answer came back without a picture. Stage transitions,
         // hosts, statuses and sizes only - never the question that was asked or the answer given.
         Button copyRich = button("Copy Rich Answers diagnostics");
-        copyRich.setOnClickListener(v -> copy("Orbit Rich Answers diagnostics",
+        copyRich.setOnClickListener(v -> copy("GrokLink Rich Answers diagnostics",
                 RichAnswerTrace.report(this) + "\n\nHosted search\n" + hostedSearch(),
                 "Rich Answers diagnostics copied"));
         page.addView(copyRich, buttonLp(10));
@@ -196,7 +196,7 @@ public final class DiagnosticsActivity extends Activity {
     // ---- the always-visible part ------------------------------------------------------------------
 
     /**
-     * The short answer to "is Orbit healthy and what is it doing".
+     * The short answer to "is GrokLink healthy and what is it doing".
      *
      * <p>Deliberately not a digest of every section below. Each line here is one a person can act
      * on without expanding anything; everything that only matters mid-investigation stays in its
@@ -227,7 +227,7 @@ public final class DiagnosticsActivity extends Activity {
 
     private String overview() {
         SharedPreferences d = DiagnosticStore.prefs(this);
-        return "Orbit version: " + versionLabel() +
+        return "GrokLink version: " + versionLabel() +
                 "\nDistribution: " + OrbitDistribution.label() +
                 "\nProvider: " + AiProviders.active(this).displayName() +
                 "\nChatGPT: " + accountStatus() +
@@ -385,10 +385,10 @@ public final class DiagnosticsActivity extends Activity {
         sections.add(new Section("Calendar", CalendarDiagnostics.body(this)));
         sections.add(new Section("Rich Answers", RichAnswerTrace.body(this)));
         sections.add(new Section("Hosted search", hostedSearch()));
-        sections.add(new Section("Orbit Local", orbitLocal(d)));
+        sections.add(new Section("GrokLink Local", orbitLocal(d)));
         sections.add(new Section("Actions & utilities", actionsAndUtilities(d)));
         sections.add(new Section("Routines", routines(d)));
-        sections.add(new Section("Orbit Deck", deck(d)));
+        sections.add(new Section("GrokLink Deck", deck(d)));
         sections.add(new Section("Gestures", gestures(d)));
         sections.add(new Section("Advanced", advanced()));
         return sections;
@@ -465,7 +465,7 @@ public final class DiagnosticsActivity extends Activity {
 
     /** Exactly one section, titled, and nothing either side of it. */
     static String sectionReport(String title, String body) {
-        return "Orbit Diagnostics — " + title + "\n" + bodyText(new Section(title, body));
+        return "GrokLink Diagnostics — " + title + "\n" + bodyText(new Section(title, body));
     }
 
     /**
@@ -488,7 +488,7 @@ public final class DiagnosticsActivity extends Activity {
         copy.setBackground(UiKit.rippleOutlined(Color.TRANSPARENT,
                 UiKit.withAlpha(UiKit.accent(this), 90), UiKit.accent(this), 14, this));
         copy.setContentDescription("Copy " + section.title + " diagnostics");
-        copy.setOnClickListener(v -> copy("Orbit diagnostics — " + section.title,
+        copy.setOnClickListener(v -> copy("GrokLink diagnostics — " + section.title,
                 sectionReport(section.title, currentSection(section).body),
                 section.title + " diagnostics copied"));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -564,7 +564,7 @@ public final class DiagnosticsActivity extends Activity {
             body.setPadding(0, UiKit.dp(this, 8), 0, UiKit.dp(this, 10));
             card.addView(body);
             Button copyRaw = button("Copy raw planner response");
-            copyRaw.setOnClickListener(v -> copy("Orbit raw planner response", raw,
+            copyRaw.setOnClickListener(v -> copy("GrokLink raw planner response", raw,
                     "Raw planner response copied"));
             card.addView(copyRaw, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 44)));
@@ -693,7 +693,7 @@ public final class DiagnosticsActivity extends Activity {
                 .append("\n  Requested model: ").append(orNone(requested))
                 .append("\n  Effective model: ").append(orNone(effective));
         if (!requested.isEmpty() && !requested.equals(effective)) {
-            out.append(" (Orbit did not use the requested model)");
+            out.append(" (GrokLink did not use the requested model)");
         }
         long unavailable = d.getLong("model_unavailable_updated", 0L);
         if (unavailable > 0L) {
@@ -787,14 +787,14 @@ public final class DiagnosticsActivity extends Activity {
                     .append("\n  Last batch rejected: ").append(d.getInt("attachment_batch_rejected", 0));
         }
         if (d.getLong("share_updated", 0L) == 0L) {
-            out.append("\n  Share to Orbit: none yet");
+            out.append("\n  Share to GrokLink: none yet");
         } else {
             out.append("\n  Last share type: ").append(orNone(d.getString("share_shape", "")))
                     .append("\n  Last share result: ").append(orNone(d.getString("share_outcome", "")))
                     .append("\n  Last share items staged: ").append(d.getInt("share_accepted", 0));
         }
         if (d.getLong("external_text_updated", 0L) == 0L) {
-            out.append("\n  Ask Orbit from selected text: none yet");
+            out.append("\n  Ask GrokLink from selected text: none yet");
         } else {
             out.append("\n  Last external text source: ")
                     .append(orNone(d.getString("external_text_source", "")))
@@ -802,7 +802,7 @@ public final class DiagnosticsActivity extends Activity {
                     .append(orNone(d.getString("external_text_outcome", "")))
                     .append("\n  Last external text length: ")
                     .append(d.getInt("external_text_length", 0)).append(" characters")
-                    .append("\n  External text write-back: never (Orbit only reads a selection)");
+                    .append("\n  External text write-back: never (GrokLink only reads a selection)");
         }
         if (d.getLong("viewer_updated", 0L) == 0L) {
             out.append("\n  Attachment viewer: not opened yet");
@@ -849,7 +849,7 @@ public final class DiagnosticsActivity extends Activity {
             if (memory.enabled) enabledCount++;
             if (memory.pinned) pinnedCount++;
         }
-        return "\n  Orbit memories: " + memories.size()
+        return "\n  GrokLink memories: " + memories.size()
                         + " (" + enabledCount + " active, " + pinnedCount + " pinned)" +
                 "\n  Global memory use: " + (Prefs.memoryEnabled(this) ? "enabled" : "disabled") +
                 "\n  Memory suggestions: " + Prefs.memorySuggestions(this) +
@@ -934,7 +934,7 @@ public final class DiagnosticsActivity extends Activity {
         return "\n  Component: " + OrbitLocalComponent.stateLabel(componentState) +
                 (installedVersion.isEmpty() ? "" : " · " + installedVersion
                         + " (" + OrbitLocalComponent.installedVersionCode(this) + ")") +
-                "\n  Protocol Orbit speaks: " + OrbitLocalComponent.PROTOCOL_VERSION +
+                "\n  Protocol GrokLink speaks: " + OrbitLocalComponent.PROTOCOL_VERSION +
                 (status == null ? "" : "\n  Protocol component speaks: " + status.protocol) +
                 "\n  Can request uninstall: "
                         + OrbitLocalUninstaller.canRequestUninstall(this) +
@@ -956,7 +956,7 @@ public final class DiagnosticsActivity extends Activity {
                           "\n  Explicit pause requested: " + status.pauseRequested +
                           "\n  Last download failure: " + (status.lastFailure.isEmpty()
                                   ? "none" : status.lastFailure)) +
-                "\n  Earlier Orbit model data: " + LocalModelStore.legacyBytes(this) + " bytes" +
+                "\n  Earlier GrokLink model data: " + LocalModelStore.legacyBytes(this) + " bytes" +
                 "\n  Chat model ready: " + (status != null && status.modelReady()) +
                 "\n  Action model ready: " + (status != null && status.actionModelReady()) +
                 "\n  Works locally now: " + OrbitLocalCapabilities.summary(
@@ -1073,7 +1073,7 @@ public final class DiagnosticsActivity extends Activity {
         String requested = !OrbitBackHandler.supported() ? "standard back"
                 : !OrbitPredictiveBack.available()
                         ? "standard back (this Android reports no gesture progress)"
-                        : Prefs.swipeToGoBack(this) ? "Orbit progress" : "Orbit page transition";
+                        : Prefs.swipeToGoBack(this) ? "GrokLink progress" : "GrokLink page transition";
         String callback = d.getString("back_callback", "");
         String outcome = d.getString("back_outcome", "");
         int events = d.getInt("back_progress_events", 0);
@@ -1094,7 +1094,7 @@ public final class DiagnosticsActivity extends Activity {
                         ? "none recorded" : orNone(d.getString("back_path", ""))) +
                 "\n  Destination behind the page: " + (backUpdated == 0L ? "not observed yet"
                         : d.getBoolean("back_real_destination", false)
-                                ? "the real screen underneath" : "Orbit's background only") +
+                                ? "the real screen underneath" : "GrokLink's background only") +
                 "\n  Chat swipe actions: " + (Prefs.chatSwipeActions(this) ? "enabled" : "disabled") +
                 "\n  Last chat gesture: " + (updated == 0L ? "none recorded"
                         : orNone(d.getString("gesture_last_action", "")) + " · " + stamp(updated));
@@ -1176,7 +1176,7 @@ public final class DiagnosticsActivity extends Activity {
         int duplicates = d.getInt("completions_ignored_duplicate", 0);
         int superseded = d.getInt("worker_attempts_superseded", 0);
         int suppressed = d.getInt("submissions_suppressed", 0);
-        return "Orbit diagnostics summary" +
+        return "GrokLink diagnostics summary" +
                 "\nVersion: " + versionLabel() +
                 "\nProvider: " + AiProviders.active(this).displayName()
                         + " · " + accountStatus() +
@@ -1218,7 +1218,7 @@ public final class DiagnosticsActivity extends Activity {
      * one deliberate omission.
      */
     String fullReport() {
-        StringBuilder out = new StringBuilder("Orbit diagnostics\n\nOverview\n");
+        StringBuilder out = new StringBuilder("GrokLink diagnostics\n\nOverview\n");
         out.append(indent(overview()));
         for (Section section : sections()) {
             out.append("\n\n").append(section.title).append(section.body);

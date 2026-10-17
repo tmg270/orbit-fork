@@ -129,7 +129,7 @@ public final class DeckSurfaceTest {
 
         String description = String.valueOf(newChat.getContentDescription());
         assertTrue("it names itself", description.contains("New chat"));
-        assertTrue("and says what kind of thing it is", description.contains("Orbit shortcut"));
+        assertTrue("and says what kind of thing it is", description.contains("GrokLink shortcut"));
         assertTrue(newChat.isFocusable());
         assertEquals("the icon is decorative, not a second node",
                 View.IMPORTANT_FOR_ACCESSIBILITY_NO,
@@ -315,7 +315,7 @@ public final class DeckSurfaceTest {
         List<View> out = new ArrayList<>();
         for (View view : allViews(activity.getWindow().getDecorView())) {
             CharSequence description = view.getContentDescription();
-            if (description != null && "Open Orbit Deck".contentEquals(description)) out.add(view);
+            if (description != null && "Open GrokLink Deck".contentEquals(description)) out.add(view);
         }
         return out;
     }
@@ -364,7 +364,7 @@ public final class DeckSurfaceTest {
         chats.pause();
         Prefs.get(context).edit().putBoolean(Prefs.DECK_SHORTCUT, true).commit();
         chats.resume();
-        assertEquals("it comes back without restarting Orbit",
+        assertEquals("it comes back without restarting GrokLink",
                 1, deckControlsIn(chats.get()).size());
 
         chats.pause();

@@ -230,7 +230,7 @@ public final class HostedSearchSchemaTrace {
         Snapshot snapshot = last(context);
         if (snapshot == null) {
             return "No hosted web search has been observed on this device yet.\n\n"
-                    + "Ask a question that needs a web lookup, then come back here. Orbit records the "
+                    + "Ask a question that needs a web lookup, then come back here. GrokLink records the "
                     + "shape of the search response only: event names, field names and counts, never "
                     + "the question, the answer or the search query.";
         }

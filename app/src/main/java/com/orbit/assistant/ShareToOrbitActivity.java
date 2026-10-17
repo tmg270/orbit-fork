@@ -45,7 +45,7 @@ import java.util.Locale;
 public final class ShareToOrbitActivity extends Activity {
 
     /** The two destinations offered for a share the Vault could hold. */
-    static final String ASK_ORBIT = "Ask Orbit";
+    static final String ASK_ORBIT = "Ask GrokLink";
     static final String SAVE_TO_VAULT = "Save to Vault";
     /**
      * What a Vault item saved this way records about where it came from.
@@ -86,7 +86,7 @@ public final class ShareToOrbitActivity extends Activity {
         } catch (Exception failure) {
             // A malformed share is a rejected share, never a crash and never a partial import.
             DiagnosticStore.recordShareToOrbit(this, "none", "rejected", 0);
-            Toast.makeText(this, "Orbit could not read what was shared", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not read what was shared", Toast.LENGTH_SHORT).show();
         }
         if (!awaitingChoice) finish();
     }
@@ -178,9 +178,9 @@ public final class ShareToOrbitActivity extends Activity {
     private void askDestination(String text, List<Uri> uris, String token, Intent chat) {
         awaitingChoice = true;
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Share to Orbit")
-                .setMessage("Ask Orbit about this, or keep it in your Vault. "
-                        + "Nothing is sent to Orbit's AI until you send it.")
+                .setTitle("Share to GrokLink")
+                .setMessage("Ask GrokLink about this, or keep it in your Vault. "
+                        + "Nothing is sent to GrokLink's AI until you send it.")
                 .setNegativeButton(SAVE_TO_VAULT, (d, which) -> {
                     saveSharedToVault(text, uris, token);
                     finish();
@@ -227,7 +227,7 @@ public final class ShareToOrbitActivity extends Activity {
         } else {
             saved = OrbitVaultStore.saveText(this, "", text, SOURCE_LABEL) != null;
         }
-        Toast.makeText(this, saved ? OrbitVaultStore.savedMessage(this) : OrbitVaultStore.saveFailureMessage(this, "Orbit could not save what was shared"),
+        Toast.makeText(this, saved ? OrbitVaultStore.savedMessage(this) : OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save what was shared"),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -268,7 +268,7 @@ public final class ShareToOrbitActivity extends Activity {
 
     private void reject() {
         DiagnosticStore.recordShareToOrbit(this, "none", "rejected", 0);
-        Toast.makeText(this, "Orbit can accept shared text, images, PDFs and text files",
+        Toast.makeText(this, "GrokLink can accept shared text, images, PDFs and text files",
                 Toast.LENGTH_SHORT).show();
     }
 }

@@ -38,7 +38,7 @@ public final class UpdateDiscoveryTest {
     static final String APK_SHA256 =
             "a1b2c3d4e5f6071829304152637485960718293a4b5c6d7e8f90112233445566";
     private static final String DOWNLOAD_BASE =
-            "https://github.com/lpnovi/Orbit-Assistant/releases/download/";
+            "https://github.com/lpnovi/GrokLink-Assistant/releases/download/";
 
     // ---- structural eligibility -------------------------------------------------------------------
 
@@ -101,7 +101,7 @@ public final class UpdateDiscoveryTest {
                 Prefs.CHANNEL_STABLE);
         assertEquals("0.9.9.9", parsed.versionName);
         assertEquals(99999L, parsed.versionCode);
-        assertEquals("Orbit-Assistant-v0.9.9.9.apk", parsed.apkAssetName);
+        assertEquals("GrokLink-Assistant-v0.9.9.9.apk", parsed.apkAssetName);
         assertFalse(parsed.isBeta());
         assertEquals("0.9.9.9", parsed.displayName());
     }
@@ -113,7 +113,7 @@ public final class UpdateDiscoveryTest {
         assertEquals("0.9.9.9-beta.2", parsed.versionName);
         assertTrue(parsed.isBeta());
         assertEquals("0.9.9.9 Beta 2", parsed.displayName());
-        assertEquals("Orbit-Assistant-v0.9.9.9-beta.2.apk", parsed.apkAssetName);
+        assertEquals("GrokLink-Assistant-v0.9.9.9-beta.2.apk", parsed.apkAssetName);
     }
 
     /** The manifest has to describe the release it is attached to, in both channels. */
@@ -135,7 +135,7 @@ public final class UpdateDiscoveryTest {
                 "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:"
                         + "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF");
         rejects(release("v0.9.9.9", false, false), manifest, Prefs.CHANNEL_STABLE,
-                "a certificate that is not Orbit's permanent one");
+                "a certificate that is not GrokLink's permanent one");
     }
 
     @Test public void anUnsupportedManifestSchemaIsRejected() throws Exception {
@@ -151,7 +151,7 @@ public final class UpdateDiscoveryTest {
 
     @Test public void anUnexpectedApkNameIsRejected() throws Exception {
         JSONObject manifest = manifest("0.9.9.9", 99999L)
-                .put("apkAssetName", "Orbit-Assistant-v0.9.9.9-modified.apk");
+                .put("apkAssetName", "GrokLink-Assistant-v0.9.9.9-modified.apk");
         rejects(release("v0.9.9.9", false, false), manifest, Prefs.CHANNEL_STABLE,
                 "an APK name that is not the official one");
     }
@@ -266,7 +266,7 @@ public final class UpdateDiscoveryTest {
                                 String why) {
         try {
             OrbitUpdater.evaluateCandidate(release, manifest, channel);
-            fail("Orbit must reject " + why);
+            fail("GrokLink must reject " + why);
         } catch (Exception expected) {
             // Fail-closed is the whole point: an invalid release throws rather than returning
             // a partially trusted result.
@@ -278,8 +278,8 @@ public final class UpdateDiscoveryTest {
             String version = tag.startsWith("v") ? tag.substring(1) : tag;
             JSONArray assets = new JSONArray()
                     .put(asset(tag, "orbit-update.json", 900L))
-                    .put(asset(tag, "Orbit-Assistant-v" + version + ".apk", 52_000_000L))
-                    .put(asset(tag, "Orbit-Assistant-v" + version + ".apk.sha256", 120L));
+                    .put(asset(tag, "GrokLink-Assistant-v" + version + ".apk", 52_000_000L))
+                    .put(asset(tag, "GrokLink-Assistant-v" + version + ".apk.sha256", 120L));
             return new JSONObject()
                     .put("tag_name", tag)
                     .put("prerelease", prerelease)
@@ -305,7 +305,7 @@ public final class UpdateDiscoveryTest {
                     .put("packageName", "com.orbit.assistant")
                     .put("versionName", versionName)
                     .put("versionCode", versionCode)
-                    .put("apkAssetName", "Orbit-Assistant-v" + versionName + ".apk")
+                    .put("apkAssetName", "GrokLink-Assistant-v" + versionName + ".apk")
                     .put("apkSha256", APK_SHA256)
                     .put("certificateSha256", CERTIFICATE_SHA256);
         } catch (Exception e) {

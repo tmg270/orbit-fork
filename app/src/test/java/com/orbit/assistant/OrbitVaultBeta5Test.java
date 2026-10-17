@@ -51,7 +51,7 @@ import java.util.List;
  * others" is asserted, because a single {@code withX} written against the wrong constructor
  * argument would silently reintroduce exactly that.
  *
- * <p>The third is that clearer wording could become a migration. "Orbit Documents" and "Orbit
+ * <p>The third is that clearer wording could become a migration. "GrokLink Documents" and "Orbit
  * answers" are labels a screen draws; the stored source string, the stored type id and the
  * "Document · Page 7" provenance line under a saved page must all be untouched, and a Beta 1 to
  * Beta 4 store must load without noticing.
@@ -197,7 +197,7 @@ public final class OrbitVaultBeta5Test {
     @Test public void theTypeSelectorOffersEveryTypeUnderItsClearerName() {
         assertEquals(6, OrbitVaultFilter.Type.values().length);
         assertEquals("All items", OrbitVaultFilter.Type.ALL.label);
-        assertEquals("Orbit answers", OrbitVaultFilter.Type.ORBIT.label);
+        assertEquals("GrokLink answers", OrbitVaultFilter.Type.ORBIT.label);
         assertEquals("Documents", OrbitVaultFilter.Type.DOCUMENTS.label);
         // Renamed for reading, never for storage.
         assertEquals("all", OrbitVaultFilter.Type.ALL.id);
@@ -312,11 +312,11 @@ public final class OrbitVaultBeta5Test {
 
     // ---- display labels --------------------------------------------------------------------------
 
-    /** "Document" the stored word, "Orbit Documents" the shown one, and no migration between them. */
+    /** "Document" the stored word, "GrokLink Documents" the shown one, and no migration between them. */
     @Test public void theDocumentSourceIsShownUnderAClearerNameWithoutBeingRenamed() {
         assertEquals(OrbitVaultSource.DOCUMENT_DISPLAY,
                 OrbitVaultSource.displayLabel(OrbitVaultSource.DOCUMENT));
-        assertEquals("Orbit Documents", OrbitVaultSource.DOCUMENT_DISPLAY);
+        assertEquals("GrokLink Documents", OrbitVaultSource.DOCUMENT_DISPLAY);
         assertEquals("a shaped page source shows the same clearer label",
                 OrbitVaultSource.DOCUMENT_DISPLAY,
                 OrbitVaultSource.displayLabel("Document · Page 7"));
@@ -342,7 +342,7 @@ public final class OrbitVaultBeta5Test {
             if (OrbitVaultSource.DOCUMENT.equals(canonical)) continue;
             assertEquals(canonical, shown);
         }
-        assertEquals("a source Orbit did not write has no label at all",
+        assertEquals("a source GrokLink did not write has no label at all",
                 "", OrbitVaultSource.displayLabel("Shared from Chrome"));
     }
 
@@ -355,7 +355,7 @@ public final class OrbitVaultBeta5Test {
                 OrbitVaultStore.Sort.NEWEST);
         assertEquals(1, found.size());
         assertTrue(found.get(0).isDocumentPage());
-        assertEquals("Documents · Orbit Documents", both.describe());
+        assertEquals("Documents · GrokLink Documents", both.describe());
     }
 
     // ---- swipe -----------------------------------------------------------------------------------
@@ -710,7 +710,7 @@ public final class OrbitVaultBeta5Test {
                 + "\"body\":\"Charger\",\"source\":\"Quick Capture\",\"note\":\"\","
                 + "\"mediaPath\":\"\",\"createdAt\":1600000000000,\"modifiedAt\":1600000000000},"
                 + "{\"id\":\"b\",\"type\":\"link\",\"title\":\"Recipe\","
-                + "\"body\":\"https://example.com/r\",\"source\":\"Shared to Orbit\","
+                + "\"body\":\"https://example.com/r\",\"source\":\"Shared to GrokLink\","
                 + "\"note\":\"try this\",\"mediaPath\":\"\","
                 + "\"createdAt\":1600000000001,\"modifiedAt\":1600000000001},"
                 + "{\"id\":\"c\",\"type\":\"document_page\",\"title\":\"\",\"body\":\"page text\","
@@ -718,7 +718,7 @@ public final class OrbitVaultBeta5Test {
                 + "\"documentName\":\"Health behavior theory\",\"pageIndex\":6,\"pageCount\":388,"
                 + "\"createdAt\":1600000000002,\"modifiedAt\":1600000000002},"
                 + "{\"id\":\"d\",\"type\":\"orbit_reply\",\"title\":\"\","
-                + "\"body\":\"Feed it twice a day.\",\"source\":\"Orbit answer\",\"note\":\"\","
+                + "\"body\":\"Feed it twice a day.\",\"source\":\"GrokLink answer\",\"note\":\"\","
                 + "\"mediaPath\":\"\",\"pinned\":true,"
                 + "\"createdAt\":1600000000003,\"modifiedAt\":1600000000003}]";
         OrbitVaultStore.prefs(context).edit().putString("items_v1", stored).commit();

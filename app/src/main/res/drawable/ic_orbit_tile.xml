@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- GrokLink quick-settings tile icon: white link mark, 24dp. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
-        android:pathData="M12,2A10,10 0,1 0,12 22A10,10 0,1 0,12 2M12,6A6,6 0,1 1,12 18A6,6 0,1 1,12 6M12,9A3,3 0,1 0,12 15A3,3 0,1 0,12 9" />
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:rotation="-45" android:pivotX="54" android:pivotY="54" android:scaleX="1.45" android:scaleY="1.45">
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="8" android:fillColor="#00000000" android:pathData="M54,45H72A9,9 0,0 1,72,63H54A9,9 0,0 1,54,45Z"/>
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="8" android:fillColor="#00000000" android:pathData="M36,45H54A9,9 0,0 1,54,63H36A9,9 0,0 1,36,45Z"/>
+    </group>
 </vector>

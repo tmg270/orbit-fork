@@ -27,7 +27,7 @@ import java.nio.file.Paths;
 /**
  * Asking Android to remove the Orbit Local component.
  *
- * <p>Written against a Galaxy S25 Ultra recording of v0.7.7.5 where "Remove Orbit Local" did
+ * <p>Written against a Galaxy S25 Ultra recording of v0.7.7.5 where "Remove GrokLink Local" did
  * nothing whatsoever: Orbit's confirmation appeared, the user confirmed, Orbit's dialog closed,
  * and Android's uninstall confirmation never came. The package stayed, and Orbit said nothing.
  *
@@ -68,7 +68,7 @@ public final class ComponentUninstallTest {
         String manifest = readRepositoryFile("app/src/main/AndroidManifest.xml");
         assertTrue("Android refuses an uninstall request from an app targeting API 28+ that does "
                         + "not hold REQUEST_DELETE_PACKAGES, and it refuses it silently. Without "
-                        + "this line, Remove Orbit Local does nothing at all.",
+                        + "this line, Remove GrokLink Local does nothing at all.",
                 manifest.contains("android.permission.REQUEST_DELETE_PACKAGES"));
     }
 

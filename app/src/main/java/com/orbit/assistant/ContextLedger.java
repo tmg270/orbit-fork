@@ -31,7 +31,7 @@ final class ContextLedger {
         NOTIFICATIONS("Notifications"),
         MEMORY("Memory"),
         KEPT("Kept in this chat"),
-        INSTRUCTIONS("Orbit's instructions"),
+        INSTRUCTIONS("GrokLink's instructions"),
         OTHER("Other");
 
         final String label;

@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * What "Ask Orbit about this page" actually attaches.
+ * What "Ask GrokLink about this page" actually attaches.
  *
  * <p>Device testing showed the semantics were already right — opening page 5 and asking "what's
  * this?" got an answer about page 5 — while the composer showed a narrow text label that did not
@@ -159,7 +159,7 @@ public final class DocumentPageContextTest {
                 context.toLowerCase(java.util.Locale.ROOT).contains("rendering is attached"));
 
         ComposerAttachment card = ComposerAttachment.documentPage(scanned);
-        assertNotNull("Ask Orbit still works on a scanned page", card);
+        assertNotNull("Ask GrokLink still works on a scanned page", card);
         assertEquals(ComposerAttachment.CONTENT_VISUAL_ONLY, card.contentState);
     }
 

@@ -92,7 +92,7 @@ public final class DeviceActionExecutor {
         if (!EmergencyDialGuard.CATEGORY_NONE.equals(category)
                 && !EmergencyDialGuard.consumeGrant(number)) {
             DiagnosticStore.recordProtectedDial(c, category, "blocked");
-            return Result.unavailable("Orbit needs you to confirm before it opens the dialer for "
+            return Result.unavailable("GrokLink needs you to confirm before it opens the dialer for "
                     + EmergencyDialGuard.normalize(number) + ".");
         }
         start(c, new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(number))));
@@ -127,7 +127,7 @@ public final class DeviceActionExecutor {
                     int seconds = Math.max(1, p.optInt("seconds", 60));
                     Intent i = new Intent(AlarmClock.ACTION_SET_TIMER)
                             .putExtra(AlarmClock.EXTRA_LENGTH, seconds)
-                            .putExtra(AlarmClock.EXTRA_MESSAGE, p.optString("label", "Orbit timer"))
+                            .putExtra(AlarmClock.EXTRA_MESSAGE, p.optString("label", "GrokLink timer"))
                             .putExtra(AlarmClock.EXTRA_SKIP_UI, true);
                     start(c, i);
                     result = Result.success("Timer started");
@@ -138,7 +138,7 @@ public final class DeviceActionExecutor {
                     Intent i = new Intent(AlarmClock.ACTION_SET_ALARM)
                             .putExtra(AlarmClock.EXTRA_HOUR, hour)
                             .putExtra(AlarmClock.EXTRA_MINUTES, minute)
-                            .putExtra(AlarmClock.EXTRA_MESSAGE, p.optString("label", "Orbit alarm"))
+                            .putExtra(AlarmClock.EXTRA_MESSAGE, p.optString("label", "GrokLink alarm"))
                             .putExtra(AlarmClock.EXTRA_SKIP_UI, true);
                     start(c, i);
                     result = Result.success("Alarm set");
@@ -273,7 +273,7 @@ public final class DeviceActionExecutor {
                     // model, routine step - reaches the same one.
                     MediaControl.Command command = MediaControl.parse(p.optString("command", ""));
                     if (command == null) {
-                        result = Result.failed("That is not a media command Orbit has");
+                        result = Result.failed("That is not a media command GrokLink has");
                         break;
                     }
                     result = MediaControl.execute(c, command);
@@ -313,7 +313,7 @@ public final class DeviceActionExecutor {
                 }
                 case "COPY": {
                     ClipboardManager cm = (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE);
-                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Orbit", p.optString("text", "")));
+                    if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("GrokLink", p.optString("text", "")));
                     result = Result.success("Copied to clipboard");
                     break;
                 }
@@ -335,7 +335,7 @@ public final class DeviceActionExecutor {
             }
             return result;
         } catch (SecurityException e) {
-            return Result.permission("Orbit does not currently have permission to complete that phone action.");
+            return Result.permission("GrokLink does not currently have permission to complete that phone action.");
         } catch (Exception e) {
             String message = e.getMessage();
             if (message == null || message.trim().isEmpty()) message = e.getClass().getSimpleName();
@@ -346,7 +346,7 @@ public final class DeviceActionExecutor {
 
     private static Result setReminder(Context c, JSONObject p) {
         if (!ReminderNotifier.notificationsAllowed(c)) {
-            return Result.permission("Allow Orbit notifications so the reminder can alert you.");
+            return Result.permission("Allow GrokLink notifications so the reminder can alert you.");
         }
         String message = p.optString("message", p.optString("label", "Reminder")).trim();
         if (message.isEmpty()) message = "Reminder";
@@ -462,7 +462,7 @@ public final class DeviceActionExecutor {
 
     private static Result setBrightness(Context c, int percent) {
         if (!Settings.System.canWrite(c)) {
-            return Result.permission("Allow Modify system settings to let Orbit change brightness");
+            return Result.permission("Allow Modify system settings to let GrokLink change brightness");
         }
         try {
             Settings.System.putInt(c.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE,
@@ -497,7 +497,7 @@ public final class DeviceActionExecutor {
             case "silent": case "mute": case "muted": case "off":
                 mode = AudioManager.RINGER_MODE_SILENT; break;
             default:
-                return Result.failed("That is not a ringer mode Orbit has");
+                return Result.failed("That is not a ringer mode GrokLink has");
         }
 
         AudioManager am = (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
@@ -509,19 +509,19 @@ public final class DeviceActionExecutor {
             // Android refuses a quiet mode without this access, and refuses it by throwing. Asking
             // first means the user is told what to grant instead of shown a failure.
             return Result.permission(
-                    "Grant Do Not Disturb access to let Orbit silence or vibrate the ringer");
+                    "Grant Do Not Disturb access to let GrokLink silence or vibrate the ringer");
         }
         try {
             am.setRingerMode(mode);
         } catch (SecurityException e) {
             return Result.permission(
-                    "Grant Do Not Disturb access to let Orbit change the ringer mode");
+                    "Grant Do Not Disturb access to let GrokLink change the ringer mode");
         } catch (Exception e) {
             return Result.failed("Could not change the ringer mode");
         }
 
         String actual = DeviceStatusReader.ringerModeName(c);
-        if (actual.isEmpty()) return Result.failed("Orbit could not confirm the ringer mode");
+        if (actual.isEmpty()) return Result.failed("GrokLink could not confirm the ringer mode");
         if (!actual.equalsIgnoreCase(modeName(mode))) {
             // The call went through and the phone is somewhere else. Say where it actually is.
             return Result.failed("Android kept the ringer on " + actual);
@@ -561,7 +561,7 @@ public final class DeviceActionExecutor {
         NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return Result.unavailable("Notification service unavailable");
         if (!nm.isNotificationPolicyAccessGranted()) {
-            return Result.permission("Grant Do Not Disturb access to let Orbit change DND");
+            return Result.permission("Grant Do Not Disturb access to let GrokLink change DND");
         }
         try {
             nm.setInterruptionFilter(enabled

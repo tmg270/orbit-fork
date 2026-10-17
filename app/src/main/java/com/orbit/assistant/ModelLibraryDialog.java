@@ -217,7 +217,7 @@ final class ModelLibraryDialog {
         String detail = route + " · " + contextLabel
                 + " · Vision " + (spec.vision ? "Yes" : "Not listed")
                 + (spec.nativeFiles ? " · Provider file input" : "")
-                + (spec.extractedDocuments ? " · Orbit text extraction" : "")
+                + (spec.extractedDocuments ? " · GrokLink text extraction" : "")
                 + (spec.tools ? " · Tools" : "")
                 + (spec.webSearch ? " · Web search" : "")
                 + (spec.hasStrengths() ? " · Reasoning " + strengthRange(spec) : " · No strength control")

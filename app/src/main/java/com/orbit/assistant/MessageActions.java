@@ -217,7 +217,7 @@ final class MessageActions {
             lastSavedText = visible;
             lastSavedAt = now;
         }
-        Toast.makeText(c, saved ? OrbitVaultStore.savedMessage(c) : OrbitVaultStore.saveFailureMessage(c, "Orbit could not save that reply"),
+        Toast.makeText(c, saved ? OrbitVaultStore.savedMessage(c) : OrbitVaultStore.saveFailureMessage(c, "GrokLink could not save that reply"),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -323,7 +323,7 @@ final class MessageActions {
         AfterCopy copied = a.afterCopy != null ? a.afterCopy
                 : () -> Toast.makeText(c, "Copied", Toast.LENGTH_SHORT).show();
         strip.addView(stripButton(c, R.drawable.ic_copy, "Copy response",
-                v -> copy(c, "Orbit response", copyText, copied)));
+                v -> copy(c, "GrokLink response", copyText, copied)));
         if (a.retry != null) {
             strip.addView(stripButton(c, R.drawable.ic_regenerate, "Retry response",
                     v -> a.retry.run()));
@@ -364,11 +364,11 @@ final class MessageActions {
     }
 
     static void copyAssistant(Context c, String rawText, AfterCopy afterCopy) {
-        copy(c, "Orbit response", assistantCopyText(rawText), afterCopy);
+        copy(c, "GrokLink response", assistantCopyText(rawText), afterCopy);
     }
 
     static void copyUser(Context c, String rawText, AfterCopy afterCopy) {
-        copy(c, "Orbit message", userCopyText(rawText), afterCopy);
+        copy(c, "GrokLink message", userCopyText(rawText), afterCopy);
     }
 
     static void copy(Context c, String clipLabel, String text, AfterCopy afterCopy) {
@@ -394,7 +394,7 @@ final class MessageActions {
         List<Entry> entries = assistantMenu(a, vault);
         showMenu(bubble, labelsOf(entries), iconsOf(entries), (index, label) -> {
             if (COPY_MENU_LABEL.equals(label)) {
-                copy(bubble.getContext(), "Orbit response", copyText, a.afterCopy);
+                copy(bubble.getContext(), "GrokLink response", copyText, a.afterCopy);
             } else if (SAVE_TO_VAULT_MENU_LABEL.equals(label)) {
                 saveToVault(bubble.getContext(), rawText, a.sourceUrls);
             } else {
@@ -410,7 +410,7 @@ final class MessageActions {
         boolean canEdit = editResend != null;
         showMenu(bubble, userLabels(canEdit, canReply), userIcons(canEdit, canReply), (index, label) -> {
             if (COPY_MENU_LABEL.equals(label)) {
-                copy(bubble.getContext(), "Orbit message", text, afterCopy);
+                copy(bubble.getContext(), "GrokLink message", text, afterCopy);
             } else if (REPLY_MENU_LABEL.equals(label) && reply != null) {
                 reply.run();
             } else if (EDIT_MENU_LABEL.equals(label) && editResend != null) {

@@ -14,7 +14,7 @@ import java.util.List;
  * <p>Android only lists a channel under Settings once the app has created it, and Orbit used to
  * create each one lazily, on the way to posting that kind of notification. The effect on real
  * devices was that two installations of the same build showed different Notification categories: a
- * phone that had never been offered an update had no "Orbit updates" row, and there was no way for
+ * phone that had never been offered an update had no "GrokLink updates" row, and there was no way for
  * the user to pre-emptively silence a category they had not yet received. Nothing was broken; the
  * settings screen was simply describing a subset of Orbit.
  *
@@ -66,16 +66,16 @@ public final class OrbitNotificationChannels {
     private static List<Definition> definitions() {
         List<Definition> out = new ArrayList<>(4);
         out.add(new Definition(BACKGROUND_RESPONSES, "Background responses",
-                "Notifies you when an Orbit response finishes after you leave the chat.",
+                "Notifies you when an GrokLink response finishes after you leave the chat.",
                 NotificationManager.IMPORTANCE_DEFAULT));
         out.add(new Definition(REMINDERS, "Reminders",
-                "Reminders you create through Orbit.",
+                "Reminders you create through GrokLink.",
                 NotificationManager.IMPORTANCE_HIGH));
         out.add(new Definition(ROUTINE_TRIGGERS, "Routine triggers",
-                "Only alerts you when an automatic Orbit routine needs attention or a foreground step.",
+                "Only alerts you when an automatic GrokLink routine needs attention or a foreground step.",
                 NotificationManager.IMPORTANCE_DEFAULT));
-        out.add(new Definition(UPDATES, "Orbit updates",
-                "Notifies you when a verified Orbit release is available.",
+        out.add(new Definition(UPDATES, "GrokLink updates",
+                "Notifies you when a verified GrokLink release is available.",
                 NotificationManager.IMPORTANCE_DEFAULT));
         return out;
     }

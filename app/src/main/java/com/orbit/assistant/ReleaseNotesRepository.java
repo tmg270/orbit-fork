@@ -48,7 +48,7 @@ public final class ReleaseNotesRepository {
             this.tag = tag;
             this.versionName = versionName;
             this.title = title == null || title.trim().isEmpty()
-                    ? "Orbit Assistant " + tag : title.trim();
+                    ? "GrokLink " + tag : title.trim();
             this.body = body == null ? "" : body.trim();
             this.publishedAt = publishedAt == null ? "" : publishedAt.trim();
         }
@@ -66,13 +66,13 @@ public final class ReleaseNotesRepository {
         EXECUTOR.execute(() -> {
             try {
                 List<ReleaseNote> fresh = fetch();
-                if (fresh.isEmpty()) throw new IllegalStateException("No stable Orbit releases were returned.");
+                if (fresh.isEmpty()) throw new IllegalStateException("No stable GrokLink releases were returned.");
                 save(app, fresh);
                 callback.onLoaded(fresh, false);
             } catch (Exception ignored) {
                 List<ReleaseNote> cached = loadCached(app);
                 if (!cached.isEmpty()) callback.onLoaded(cached, true);
-                else callback.onError("Orbit could not load release notes. Check your connection and try again.");
+                else callback.onError("GrokLink could not load release notes. Check your connection and try again.");
             }
         });
     }

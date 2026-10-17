@@ -155,12 +155,12 @@ public final class ExtensionsActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
         titles.addView(UiKit.text(this, "Extensions", 25, UiKit.TEXT, true));
-        titles.addView(UiKit.text(this, "Add integrations and new actions to Orbit", 12, UiKit.MUTED, false));
+        titles.addView(UiKit.text(this, "Add integrations and new actions to GrokLink", 12, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Orbit Extensions are reviewed, declarative action packages. They cannot run code or access chats, Memory, screen context, files, credentials, or Android permissions.",
+                "GrokLink Extensions are reviewed, declarative action packages. They cannot run code or access chats, Memory, screen context, files, credentials, or Android permissions.",
                 13, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -198,7 +198,7 @@ public final class ExtensionsActivity extends Activity {
         LinearLayout importCard = card();
         importCard.addView(UiKit.text(this, "Import extension from file", 16, UiKit.TEXT, true));
         TextView importNote = UiKit.text(this,
-                "Choose a user-created, community, or custom .orbitext file. Orbit validates it and shows the same complete review before installation.",
+                "Choose a user-created, community, or custom .orbitext file. GrokLink validates it and shows the same complete review before installation.",
                 12, UiKit.MUTED, false);
         importNote.setLineSpacing(0, 1.12f);
         importNote.setPadding(0, UiKit.dp(this, 5), 0, UiKit.dp(this, 11));
@@ -251,7 +251,7 @@ public final class ExtensionsActivity extends Activity {
         }
 
         TextView footer = UiKit.text(this,
-                "Extensions v1 remains compatible. Extensions v2 adds Orbit-rendered setup and Routine parameters while keeping actions declarative, reviewed and non-executable.",
+                "Extensions v1 remains compatible. Extensions v2 adds GrokLink-rendered setup and Routine parameters while keeping actions declarative, reviewed and non-executable.",
                 11, UiKit.MUTED, false);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(UiKit.dp(this, 6), UiKit.dp(this, 17), UiKit.dp(this, 6), 0);
@@ -388,7 +388,7 @@ public final class ExtensionsActivity extends Activity {
                 throw new IllegalArgumentException("An extension with this ID is already installed.");
             showInstallReview(extension);
         } catch (Exception e) {
-            showError(e.getMessage() == null ? "Orbit could not read this extension." : e.getMessage());
+            showError(e.getMessage() == null ? "GrokLink could not read this extension." : e.getMessage());
         }
     }
 
@@ -414,7 +414,7 @@ public final class ExtensionsActivity extends Activity {
                         (field.required ? " · Required" : " · Optional"), UiKit.TEXT));
             }
             review.addView(spacedText(
-                    "Install first, then configure explicitly. Orbit encrypts secret values and does not expose them to chats, Memory, backups, Routines or other extensions.",
+                    "Install first, then configure explicitly. GrokLink encrypts secret values and does not expose them to chats, Memory, backups, Routines or other extensions.",
                     UiKit.TEXT));
         }
 
@@ -441,7 +441,7 @@ public final class ExtensionsActivity extends Activity {
             destinations += "\nUser-supplied during setup (validated public HTTPS only)";
         review.addView(spacedText("NETWORK DESTINATIONS\n" + destinations, UiKit.MUTED));
         TextView isolation = spacedText(
-                "This extension cannot receive Orbit chats, Memory, screen context, files, other credentials, or Android permission state. Only declared configuration and Routine parameters can enter its reviewed request templates.",
+                "This extension cannot receive GrokLink chats, Memory, screen context, files, other credentials, or Android permission state. Only declared configuration and Routine parameters can enter its reviewed request templates.",
                 UiKit.TEXT);
         isolation.setBackground(UiKit.rounded(UiKit.SURFACE_2, 14, this));
         isolation.setPadding(UiKit.dp(this, 13), UiKit.dp(this, 11),
@@ -460,7 +460,7 @@ public final class ExtensionsActivity extends Activity {
                         Toast.makeText(this, extension.name + " installed", Toast.LENGTH_SHORT).show();
                         rebuildPreservingPosition();
                     } else {
-                        showError("Orbit could not install this extension. It may already exist or the extension limit was reached.");
+                        showError("GrokLink could not install this extension. It may already exist or the extension limit was reached.");
                     }
                 }).create();
         UiKit.styleOrbitDialog(dialog, this, false);
@@ -657,7 +657,7 @@ public final class ExtensionsActivity extends Activity {
     private void configurationSaveFailed() {
         AlertDialog error = new AlertDialog.Builder(this)
                 .setTitle("Configuration not saved")
-                .setMessage("Orbit could not securely save this extension configuration. No credential was stored in plaintext.")
+                .setMessage("GrokLink could not securely save this extension configuration. No credential was stored in plaintext.")
                 .setPositiveButton("OK", null)
                 .create();
         UiKit.styleOrbitDialog(error, this, false);
@@ -672,7 +672,7 @@ public final class ExtensionsActivity extends Activity {
                 .setPositiveButton("Remove", (d, w) -> {
                     if (OrbitExtensionStore.remove(this, extension.id))
                         rebuildPreservingPosition();
-                    else Toast.makeText(this, "Orbit could not safely remove this extension.",
+                    else Toast.makeText(this, "GrokLink could not safely remove this extension.",
                             Toast.LENGTH_SHORT).show();
                 }).create();
         UiKit.styleOrbitDialog(dialog, this, true);
@@ -693,7 +693,7 @@ public final class ExtensionsActivity extends Activity {
         card.addView(top);
 
         TextView guidance = UiKit.text(this,
-                "Orbit could not safely read this installed extension. It remains inactive and its saved data has not been changed.",
+                "GrokLink could not safely read this installed extension. It remains inactive and its saved data has not been changed.",
                 12, UiKit.MUTED, false);
         guidance.setLineSpacing(0, 1.12f);
         guidance.setPadding(0, UiKit.dp(this, 8), 0, UiKit.dp(this, 12));
@@ -722,7 +722,7 @@ public final class ExtensionsActivity extends Activity {
                             ? OrbitExtensionStore.remove(this, removalKey)
                             : OrbitExtensionStore.removeUnavailable(this, removalKey);
                     if (removed) rebuildPreservingPosition();
-                    else Toast.makeText(this, "Orbit could not safely remove this extension.",
+                    else Toast.makeText(this, "GrokLink could not safely remove this extension.",
                             Toast.LENGTH_SHORT).show();
                 }).create();
         UiKit.styleOrbitDialog(dialog, this, true);
@@ -763,7 +763,7 @@ public final class ExtensionsActivity extends Activity {
 
         page.addView(UiKit.text(this, "Extensions couldn't load", 24, UiKit.TEXT, true));
         TextView message = UiKit.text(this,
-                "Orbit encountered a problem loading Extensions. Your extensions and Routines have not been deleted.",
+                "GrokLink encountered a problem loading Extensions. Your extensions and Routines have not been deleted.",
                 14, UiKit.MUTED, false);
         message.setLineSpacing(0, 1.15f);
         message.setPadding(0, UiKit.dp(this, 12), 0, UiKit.dp(this, 22));
@@ -794,7 +794,7 @@ public final class ExtensionsActivity extends Activity {
             ClipboardManager clipboard = (ClipboardManager)
                     getSystemService(Context.CLIPBOARD_SERVICE);
             if (clipboard != null) clipboard.setPrimaryClip(
-                    ClipData.newPlainText("Orbit Extensions diagnostic", diagnostic));
+                    ClipData.newPlainText("GrokLink Extensions diagnostic", diagnostic));
             Toast.makeText(this, "Diagnostic details copied", Toast.LENGTH_SHORT).show();
         });
         LinearLayout.LayoutParams copyLp = new LinearLayout.LayoutParams(
@@ -819,7 +819,7 @@ public final class ExtensionsActivity extends Activity {
                 }
             }
         }
-        return "Orbit " + BuildConfig.VERSION_NAME + "\n" +
+        return "GrokLink " + BuildConfig.VERSION_NAME + "\n" +
                 "Exception: " + type + "\n" +
                 "Location: " + location;
     }

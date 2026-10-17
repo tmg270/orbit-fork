@@ -85,7 +85,7 @@ public final class ProBackgroundThemeFileTest {
         assertNotNull(imported);
         assertEquals("From Beta 1", imported.name);
         assertEquals("violet", imported.accent);
-        assertTrue("a file with no premium block is Orbit as it shipped",
+        assertTrue("a file with no premium block is GrokLink as it shipped",
                 imported.pro.isDefault());
         assertEquals(OrbitProStyle.BACKGROUND_SOLID, imported.pro.backgroundMode);
     }

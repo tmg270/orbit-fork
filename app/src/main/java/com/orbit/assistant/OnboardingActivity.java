@@ -40,6 +40,23 @@ import java.util.List;
 public final class OnboardingActivity extends Activity {
     private static final String EXTRA_MANUAL = "manual";
     private static final int REQ_ASSISTANT_SETTINGS = 940;
+    private static final int REQ_ASSISTANT_ROLE = 948;
+    private static final int REQ_CALENDAR = 949;
+
+    /** RoleManager ROLE_ASSISTANT when this Android offers it; false means use Settings instead. */
+    private boolean requestAssistantRole() {
+        if (android.os.Build.VERSION.SDK_INT < 29) return false;
+        try {
+            android.app.role.RoleManager rm = getSystemService(android.app.role.RoleManager.class);
+            if (rm == null || !rm.isRoleAvailable(android.app.role.RoleManager.ROLE_ASSISTANT)
+                    || rm.isRoleHeld(android.app.role.RoleManager.ROLE_ASSISTANT)) return false;
+            startActivityForResult(rm.createRequestRoleIntent(
+                    android.app.role.RoleManager.ROLE_ASSISTANT), REQ_ASSISTANT_ROLE);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
     private static final int REQ_RESTORE_BACKUP = 941;
     private static final int REQ_NOTIFICATIONS = 942;
     private static final int REQ_LOCATION = 943;
@@ -65,7 +82,7 @@ public final class OnboardingActivity extends Activity {
             runOnUiThread(() -> {
                 if (!canUpdateUi()) return;
                 Toast.makeText(OnboardingActivity.this,
-                        "ChatGPT connected to Orbit", Toast.LENGTH_LONG).show();
+                        "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
                 render();
             });
         }
@@ -83,7 +100,7 @@ public final class OnboardingActivity extends Activity {
     private final ChatGptBrowserAuth.Listener browserListener = new ChatGptBrowserAuth.Listener() {
          public void onSignedIn(ChatGptAuth.AccountInfo account) {
             if (!canUpdateUi()) return;
-            Toast.makeText(OnboardingActivity.this, "ChatGPT connected to Orbit", Toast.LENGTH_LONG).show();
+            Toast.makeText(OnboardingActivity.this, "ChatGPT connected to GrokLink", Toast.LENGTH_LONG).show();
             render();
         }
 
@@ -280,15 +297,15 @@ public final class OnboardingActivity extends Activity {
     }
 
     private void buildWelcome(LinearLayout page) {
-        addTitle(page, "Welcome to Orbit",
+        addTitle(page, "Welcome to GrokLink",
                 "A customizable Android assistant for quick answers, screen context, device actions, Routines, reminders, and more.");
         LinearLayout card = card();
         card.addView(feature("Ask quickly", "Use the app, Quick Settings, or your system assistant gesture."));
         card.addView(feature("Act locally", "Run device actions, reminders, and editable Routines."));
-        card.addView(feature("Keep control", "Choose what Orbit can access and change it later in Settings."));
+        card.addView(feature("Keep control", "Choose what GrokLink can access and change it later in Settings."));
         page.addView(card, cardLp());
 
-        Button restore = secondaryButton("Restore Orbit backup");
+        Button restore = secondaryButton("Restore GrokLink backup");
         restore.setOnClickListener(v -> chooseBackup());
         page.addView(restore, buttonLp());
         TextView note = UiKit.text(this,
@@ -311,8 +328,32 @@ public final class OnboardingActivity extends Activity {
      * the curated sentences; the provider layer decides whether they are currently true.
      */
     private void buildConnect(LinearLayout page) {
-        addTitle(page, "Connect Orbit",
-                "Choose how Orbit thinks. ChatGPT is the recommended full experience. Orbit Local is optional, private, and can be added later.");
+        addTitle(page, "Connect Grok",
+                "GrokLink talks only to xAI's Grok. Sign in with your SuperGrok account or paste an xAI API key.");
+        boolean connected = SecureStore.hasXaiCredential(this);
+        LinearLayout status = card();
+        status.addView(UiKit.text(this, connected
+                ? "✓ " + AiProviders.byId(Prefs.PROVIDER_XAI).statusDetail(this)
+                : "○ Not connected to Grok yet", 16, connected ? UiKit.SUCCESS : UiKit.TEXT, true));
+        addCardDescription(status, "SuperGrok sign-in shows a short code, opens xAI's page in your "
+                + "browser, and finishes on its own when you approve. An API key from console.x.ai "
+                + "works too.");
+        Button superGrok = primaryButton(connected ? "Manage Grok connection" : "Sign in with SuperGrok");
+        superGrok.setOnClickListener(v -> startActivity(new Intent(this, AiProvidersActivity.class)
+                .putExtra(AiProvidersActivity.EXTRA_START,
+                        connected ? "" : AiProvidersActivity.START_SUPERGROK)));
+        status.addView(superGrok, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 48)));
+        page.addView(status, cardLp());
+        Button key = quietButton("Use an xAI API key instead");
+        key.setOnClickListener(v -> startActivity(new Intent(this, AiProvidersActivity.class)
+                .putExtra(AiProvidersActivity.EXTRA_START, AiProvidersActivity.START_API_KEY)));
+        page.addView(key, buttonLp());
+    }
+
+    @SuppressWarnings("unused")
+    private void buildConnectLegacy(LinearLayout page) {
+        addTitle(page, "Connect GrokLink",
+                "Choose how GrokLink thinks. ChatGPT is the recommended full experience. GrokLink Local is optional, private, and can be added later.");
         page.addView(chatGptCard(), cardLp());
         page.addView(orbitLocalCard(), cardLp());
 
@@ -340,12 +381,12 @@ public final class OnboardingActivity extends Activity {
         card.addView(providerHeading(provider.displayName(), "Recommended"));
         card.addView(providerStatusLine(connected, provider.statusDetail(this)));
         addCardDescription(card,
-                "Orbit's fullest experience: stronger answers, hosted web search, screen and image context, and device-action planning.");
+                "GrokLink's fullest experience: stronger answers, hosted web search, screen and image context, and device-action planning.");
         addCapabilityLine(card, provider);
 
         TextView help = UiKit.text(this, connected
-                ? "Orbit keeps using the securely stored session already on this phone."
-                : "Your browser handles authorization. Orbit never asks for your ChatGPT password.",
+                ? "GrokLink keeps using the securely stored session already on this phone."
+                : "Your browser handles authorization. GrokLink never asks for your ChatGPT password.",
                 12, UiKit.MUTED, false);
         help.setPadding(0, 0, 0, UiKit.dp(this, 12));
         card.addView(help);
@@ -416,8 +457,8 @@ public final class OnboardingActivity extends Activity {
             return card;
         }
 
-        Button action = primaryButton(active ? "Orbit Local active"
-                : ready ? "Use Orbit Local" : "Set up Orbit Local");
+        Button action = primaryButton(active ? "GrokLink Local active"
+                : ready ? "Use GrokLink Local" : "Set up GrokLink Local");
         action.setEnabled(!active);
         action.setAlpha(active ? .68f : 1f);
         action.setOnClickListener(v -> {
@@ -512,7 +553,7 @@ public final class OnboardingActivity extends Activity {
         relayCard.addView(providerStatusLine(configured, relayActive
                 ? "Active provider" : configured ? "Relay saved" : "Relay URL required"));
         addCardDescription(relayCard,
-                "For advanced users running their own HTTPS relay. Orbit talks to your server; your API key stays on it and never enters Orbit.");
+                "For advanced users running their own HTTPS relay. GrokLink talks to your server; your API key stays on it and never enters GrokLink.");
 
         EditText url = field("https://your-relay.example.com", Prefs.backendUrl(this), false);
         relayCard.addView(url, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 52)));
@@ -543,19 +584,19 @@ public final class OnboardingActivity extends Activity {
                 render();
             } catch (Exception error) {
                 showMessage("Could not save relay settings",
-                        "Orbit could not securely save the optional relay access token.");
+                        "GrokLink could not securely save the optional relay access token.");
             }
         });
         page.addView(relayCard, cardLp());
     }
 
     private void buildAssistant(LinearLayout page) {
-        addTitle(page, "Make Orbit your assistant",
-                "Choosing Orbit as Android's digital assistant lets supported buttons and gestures open it system-wide.");
+        addTitle(page, "Make GrokLink your assistant",
+                "Choosing GrokLink as Android's digital assistant lets supported buttons and gestures open it system-wide.");
         boolean active = OrbitSetupHelper.isOrbitAssistantActive(this);
         LinearLayout card = card();
-        card.addView(UiKit.text(this, active ? "✓ Orbit is your default assistant" :
-                "○ Orbit is not currently your default assistant", 16,
+        card.addView(UiKit.text(this, active ? "✓ GrokLink is your default assistant" :
+                "○ GrokLink is not currently your default assistant", 16,
                 active ? UiKit.SUCCESS : UiKit.TEXT, true));
         TextView help = UiKit.text(this,
                 "Android controls this setting. Available button and gesture choices vary by device.",
@@ -564,6 +605,7 @@ public final class OnboardingActivity extends Activity {
         card.addView(help);
         Button action = primaryButton(active ? "Manage assistant settings" : "Open assistant settings");
         action.setOnClickListener(v -> {
+            if (!active && requestAssistantRole()) return;
             if (!OrbitSetupHelper.openAssistantSettings(this, REQ_ASSISTANT_SETTINGS, true))
                 showMessage("Assistant settings unavailable",
                         "Android could not open a supported default-assistant settings screen on this device.");
@@ -573,13 +615,13 @@ public final class OnboardingActivity extends Activity {
     }
 
     private void buildQuickAccess(LinearLayout page) {
-        addTitle(page, "Choose how to open Orbit",
+        addTitle(page, "Choose how to open GrokLink",
                 "Pick the access methods that fit your phone. None are required to continue.");
         LinearLayout ask = card();
-        ask.addView(UiKit.text(this, "Ask Orbit Quick Settings tile", 16, UiKit.TEXT, true));
-        addCardDescription(ask, "Open Orbit instantly from Android Quick Settings.");
+        ask.addView(UiKit.text(this, "Ask GrokLink Quick Settings tile", 16, UiKit.TEXT, true));
+        addCardDescription(ask, "Open GrokLink instantly from Android Quick Settings.");
         Button add = primaryButton(OnboardingState.askTileConfirmed(this) ?
-                "Orbit tile added" : "Add Orbit tile");
+                "GrokLink tile added" : "Add GrokLink tile");
         add.setOnClickListener(v -> QuickSettingsTiles.requestAddAskTile(this, confirmed -> {
             if (confirmed) OnboardingState.setAskTileConfirmed(this, true);
             runOnUiThread(() -> { if (canUpdateUi()) render(); });
@@ -594,7 +636,7 @@ public final class OnboardingActivity extends Activity {
         page.addView(routine, cardLp());
 
         TextView widgetNote = UiKit.text(this,
-                "Orbit also supports home-screen widgets. Add them later from your launcher or Orbit Settings.",
+                "GrokLink also supports home-screen widgets. Add them later from your launcher or GrokLink Settings.",
                 12, UiKit.MUTED, false);
         widgetNote.setLineSpacing(0, 1.12f);
         LinearLayout.LayoutParams widgetNoteLp = new LinearLayout.LayoutParams(
@@ -606,13 +648,13 @@ public final class OnboardingActivity extends Activity {
         LinearLayout side = card();
         side.addView(UiKit.text(this, "Side button and assistant gesture", 16, UiKit.TEXT, true));
         addCardDescription(side, OrbitSetupHelper.isOrbitAssistantActive(this)
-                ? "Orbit is selected as your assistant. Your device's supported assistant gesture can now invoke it."
-                : "After choosing Orbit as the default assistant, use whichever assistant button or gesture Android exposes on your device.");
+                ? "GrokLink is selected as your assistant. Your device's supported assistant gesture can now invoke it."
+                : "After choosing GrokLink as the default assistant, use whichever assistant button or gesture Android exposes on your device.");
         page.addView(side, cardLp());
     }
 
     private void buildCapabilities(LinearLayout page) {
-        addTitle(page, "Choose what Orbit can do",
+        addTitle(page, "Choose what GrokLink can do",
                 "Set up only the access you want. Every action stays on this setup step when you return from Android Settings.");
 
         LinearLayout recommended = capabilityCard(page, "RECOMMENDED ACCESS");
@@ -620,17 +662,17 @@ public final class OnboardingActivity extends Activity {
                 "Reminders, Routine alerts, updates, and background results.",
                 ReminderNotifier.notificationsAllowed(this), v ->
                         CapabilityAccessHelper.requestOrManageNotifications(this, REQ_NOTIFICATIONS));
-        addRuntimeCapability(recommended, "Microphone", "Used for Orbit Voice.",
+        addRuntimeCapability(recommended, "Microphone", "Used for GrokLink Voice.",
                 Manifest.permission.RECORD_AUDIO, REQ_MICROPHONE);
         addRuntimeCapability(recommended, "Approximate location",
                 "Local weather and location-aware features.",
                 Manifest.permission.ACCESS_COARSE_LOCATION, REQ_LOCATION);
         addRuntimeCapability(recommended, "Flashlight control",
-                "Android Camera access lets Orbit control the flashlight.",
+                "Android Camera access lets GrokLink control the flashlight.",
                 Manifest.permission.CAMERA, REQ_CAMERA);
 
         LinearLayout context = capabilityCard(page, "CONTEXT");
-        context.addView(capabilityToggle("Allow Orbit to read current-screen text",
+        context.addView(capabilityToggle("Allow GrokLink to read current-screen text",
                 Prefs.SCREEN_CONTEXT, Prefs.screenContext(this)));
         context.addView(capabilityToggle("Allow screenshots for visual context and screen selection",
                 Prefs.SCREENSHOT, Prefs.screenshot(this)));
@@ -641,11 +683,11 @@ public final class OnboardingActivity extends Activity {
 
         LinearLayout controls = capabilityCard(page, "DEVICE CONTROLS");
         addCapability(controls, "Brightness control",
-                "Allows Orbit to change system brightness.",
+                "Allows GrokLink to change system brightness.",
                 OrbitPermissionHelper.canWriteSystemSettings(this), v ->
                         CapabilityAccessHelper.openWriteSettings(this));
         addCapability(controls, "Do Not Disturb control",
-                "Allows Orbit to control Do Not Disturb.",
+                "Allows GrokLink to control Do Not Disturb.",
                 OrbitPermissionHelper.hasDndAccess(this), v ->
                         CapabilityAccessHelper.openDndAccess(this));
         addRuntimeCapability(controls, "Contact lookup",
@@ -672,9 +714,50 @@ public final class OnboardingActivity extends Activity {
                 RoutineTriggerNotifier.notificationsAllowed(this), v ->
                         CapabilityAccessHelper.requestOrManageTriggerAlerts(this, REQ_TRIGGER_ALERTS));
 
+        LinearLayout extra = capabilityCard(page, "GROK DEVICE ACTIONS");
+        addRuntimeCapability(extra, "Calendar",
+                "Lets Grok add events you ask for. You confirm each one first.",
+                Manifest.permission.WRITE_CALENDAR, REQ_CALENDAR);
+        addCapability(extra, "Display over other apps",
+                "Lets GrokLink's overlay appear over the app you are using.",
+                android.provider.Settings.canDrawOverlays(this), v -> {
+                    try {
+                        startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:" + getPackageName())));
+                    } catch (Exception ignored) {}
+                });
+        addCardDescription(extra, "Sideloaded app? If Android greys out notification access, open "
+                + "Settings > Apps > GrokLink, tap ⋮ (top right) and choose \"Allow restricted settings\", "
+                + "then try again. Every item here is optional; skip anything you don't want.");
+
+        LinearLayout car = capabilityCard(page, "ANDROID AUTO (OPTIONAL)");
+        addCardDescription(car, "To see GrokLink in the car: open Android Auto settings, tap Version "
+                + "10 times to turn on developer mode, then ⋮ > Developer settings and switch on "
+                + "\"Unknown sources\". GrokLink then appears among Auto's media apps as \"Ask Grok\".");
+        Button openAuto = secondaryButton("Open Android Auto settings");
+        openAuto.setOnClickListener(v -> openAndroidAutoSettings());
+        car.addView(openAuto, new LinearLayout.LayoutParams(-1, UiKit.dp(this, 46)));
+
         Button all = secondaryButton("View full capabilities dashboard");
         all.setOnClickListener(v -> openCapabilities());
         page.addView(all, buttonLp());
+    }
+
+    private void openAndroidAutoSettings() {
+        String pkg = "com.google.android.projection.gearhead";
+        Intent[] tries = new Intent[]{
+                new Intent().setClassName(pkg, "com.google.android.apps.auto.carservice.settings.SettingsActivity"),
+                new Intent("com.google.android.projection.gearhead.SETTINGS").setPackage(pkg),
+                getPackageManager().getLaunchIntentForPackage(pkg),
+                new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + pkg))
+        };
+        for (Intent i : tries) {
+            if (i == null) continue;
+            try { startActivity(i); return; } catch (Exception ignored) {}
+        }
+        showMessage("Android Auto not found",
+                "Android Auto doesn't seem to be installed on this phone.");
     }
 
     /** The line that tells a first-run user where the rest of the appearance controls live. */
@@ -703,19 +786,19 @@ public final class OnboardingActivity extends Activity {
      * settings most likely to matter before somebody has read anything.
      */
     private void buildPersonalize(LinearLayout page) {
-        addTitle(page, "Make Orbit yours",
+        addTitle(page, "Make GrokLink yours",
                 "Pick a starting look. Everything here can be changed later in Settings.");
 
         OrbitTheme active = OrbitThemeStore.active(this);
 
         LinearLayout presetCard = card();
         presetCard.addView(UiKit.text(this, "Choose a preset", 16, UiKit.TEXT, true));
-        addCardDescription(presetCard, "Orbit's own themes. Pick the one you like the look of.");
+        addCardDescription(presetCard, "GrokLink's own themes. Pick the one you like the look of.");
         presetCard.addView(presetGrid(active), matchWrapMargin(2));
 
         // AMOLED is its own switch rather than a second row of near-identical cards. A true-black
         // page is a property of a screen, not a colour scheme, and every preset is valid with it on
-        // or off; making the user choose between "Orbit Default" and "Orbit AMOLED" cards was the
+        // or off; making the user choose between "GrokLink Default" and "GrokLink AMOLED" cards was the
         // same question asked twice.
         OrbitSwitch amoled = new OrbitSwitch(this);
         amoled.setChecked(active.amoled, false);
@@ -740,10 +823,10 @@ public final class OnboardingActivity extends Activity {
         LinearLayout readingCard = card();
         readingCard.addView(UiKit.text(this, "Text and readability", 16, UiKit.TEXT, true));
         addCardDescription(readingCard,
-                "How Orbit's words are set. These are independent of the preset above.");
+                "How GrokLink's words are set. These are independent of the preset above.");
         readingCard.addView(UiKit.text(this, "App font", 12, UiKit.MUTED, true));
         String[] fontKeys = {"orbit_default", "times_new_roman", "light", "condensed", "monospace", "casual"};
-        String[] fontLabels = {"Orbit Default", "Times New Roman", "Light", "Condensed", "Monospace", "Casual"};
+        String[] fontLabels = {"GrokLink Default", "Times New Roman", "Light", "Condensed", "Monospace", "Casual"};
         int selectedFont = indexOf(fontKeys, Prefs.appFont(this));
         Button selector = secondaryButton(fontLabels[selectedFont] + "  ▾");
         selector.setOnClickListener(v -> UiKit.showOrbitFontMenu(this, selector,
@@ -767,7 +850,7 @@ public final class OnboardingActivity extends Activity {
         LinearLayout everydayCard = card();
         everydayCard.addView(UiKit.text(this, "Everyday preferences", 16, UiKit.TEXT, true));
         addCardDescription(everydayCard,
-                "Choose the apps and units Orbit uses for everyday requests.");
+                "Choose the apps and units GrokLink uses for everyday requests.");
         everydayCard.addView(UiKit.text(this, "Gallery app", 12, UiKit.MUTED, true));
         everydayCard.addView(galleryAppSelector());
         TextView weatherUnitsLabel = UiKit.text(this, "Weather units", 12, UiKit.MUTED, true);
@@ -811,17 +894,17 @@ public final class OnboardingActivity extends Activity {
     }
 
     private void buildFinish(LinearLayout page) {
-        addTitle(page, "Orbit is ready",
-                "You're all set. Orbit is ready when you are.");
+        addTitle(page, "GrokLink is ready",
+                "You're all set. GrokLink is ready when you are.");
         LinearLayout summary = card();
         List<String> items = new ArrayList<>();
         if (ChatGptAuth.isSignedIn(this)) items.add("✓ ChatGPT connected");
-        if (OrbitSetupHelper.isOrbitAssistantActive(this)) items.add("✓ Orbit set as assistant");
+        if (OrbitSetupHelper.isOrbitAssistantActive(this)) items.add("✓ GrokLink set as assistant");
         if (OnboardingState.askTileConfirmed(this)) items.add("✓ Quick Settings tile added");
         RoutineStore.Routine starter = RoutineStore.findById(this,
                 OnboardingState.starterRoutineId(this));
         if (starter != null) items.add("✓ " + starter.name + " Routine created");
-        if (items.isEmpty()) items.add("Orbit is ready to configure at your pace");
+        if (items.isEmpty()) items.add("GrokLink is ready to configure at your pace");
         for (String item : items) {
             TextView row = UiKit.text(this, item, 14,
                     item.startsWith("✓") ? UiKit.SUCCESS : UiKit.TEXT, true);
@@ -965,7 +1048,7 @@ public final class OnboardingActivity extends Activity {
             nav.addView(back, new LinearLayout.LayoutParams(0, UiKit.dp(this, 48), .36f));
         }
         Button next = primaryButton(step == 0 ? "Get started" : step == 7 ?
-                "Start using Orbit" : adaptiveNavigationLabel());
+                "Start using GrokLink" : adaptiveNavigationLabel());
         next.setOnClickListener(v -> {
             if (step == 7) completeAndExit();
             else {
@@ -989,8 +1072,7 @@ public final class OnboardingActivity extends Activity {
     }
 
     private boolean connectionConfigured() {
-        return ChatGptAuth.isSignedIn(this) ||
-                (Prefs.PROVIDER_RELAY.equals(Prefs.provider(this)) && Prefs.relayConfigured(this));
+        return SecureStore.hasXaiCredential(this);
     }
 
     private void addTitle(LinearLayout page, String title, String subtitle) {
@@ -1207,7 +1289,7 @@ public final class OnboardingActivity extends Activity {
                 UiKit.accent(this), 16, this));
         // Stated, not only drawn: a ring around a card of colours is exactly the kind of state that
         // disappears for anybody who cannot rely on colour to carry it.
-        choice.setContentDescription(preset.name + ", Orbit preset"
+        choice.setContentDescription(preset.name + ", GrokLink preset"
                 + (preset.note().isEmpty() ? "" : ", " + preset.note())
                 + (selected ? ", selected" : ""));
         UiKit.pressScale(choice);
@@ -1337,7 +1419,7 @@ public final class OnboardingActivity extends Activity {
                     .addCategory(Intent.CATEGORY_BROWSABLE));
         } catch (Exception e) {
             ChatGptBrowserAuth.cancel();
-            browserListener.onFailed("Orbit could not open a web browser on this phone.", true);
+            browserListener.onFailed("GrokLink could not open a web browser on this phone.", true);
         }
     }
 
@@ -1359,11 +1441,11 @@ public final class OnboardingActivity extends Activity {
     private void showDeviceCode(ChatGptAuth.DeviceCode code) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
         if (clipboard != null)
-            clipboard.setPrimaryClip(ClipData.newPlainText("Orbit ChatGPT code", code.userCode));
+            clipboard.setPrimaryClip(ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Sign in with ChatGPT")
                 .setMessage("Your one-time code is:\n\n" + code.userCode +
-                        "\n\nIt has been copied. Complete authorization in your browser, then return to Orbit.")
+                        "\n\nIt has been copied. Complete authorization in your browser, then return to GrokLink.")
                 .setPositiveButton("Open ChatGPT sign-in", (d, which) -> {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(code.verificationUrl))); }
                     catch (Exception e) { Toast.makeText(this, code.verificationUrl, Toast.LENGTH_LONG).show(); }
@@ -1371,7 +1453,7 @@ public final class OnboardingActivity extends Activity {
                 .setNeutralButton("Copy code", (d, which) -> {
                     ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     if (cm != null) cm.setPrimaryClip(
-                            ClipData.newPlainText("Orbit ChatGPT code", code.userCode));
+                            ClipData.newPlainText("GrokLink ChatGPT code", code.userCode));
                 })
                 .setNegativeButton("Close", null)
                 .create();
@@ -1388,6 +1470,14 @@ public final class OnboardingActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_ASSISTANT_ROLE) {
+            // Most Android builds do not let apps request the assistant role directly and answer
+            // at once with "cancelled"; fall back to the system settings screen with a hint.
+            if (!OrbitSetupHelper.isOrbitAssistantActive(this))
+                OrbitSetupHelper.openAssistantSettings(this, REQ_ASSISTANT_SETTINGS, true);
+            getWindow().getDecorView().postDelayed(this::render, 200L);
+            return;
+        }
         if (requestCode == REQ_ASSISTANT_SETTINGS) {
             getWindow().getDecorView().postDelayed(this::render, 200L);
             return;
@@ -1409,7 +1499,7 @@ public final class OnboardingActivity extends Activity {
 
     private void confirmRestore(OrbitBackupManager.PreparedRestore prepared) {
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Restore Orbit backup?")
+                .setTitle("Restore GrokLink backup?")
                 .setMessage(prepared.confirmationMessage())
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Restore", (d, which) -> runRestore(prepared))
@@ -1419,7 +1509,7 @@ public final class OnboardingActivity extends Activity {
     }
 
     private void runRestore(OrbitBackupManager.PreparedRestore prepared) {
-        Toast.makeText(this, "Restoring Orbit backup…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Restoring GrokLink backup…", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             try {
                 OrbitBackupManager.restore(getApplicationContext(), prepared);
@@ -1467,7 +1557,7 @@ public final class OnboardingActivity extends Activity {
     private void confirmExitSetup() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Exit setup?")
-                .setMessage("Your current Orbit settings are already saved. You can return to setup anytime from Assistant setup.")
+                .setMessage("Your current GrokLink settings are already saved. You can return to setup anytime from Assistant setup.")
                 .setNegativeButton("Keep setting up", null)
                 .setPositiveButton("Exit setup", (d, which) -> finish())
                 .create();
@@ -1497,6 +1587,6 @@ public final class OnboardingActivity extends Activity {
 
     private String safeError(Exception error) {
         return error == null || error.getMessage() == null || error.getMessage().trim().isEmpty()
-                ? "Orbit could not complete this operation." : error.getMessage();
+                ? "GrokLink could not complete this operation." : error.getMessage();
     }
 }

@@ -49,7 +49,7 @@ public final class AiModelCatalogTest {
         assertEquals("GPT-5.6 Luna", OrbitModelCatalog.displayName("gpt-5.6-luna"));
         assertEquals("GPT-5.6 Terra", OrbitModelCatalog.displayName("gpt-5.6-terra"));
         assertEquals("GPT-5.6 Sol", OrbitModelCatalog.displayName("gpt-5.6-sol"));
-        assertEquals("Orbit Local", OrbitModelCatalog.displayName(OrbitModelCatalog.ORBIT_LOCAL));
+        assertEquals("GrokLink Local", OrbitModelCatalog.displayName(OrbitModelCatalog.ORBIT_LOCAL));
     }
 
     @Test public void lunaAcceptsEveryStrengthIncludingNone() {
@@ -203,7 +203,7 @@ public final class AiModelCatalogTest {
                 "ChatGPT request failed: timeout",
                 "ChatGPT request failed: Unable to resolve host \"chatgpt.com\": No address associated with hostname",
                 "ChatGPT request failed: Connection reset",
-                "Orbit could not reach the network. The model is unavailable offline.",
+                "GrokLink could not reach the network. The model is unavailable offline.",
                 "java.net.SocketTimeoutException: Read timed out",
                 "ChatGPT request failed: UnknownHostException"}) {
             for (String model : OrbitModelCatalog.currentModelIds()) {

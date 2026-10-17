@@ -119,7 +119,7 @@ public final class CalendarConfirmation {
         } else if (resolved.noWritableCalendar()) {
             lines.add("No writable calendar is set up on this phone.");
         } else if (!resolved.permitted) {
-            lines.add("Orbit needs Calendar access to add these events.");
+            lines.add("GrokLink needs Calendar access to add these events.");
         }
         return new Preview(title, lines, resolved.selectorLabel(), resolved.canChoose(),
                 resolved.resolved(), resolved.needsChoice(), count);

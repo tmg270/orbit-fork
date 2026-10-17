@@ -269,7 +269,7 @@ public class OrbitSlider extends View {
      *
      * <p>A filled track communicates nothing to a screen reader and very little to anybody who
      * cannot judge a small colour difference, so the current value is stated. Where the caller gave
-     * a {@link Labeller} the phrase is used instead of the number, because "Orbit default" is the
+     * a {@link Labeller} the phrase is used instead of the number, because "GrokLink default" is the
      * answer somebody is looking for and "18" is not.
      */
     private void updateAccessibility() {

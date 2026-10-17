@@ -325,7 +325,7 @@ public final class ConversationControlChatTest {
     @Test public void anUnknownWindowNeverShowsTheNotice() {
         seed("u", "Hi", "Hello");
         ChatActivity chat = open("u").get();
-        chat.applyEstimateForTest(new ContextEstimate(900_000, 0, Collections.emptyMap(), 0, true, "Orbit Local"));
+        chat.applyEstimateForTest(new ContextEstimate(900_000, 0, Collections.emptyMap(), 0, true, "GrokLink Local"));
         assertEquals(View.GONE, chat.contextNoticeForTest().getVisibility());
         assertEquals(ContextEstimate.Level.UNKNOWN, chat.contextMeterForTest().level());
     }
@@ -396,7 +396,7 @@ public final class ConversationControlChatTest {
         String id = "att";
         ConversationStore.save(context, id, Arrays.asList(
                 new AssistantClient.History("user", "What is this?", true, Collections.emptyList(),
-                        "file_text", "Screenshot_20261002_002836_Orbit Assistant extremely long name.txt",
+                        "file_text", "Screenshot_20261002_002836_GrokLink extremely long name.txt",
                         "text", "", "", "", ""),
                 new AssistantClient.History("assistant", "A screenshot.")));
         ChatActivity chat = open(id).get();

@@ -201,7 +201,7 @@ public final class DocumentHighlightSurfaceTest {
         view.controller().zoomTo(3f, VIEW_WIDTH / 2f, 0f);
         float scaleBefore = view.controller().scale();
         view.revealSelectedHighlight(24f);
-        assertEquals("the magnification is the reader's choice, not Orbit's",
+        assertEquals("the magnification is the reader's choice, not GrokLink's",
                 scaleBefore, view.controller().scale(), 0.001f);
     }
 

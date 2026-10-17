@@ -68,7 +68,7 @@ public final class DeviceCapabilityCheck {
         }
         if (!arm64) {
             return new Assessment(Tier.UNSUPPORTED,
-                    "This device's processor type does not support Orbit's on-device AI runtime.");
+                    "This device's processor type does not support GrokLink's on-device AI runtime.");
         }
         if (sdkInt < 31) {
             return new Assessment(Tier.NOT_RECOMMENDED,
@@ -99,7 +99,7 @@ public final class DeviceCapabilityCheck {
                     "This device is well suited to on-device AI, with plenty of memory for the local model.");
         }
         return new Assessment(Tier.SUPPORTED,
-                "This device meets the requirements for Orbit's on-device AI.");
+                "This device meets the requirements for GrokLink's on-device AI.");
     }
 
     /** True when the tier allows installing and running the local model at all. */

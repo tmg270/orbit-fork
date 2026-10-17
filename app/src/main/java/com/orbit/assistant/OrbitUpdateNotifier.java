@@ -42,14 +42,14 @@ public final class OrbitUpdateNotifier {
         // Stable release reaching a Beta-channel user is still an ordinary Orbit update and is
         // announced as one.
         boolean beta = release.isBeta();
-        String title = beta ? "Orbit Beta update available" : "Orbit update available";
+        String title = beta ? "GrokLink Beta update available" : "GrokLink update available";
         String text = beta
-                ? "Orbit Assistant " + release.displayName() + " is available"
-                : "Orbit Assistant v" + release.versionName + " is available";
+                ? "GrokLink " + release.displayName() + " is available"
+                : "GrokLink v" + release.versionName + " is available";
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(context, CHANNEL)
                 : new Notification.Builder(context);
-        builder.setSmallIcon(R.drawable.ic_orbit)
+        builder.setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))

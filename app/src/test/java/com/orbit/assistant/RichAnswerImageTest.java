@@ -56,7 +56,7 @@ public final class RichAnswerImageTest {
         assertEquals("the source page must be discarded", "", generated.sourceUrl);
         assertEquals("", generated.sourceDomain);
         assertEquals("Generated image", generated.attributionLine());
-        assertTrue("and it is still a picture Orbit can draw", generated.isUsable());
+        assertTrue("and it is still a picture GrokLink can draw", generated.isUsable());
     }
 
     /** Beta 1 ships web-sourced images only; the generated case is reserved, not used. */

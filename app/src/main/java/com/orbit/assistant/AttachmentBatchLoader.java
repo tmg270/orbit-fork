@@ -86,7 +86,7 @@ public final class AttachmentBatchLoader {
         int overCapacity = selected - usable;
         int rejected = failed + overCapacity;
         String error = loaded.isEmpty()
-                ? (firstError.isEmpty() ? "Orbit could not read the selected attachments." : firstError)
+                ? (firstError.isEmpty() ? "GrokLink could not read the selected attachments." : firstError)
                 : "";
         return AttachmentBatch.of(loaded, selected, rejected, error);
     }

@@ -85,7 +85,7 @@ public final class ThemeStudioInteractionTest {
             ActivityController<ThemeStudioActivity> controller = pro ? openPro() : openFree();
             List<String> order = sectionOrder(controller.get());
             assertEquals("with Pro " + pro + ", sections must read " + order,
-                    java.util.Arrays.asList("Colors", "Presets", "Orbit Pro"), order);
+                    java.util.Arrays.asList("Colors", "Presets", "GrokLink Pro"), order);
             assertTrue("the preview comes before all of them",
                     previewIndex(controller.get()) >= 0);
             controller.pause().stop().destroy();
@@ -98,7 +98,7 @@ public final class ThemeStudioInteractionTest {
         for (boolean pro : new boolean[]{false, true}) {
             ActivityController<ThemeStudioActivity> controller = pro ? openPro() : openFree();
             assertEquals("two-pane order must match the phone",
-                    java.util.Arrays.asList("Colors", "Presets", "Orbit Pro"),
+                    java.util.Arrays.asList("Colors", "Presets", "GrokLink Pro"),
                     sectionOrder(controller.get()));
             controller.pause().stop().destroy();
         }
@@ -127,7 +127,7 @@ public final class ThemeStudioInteractionTest {
 
         String joined = String.join(" ", lines);
         assertFalse("the old nested panel heading must be gone",
-                joined.contains("Included with Orbit Pro"));
+                joined.contains("Included with GrokLink Pro"));
         assertFalse("and its feature inventory with it",
                 joined.contains("Messages: bubble roundness"));
         assertTrue("it still says what Pro adds, including the two Beta 4 tools",
@@ -152,7 +152,7 @@ public final class ThemeStudioInteractionTest {
         ThemeStudioActivity activity = controller.get();
 
         List<String> shown = allTexts(activity);
-        for (String row : new String[]{"Accent", "Your messages", "Orbit's replies", "Cards",
+        for (String row : new String[]{"Accent", "Your messages", "GrokLink's replies", "Cards",
                 "Background", "True black AMOLED background"}) {
             assertTrue(row + " must still be offered on Free", shown.contains(row));
         }
@@ -374,7 +374,7 @@ public final class ThemeStudioInteractionTest {
             assertEquals(preset.name + " must only reach the draft", preset.id, draft(activity).id);
             assertTrue("the applied theme must not move",
                     OrbitThemeStore.active(context).sameColours(appliedBefore));
-            assertTrue("nor the styling Orbit actually draws with",
+            assertTrue("nor the styling GrokLink actually draws with",
                     OrbitProStyle.live(context).same(liveBefore));
             assertEquals("nor the live canvas", accentBefore, UiKit.accent(context));
         }
@@ -626,10 +626,10 @@ public final class ThemeStudioInteractionTest {
         assertTrue("the draft must have moved", draft(activity).pro.hasBackgroundEffect());
         assertTrue("but the applied theme must not",
                 OrbitThemeStore.active(context).sameColours(appliedBefore));
-        assertTrue("nor the styling Orbit actually draws with",
+        assertTrue("nor the styling GrokLink actually draws with",
                 OrbitProStyle.live(context).same(liveBefore));
         assertEquals("nor the live page colour", backgroundBefore, UiKit.BG);
-        assertFalse("and no page anywhere in Orbit may be drawing an effect yet",
+        assertFalse("and no page anywhere in GrokLink may be drawing an effect yet",
                 OrbitBackground.effectDraws(context));
 
         OrbitProStyle intended = draft(activity).pro;
@@ -771,7 +771,7 @@ public final class ThemeStudioInteractionTest {
                 indexOfDescendant(root, selector) < indexOfDescendant(root,
                         findText(root, "Presets")));
         assertEquals("and the section order must be untouched",
-                List.of("Colors", "Presets", "Orbit Pro"), sectionOrder(activity));
+                List.of("Colors", "Presets", "GrokLink Pro"), sectionOrder(activity));
 
         // And no premium controls came with it.
         assertTrue("Free must still build no premium sliders",
@@ -791,7 +791,7 @@ public final class ThemeStudioInteractionTest {
         selector.segmentAt(solid).performClick();
         assertEquals("the draft must have moved",
                 OrbitTheme.MATERIAL_SOLID, draft(activity).material);
-        assertEquals("but Orbit must still be drawing what it was",
+        assertEquals("but GrokLink must still be drawing what it was",
                 appliedBefore, OrbitThemeStore.activeMaterial(context));
 
         invoke(activity, "applyDraft");
@@ -1037,7 +1037,7 @@ public final class ThemeStudioInteractionTest {
     private List<String> sectionOrder(ThemeStudioActivity activity) {
         List<String> out = new ArrayList<>();
         for (String text : allTexts(activity)) {
-            if (text.equals("Colors") || text.equals("Presets") || text.equals("Orbit Pro")) {
+            if (text.equals("Colors") || text.equals("Presets") || text.equals("GrokLink Pro")) {
                 if (!out.contains(text)) out.add(text);
             }
         }

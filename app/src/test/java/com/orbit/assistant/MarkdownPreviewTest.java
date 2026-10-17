@@ -127,7 +127,7 @@ public final class MarkdownPreviewTest {
     }
 
     @Test public void ordinaryHashtagsSurvive() {
-        assertEquals("Trending #Orbit today", preview("Trending #Orbit today"));
+        assertEquals("Trending #GrokLink today", preview("Trending #GrokLink today"));
         assertEquals("#hashtag at the start", preview("#hashtag at the start"));
     }
 

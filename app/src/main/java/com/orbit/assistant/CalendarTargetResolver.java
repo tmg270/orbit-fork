@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The step that turns "Orbit wants to write to a calendar" into "Orbit knows which calendar".
+ * The step that turns "GrokLink wants to write to a calendar" into "GrokLink knows which calendar".
  *
  * <p>This exists because permission and discovery are not independent. Every question Orbit can
  * ask about calendars — how many are writable, which one is primary, whether the remembered one

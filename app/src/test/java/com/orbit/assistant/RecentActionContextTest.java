@@ -130,14 +130,14 @@ public final class RecentActionContextTest {
         AssistantReply reply = handled("put it back");
         assertNotNull(reply);
         assertEquals("SET_VOLUME", reply.actions.get(0).type);
-        assertEquals("the level Orbit actually observed", 40,
+        assertEquals("the level GrokLink actually observed", 40,
                 reply.actions.get(0).params.optInt("percent"));
     }
 
     @Test public void reversalIsRefusedWhenThePreviousLevelIsUnknown() {
         // -1 means Orbit could not read the level before changing it.
         RecentActionContext.recordLevel(RecentActionContext.Target.BRIGHTNESS, -1);
-        assertNull("Orbit must not invent a level it never observed", handled("put it back"));
+        assertNull("GrokLink must not invent a level it never observed", handled("put it back"));
     }
 
     @Test public void flashlightReversalUsesTheRecordedPreviousState() {
@@ -145,7 +145,7 @@ public final class RecentActionContextTest {
         AssistantReply reply = handled("put it back");
         assertNotNull(reply);
         assertEquals("FLASHLIGHT", reply.actions.get(0).type);
-        assertFalse("it was off before Orbit turned it on",
+        assertFalse("it was off before GrokLink turned it on",
                 reply.actions.get(0).params.optBoolean("on", true));
     }
 

@@ -120,7 +120,7 @@ public final class ChatGptAuth {
                 if (!persistPendingAttempt(
                         app, deviceAuthId, userCode, interval, expiresAtMs)) {
                     logFailure("device_code_request_failed", "pending_state_persistence");
-                    cb.onError("Orbit could not securely save the pending ChatGPT sign-in. Try again.");
+                    cb.onError("GrokLink could not securely save the pending ChatGPT sign-in. Try again.");
                     return;
                 }
                 logStage("device_code_received_and_persisted");
@@ -159,7 +159,7 @@ public final class ChatGptAuth {
                         String verifier = result.optString("code_verifier", "");
                         if (authCode.isEmpty() || verifier.isEmpty()) {
                             finishError(app, dc.deviceAuthId, "poll_response_incomplete",
-                                    "OpenAI approved the sign-in but did not return the token exchange fields Orbit needs.");
+                                    "OpenAI approved the sign-in but did not return the token exchange fields GrokLink needs.");
                             return;
                         }
                         logStage("browser_authorization_confirmed");
@@ -250,12 +250,12 @@ public final class ChatGptAuth {
                 }
                 if (!SecureStore.saveChatGptTokens(context, id, access, refresh, accountId)) {
                     return ExchangeResult.error(
-                            "ChatGPT sign-in worked, but Orbit could not save the credentials in Android Keystore.",
+                            "ChatGPT sign-in worked, but GrokLink could not save the credentials in Android Keystore.",
                             false, "credential_persistence");
                 }
                 if (SecureStore.loadChatGptTokens(context) == null) {
                     return ExchangeResult.error(
-                            "ChatGPT sign-in worked, but Orbit could not verify the saved credentials.",
+                            "ChatGPT sign-in worked, but GrokLink could not verify the saved credentials.",
                             false, "credential_reload");
                 }
                 Prefs.get(context).edit().putString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT).apply();
@@ -364,11 +364,11 @@ public final class ChatGptAuth {
         synchronized (LOGIN_LOCK) {
             if (!SecureStore.saveChatGptTokens(context, id, access, refresh, accountId)) {
                 return BrowserExchange.error(
-                        "ChatGPT sign-in worked, but Orbit could not save the credentials in Android Keystore.");
+                        "ChatGPT sign-in worked, but GrokLink could not save the credentials in Android Keystore.");
             }
             if (SecureStore.loadChatGptTokens(context) == null) {
                 return BrowserExchange.error(
-                        "ChatGPT sign-in worked, but Orbit could not verify the saved credentials.");
+                        "ChatGPT sign-in worked, but GrokLink could not verify the saved credentials.");
             }
             SecureStore.clearPendingChatGptLogin(context);
             Prefs.get(context).edit().putString(Prefs.PROVIDER, Prefs.PROVIDER_CHATGPT).apply();
@@ -387,7 +387,7 @@ public final class ChatGptAuth {
 
     /** Shown when the credentials themselves were refused, so only signing in again can help. */
     static final String SESSION_ENDED = "Your ChatGPT session has ended. Sign in with ChatGPT again"
-            + " in Orbit settings. Your chats are kept.";
+            + " in GrokLink settings. Your chats are kept.";
 
     /** One renewal at a time: refresh tokens rotate, so a second concurrent use would be refused. */
     private static final Object REFRESH_LOCK = new Object();
@@ -439,7 +439,7 @@ public final class ChatGptAuth {
     public static void getValidTokens(Context context, String rejectedAccessToken, TokenCallback cb) {
         SecureStore.ChatGptTokens t = SecureStore.loadChatGptTokens(context);
         if (t == null) {
-            cb.onError("Sign in with ChatGPT in Orbit settings first.");
+            cb.onError("Sign in with ChatGPT in GrokLink settings first.");
             return;
         }
         boolean rejected = rejectedAccessToken != null && rejectedAccessToken.equals(t.accessToken);
@@ -530,13 +530,13 @@ public final class ChatGptAuth {
             if (current == null || !current.refreshToken.equals(old.refreshToken)) {
                 // Signed out, or signed in again, while this ran: never bring the old session back.
                 updated = current;
-                if (current == null) error = "Sign in with ChatGPT in Orbit settings first.";
+                if (current == null) error = "Sign in with ChatGPT in GrokLink settings first.";
             } else if (!SecureStore.saveChatGptTokens(context, next[0], next[1], next[2], next[3])) {
                 updated = null;
-                error = "Orbit could not securely save the renewed ChatGPT session.";
+                error = "GrokLink could not securely save the renewed ChatGPT session.";
             } else {
                 updated = SecureStore.loadChatGptTokens(context);
-                if (updated == null) error = "Orbit could not reload the renewed ChatGPT session.";
+                if (updated == null) error = "GrokLink could not reload the renewed ChatGPT session.";
             }
         }
         finishRefresh(updated, error, false);

@@ -35,7 +35,7 @@ public final class DeviceLanguageTest {
 
     private AssistantReply handled(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should act on: " + prompt, reply);
+        assertNotNull("GrokLink should act on: " + prompt, reply);
         return reply;
     }
 
@@ -241,6 +241,6 @@ public final class DeviceLanguageTest {
     @Test public void politeWrappersDoNotBlockCommands() {
         assertEquals("SET_DND", actionType("please turn on do not disturb"));
         assertEquals("OPEN_APP", actionType("can you open Spotify"));
-        assertEquals("SET_TIMER", actionType("hey Orbit set a timer for 5 minutes"));
+        assertEquals("SET_TIMER", actionType("hey GrokLink set a timer for 5 minutes"));
     }
 }

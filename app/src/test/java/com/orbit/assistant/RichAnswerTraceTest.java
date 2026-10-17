@@ -312,7 +312,7 @@ public final class RichAnswerTraceTest {
     @Test public void theReportNamesTheVersionItCameFrom() {
         RichAnswerTrace.record(context, attempt(RichAnswerTrace.Outcome.NO_USABLE_IMAGE));
         String report = RichAnswerTrace.report(context);
-        assertTrue(report.startsWith("Orbit Rich Answers diagnostics"));
+        assertTrue(report.startsWith("GrokLink Rich Answers diagnostics"));
         assertTrue(report.contains(BuildConfig.VERSION_NAME));
     }
 }

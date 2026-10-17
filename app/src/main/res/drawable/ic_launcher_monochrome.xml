@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GrokLink mark: two interlocked capsule links on a 45 degree rise, with a signal node. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:rotation="-45" android:pivotX="54" android:pivotY="54">
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="6" android:fillColor="#00000000" android:pathData="M54,45H72A9,9 0,0 1,72,63H54A9,9 0,0 1,54,45Z"/>
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="6" android:fillColor="#00000000" android:pathData="M36,45H54A9,9 0,0 1,54,63H36A9,9 0,0 1,36,45Z"/>
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="6" android:fillColor="#00000000" android:pathData="M54,45H58"/>
+        <path android:fillColor="#FFFFFFFF" android:pathData="M78,54m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0"/>
+    </group>
+</vector>

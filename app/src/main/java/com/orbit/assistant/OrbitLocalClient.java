@@ -36,13 +36,13 @@ public final class OrbitLocalClient {
 
     /** Why a local call could not be made, in words a person can act on. */
     public static final String NOT_INSTALLED =
-            "Orbit Local's component is not installed. Open Settings > AI & account > AI Providers > Orbit Local to set it up.";
+            "GrokLink Local's component is not installed. Open Settings > AI & account > AI Providers > GrokLink Local to set it up.";
     public static final String UPDATE_REQUIRED =
-            "The Orbit Local component needs updating for this version of Orbit. Open Settings > AI & account > AI Providers > Orbit Local.";
+            "The GrokLink Local component needs updating for this version of GrokLink. Open Settings > AI & account > AI Providers > GrokLink Local.";
     public static final String UNTRUSTED =
-            "The installed Orbit Local component was not published by Orbit and will not be used. Remove it and install Orbit Local again.";
+            "The installed GrokLink Local component was not published by GrokLink and will not be used. Remove it and install GrokLink Local again.";
     public static final String UNAVAILABLE =
-            "Orbit Local could not start on this device.";
+            "GrokLink Local could not start on this device.";
 
     private static final Object LOCK = new Object();
     private static IOrbitLocalService service;
@@ -309,7 +309,7 @@ public final class OrbitLocalClient {
 
     /** Said when the component's process ends while it is answering, e.g. to free memory. */
     public static final String STOPPED_UNEXPECTEDLY =
-            "Orbit Local stopped unexpectedly. Try again, or check the Orbit Local screen.";
+            "GrokLink Local stopped unexpectedly. Try again, or check the GrokLink Local screen.";
 
     /**
      * A callback that ends exactly once.
@@ -382,7 +382,7 @@ public final class OrbitLocalClient {
 
                     @Override public void onError(String message) {
                         unlink.run();
-                        once.onError("Orbit Local could not answer: "
+                        once.onError("GrokLink Local could not answer: "
                                 + (message == null ? "unknown error" : message));
                     }
                 };

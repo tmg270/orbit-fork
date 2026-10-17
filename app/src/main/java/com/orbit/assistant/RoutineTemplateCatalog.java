@@ -124,7 +124,7 @@ public final class RoutineTemplateCatalog {
         templates.add(template("battery_saver", "Battery saver",
                 "Use lower display and media levels for a lighter device setup.", "DEVICE",
                 "Battery saver", actions(brightness(20), volume(20)), "save battery",
-                "Orbit does not currently toggle Android Battery Saver itself; this template uses only supported actions."));
+                "GrokLink does not currently toggle Android Battery Saver itself; this template uses only supported actions."));
         templates.add(template("driving", "Driving",
                 "Reduce interruptions, raise media volume, and open Bluetooth settings.", "TRAVEL",
                 "Driving", actions(dnd(true), volume(70),

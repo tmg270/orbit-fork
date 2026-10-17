@@ -472,8 +472,8 @@ public final class RichAnswerTrace {
 
     /** The verbose pasteable report behind "Copy Rich Answers diagnostics". */
     public static String report(Context context) {
-        StringBuilder b = new StringBuilder("Orbit Rich Answers diagnostics\n");
-        b.append("Orbit ").append(BuildConfig.VERSION_NAME).append('\n');
+        StringBuilder b = new StringBuilder("GrokLink Rich Answers diagnostics\n");
+        b.append("GrokLink ").append(BuildConfig.VERSION_NAME).append('\n');
         b.append("Android ").append(android.os.Build.VERSION.SDK_INT).append('\n');
         b.append("Attempts kept: ").append(MAX_ATTEMPTS).append('\n');
         b.append("No prompt, answer or page text is recorded.\n\n");

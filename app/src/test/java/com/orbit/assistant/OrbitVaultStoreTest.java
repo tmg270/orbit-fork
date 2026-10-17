@@ -73,7 +73,7 @@ public final class OrbitVaultStoreTest {
     /** One bare address is a link; a paragraph that merely contains one is a note. */
     @Test public void abareAddressIsSavedAsALink() {
         OrbitVaultItem link = OrbitVaultStore.saveText(context, "",
-                "https://example.com/article?x=1", "Shared to Orbit");
+                "https://example.com/article?x=1", "Shared to GrokLink");
         assertNotNull(link);
         assertEquals(OrbitVaultItem.TYPE_LINK, link.type);
         assertEquals("https://example.com/article?x=1", link.body);
@@ -82,7 +82,7 @@ public final class OrbitVaultStoreTest {
 
     @Test public void textAroundAnAddressStaysANote() {
         OrbitVaultItem note = OrbitVaultStore.saveText(context, "",
-                "Read this later https://example.com/article", "Shared to Orbit");
+                "Read this later https://example.com/article", "Shared to GrokLink");
         assertNotNull(note);
         assertEquals(OrbitVaultItem.TYPE_TEXT, note.type);
     }
@@ -118,7 +118,7 @@ public final class OrbitVaultStoreTest {
         assertNotNull(reply);
         assertEquals(OrbitVaultItem.TYPE_ORBIT_REPLY, reply.type);
         assertEquals("OLED is usually best for perfect blacks.", reply.body);
-        assertEquals("Orbit answer", reply.source);
+        assertEquals("GrokLink answer", reply.source);
     }
 
     @Test public void everySavedItemGetsItsOwnIdentity() {
@@ -170,7 +170,7 @@ public final class OrbitVaultStoreTest {
 
     @Test public void searchMatchesTitleBodyUrlAndSource() {
         OrbitVaultStore.saveText(context, "Camping checklist", "tent and stove", "Quick Capture");
-        OrbitVaultStore.saveText(context, "", "https://kayak-guide.example.com/rapids", "Shared to Orbit");
+        OrbitVaultStore.saveText(context, "", "https://kayak-guide.example.com/rapids", "Shared to GrokLink");
         OrbitVaultStore.saveOrbitReply(context, "Sourdough needs a stiff starter.");
 
         assertEquals("title", 1, OrbitVaultStore.search(context, "checklist",
@@ -179,7 +179,7 @@ public final class OrbitVaultStoreTest {
                 OrbitVaultStore.Sort.NEWEST).size());
         assertEquals("url", 1, OrbitVaultStore.search(context, "kayak-guide",
                 OrbitVaultStore.Sort.NEWEST).size());
-        assertEquals("source label", 1, OrbitVaultStore.search(context, "Shared to Orbit",
+        assertEquals("source label", 1, OrbitVaultStore.search(context, "Shared to GrokLink",
                 OrbitVaultStore.Sort.NEWEST).size());
         assertEquals("saved answer body", 1, OrbitVaultStore.search(context, "sourdough",
                 OrbitVaultStore.Sort.NEWEST).size());
@@ -264,14 +264,14 @@ public final class OrbitVaultStoreTest {
      * confusion between "saved answer" and "note" the two types exist to avoid.
      */
     @Test public void asavedAnswerBodyIsReadOnlyButItsTitleIsNot() {
-        OrbitVaultItem reply = OrbitVaultStore.saveOrbitReply(context, "Orbit's exact words.");
+        OrbitVaultItem reply = OrbitVaultStore.saveOrbitReply(context, "GrokLink's exact words.");
         assertFalse(reply.bodyIsEditable());
         assertFalse(OrbitVaultStore.updateText(context, reply.id, "New", "rewritten"));
-        assertEquals("Orbit's exact words.", OrbitVaultStore.get(context, reply.id).body);
+        assertEquals("GrokLink's exact words.", OrbitVaultStore.get(context, reply.id).body);
 
         assertTrue(OrbitVaultStore.updateTitle(context, reply.id, "Screen advice"));
         assertEquals("Screen advice", OrbitVaultStore.get(context, reply.id).title);
-        assertEquals("and still its exact words", "Orbit's exact words.",
+        assertEquals("and still its exact words", "GrokLink's exact words.",
                 OrbitVaultStore.get(context, reply.id).body);
     }
 

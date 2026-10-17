@@ -606,7 +606,7 @@ public final class AssistantClient {
     public static void plan(Context context, String planningPrompt, PlanCallback cb) {
         if (context == null || cb == null) return;
         if (planningPrompt == null || planningPrompt.trim().isEmpty()) {
-            cb.onError("Describe the routine you want Orbit to build.");
+            cb.onError("Describe the routine you want GrokLink to build.");
             return;
         }
         AiSelection selection = planSelection(context);

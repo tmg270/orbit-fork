@@ -238,7 +238,7 @@ final class SuperGrokAuth {
         if (refresh.isEmpty()) refresh = previousRefresh;
         long expiresAt = System.currentTimeMillis() + o.optInt("expires_in", DEFAULT_EXPIRES_IN) * 1000L;
         if (!SecureStore.saveSuperGrokSession(app, access, refresh, expiresAt)) {
-            throw new AuthException("Signed in, but Orbit could not save the session in Android Keystore.", "store_failed");
+            throw new AuthException("Signed in, but GrokLink could not save the session in Android Keystore.", "store_failed");
         }
         return access;
     }

@@ -197,7 +197,7 @@ public final class OverlayAutoListenTest {
         session.show(Prefs.autoListenOnOpen(context), false);
 
         assertEquals(1, session.listeningStarts);
-        assertFalse("Orbit must not reopen the mic after replying", followUpAfterSpeaking());
+        assertFalse("GrokLink must not reopen the mic after replying", followUpAfterSpeaking());
     }
 
     @Test public void followUpsAloneDoNotStartTheOverlayListening() {

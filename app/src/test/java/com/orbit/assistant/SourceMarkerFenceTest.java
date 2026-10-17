@@ -72,7 +72,7 @@ public final class SourceMarkerFenceTest {
     @Test public void aFenceWithAnythingElseInsideStaysCode() {
         String raw = fenced("text", "Source: https://example.com\necho hello");
         assertEquals(raw.trim(), SourceLinkUtil.displayText(raw));
-        assertEquals("a Source line inside real code is not Orbit's marker", "",
+        assertEquals("a Source line inside real code is not GrokLink's marker", "",
                 SourceLinkUtil.sourceUrl(raw));
     }
 

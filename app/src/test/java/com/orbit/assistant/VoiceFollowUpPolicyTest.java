@@ -80,7 +80,7 @@ public final class VoiceFollowUpPolicyTest {
                 "If you'd like, I can explain that in more detail."));
         assertFalse(VoiceFollowUpPolicy.expectsReply(
                 "Let me know if you need anything else."));
-        assertFalse("a closing pleasantry is not a question Orbit is blocked on",
+        assertFalse("a closing pleasantry is not a question GrokLink is blocked on",
                 VoiceFollowUpPolicy.expectsReply("It's done. Anything else?"));
     }
 

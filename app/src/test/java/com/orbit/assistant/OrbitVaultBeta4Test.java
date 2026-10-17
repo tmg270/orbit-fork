@@ -46,7 +46,7 @@ import java.util.List;
  *
  * <p>The first is that filters are decided on <em>canonical values</em>. A filter matched against
  * the words a card happens to draw would work perfectly today and empty itself silently the first
- * time somebody reworded "Orbit answer"; a source filter matched against arbitrary strings would be
+ * time somebody reworded "GrokLink answer"; a source filter matched against arbitrary strings would be
  * a durable feature steered by whatever another app claimed. Both are asserted directly.
  *
  * <p>The second is that filtering, searching and sorting <em>compose</em> rather than override. Four
@@ -229,7 +229,7 @@ public final class OrbitVaultBeta4Test {
         int previous = -1;
         for (String source : present) {
             int at = indexIn(OrbitVaultSource.FILTERABLE, source);
-            assertTrue("sources are offered in Orbit's own order", at > previous);
+            assertTrue("sources are offered in GrokLink's own order", at > previous);
             previous = at;
         }
     }
@@ -385,7 +385,7 @@ public final class OrbitVaultBeta4Test {
 
     @Test public void everythingSavedBeforeBetaFourLoadsUnpinned() {
         String betaThree = "[{\"id\":\"a\",\"type\":\"link\",\"title\":\"Recipe\","
-                + "\"body\":\"https://example.com/r\",\"source\":\"Shared to Orbit\","
+                + "\"body\":\"https://example.com/r\",\"source\":\"Shared to GrokLink\","
                 + "\"note\":\"try this\",\"mediaPath\":\"\","
                 + "\"createdAt\":1600000000000,\"modifiedAt\":1600000000000},"
                 + "{\"id\":\"b\",\"type\":\"document_page\",\"title\":\"\",\"body\":\"page text\","
@@ -530,7 +530,7 @@ public final class OrbitVaultBeta4Test {
         String menu = source("OrbitVaultActivity");
         assertTrue(menu.contains("ACTION_PIN"));
         assertTrue(menu.contains("ACTION_UNPIN"));
-        assertTrue("it uses Orbit's own pin glyph", menu.contains("R.drawable.ic_pin"));
+        assertTrue("it uses GrokLink's own pin glyph", menu.contains("R.drawable.ic_pin"));
         assertTrue("through the store, never by rewriting the item",
                 menu.contains("OrbitVaultStore.setPinned"));
         assertFalse("and there is no permanent pin button on every card",
@@ -690,7 +690,7 @@ public final class OrbitVaultBeta4Test {
         View vault = vaultControl(editor);
         assertTrue(vault instanceof Button);
         assertEquals(ScreenSelectionActivity.SAVE_TO_VAULT, ((Button) vault).getText().toString());
-        assertNotNull("with Orbit's own Vault glyph beside the word",
+        assertNotNull("with GrokLink's own Vault glyph beside the word",
                 ((Button) vault).getCompoundDrawablesRelative()[0]);
         assertTrue("and enough room to read it",
                 ScreenSelectionActivity.VAULT_ACTION_WIDTH_DP >= 72);

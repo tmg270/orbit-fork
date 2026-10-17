@@ -188,7 +188,7 @@ public final class ThinkingUpdatePrivacyTest {
      */
     @Test public void theStreamReaderConsumesSummaryEventsAndNeverRawReasoning() {
         String client = read("app/src/main/java/com/orbit/assistant/ChatGptClient.java");
-        assertTrue("the summary text events must be the ones Orbit reads",
+        assertTrue("the summary text events must be the ones GrokLink reads",
                 client.contains("response.reasoning_summary_text."));
         // Read-shaped tokens only: the class documents by name what it refuses to consume, and
         // saying so must not be mistaken for doing so.
@@ -196,7 +196,7 @@ public final class ThinkingUpdatePrivacyTest {
                 "\"response.reasoning_text", "\"reasoning_text\"",
                 "optString(\"encrypted_content\")", "opt(\"encrypted_content\")",
                 "getString(\"encrypted_content\")", "optString(\"reasoning\")"}) {
-            assertFalse("Orbit must never read " + forbidden + " from the response stream",
+            assertFalse("GrokLink must never read " + forbidden + " from the response stream",
                     client.contains(forbidden));
         }
     }

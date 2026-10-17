@@ -60,15 +60,15 @@ public final class RoutinePlanner {
 
     /** The response could not be read as a plan at all, even after one repair attempt. */
     static final String UNREADABLE_MESSAGE =
-            "Orbit couldn't get a usable planning response. Try again.";
+            "GrokLink couldn't get a usable planning response. Try again.";
     /** The plan was read perfectly well, but nothing in it is something Orbit can do. */
     static final String UNSUPPORTED_MESSAGE =
-            "Orbit understood the request but couldn't map it to supported Routine actions.";
+            "GrokLink understood the request but couldn't map it to supported Routine actions.";
 
     public static void build(Context context, String description, Callback callback) {
         if (callback == null) return;
         if (context == null || description == null || description.trim().isEmpty()) {
-            callback.onError("Describe the routine you want Orbit to build.");
+            callback.onError("Describe the routine you want GrokLink to build.");
             return;
         }
         final boolean askedForAutomation = mentionsAutomation(description);
@@ -94,7 +94,7 @@ public final class RoutinePlanner {
 
             @Override public void onError(String message) {
                 String error = message == null || message.trim().isEmpty()
-                        ? "Orbit could not build the routine." : message;
+                        ? "GrokLink could not build the routine." : message;
                 record(context, "", "", null, false, error);
                 callback.onError(error);
             }
@@ -147,7 +147,7 @@ public final class RoutinePlanner {
     static String repairPrompt(Context context, String description, String invalidResponse) {
         String previous = invalidResponse == null ? "" : invalidResponse.trim();
         if (previous.length() > 4000) previous = previous.substring(0, 4000);
-        return "Your previous reply could not be read as an Orbit routine plan.\n\n"
+        return "Your previous reply could not be read as an GrokLink routine plan.\n\n"
                 + "Previous reply:\n" + previous + "\n\n"
                 + "Return the same intended routine as a single raw JSON object and nothing else. "
                 + "No prose, no explanation, no code fence. Keep the steps the user actually asked "
@@ -158,8 +158,8 @@ public final class RoutinePlanner {
     /** The full planning instruction, including the generated capability list. */
     static String prompt(Context context, String description) {
         StringBuilder out = new StringBuilder();
-        out.append("You are Orbit's routine planner. Convert the user's description into a saved ")
-                .append("Orbit routine using ONLY the supported actions listed below.\n\n")
+        out.append("You are GrokLink's routine planner. Convert the user's description into a saved ")
+                .append("GrokLink routine using ONLY the supported actions listed below.\n\n")
                 .append("Reply with a single JSON object and nothing else. No prose, no code fence.\n")
                 .append("{\n")
                 .append("  \"name\": \"short routine name, at most ")
@@ -181,7 +181,7 @@ public final class RoutinePlanner {
                 .append("- Never guess a clock time. If the time is vague, such as \"in the morning\" ")
                 .append("or \"before bed\", omit the trigger and say so in \"unsupported\".\n")
                 .append("- Never guess a place. Use only a saved place label listed above; if the user ")
-                .append("named somewhere else, still use their words in \"place\" so Orbit can ask.\n")
+                .append("named somewhere else, still use their words in \"place\" so GrokLink can ask.\n")
                 .append("- Only use arrive or leave when the wording is clear.\n\n")
                 .append("Conditions: to run steps only in certain circumstances, add an ")
                 .append("IF_CONDITION step immediately before the steps it guards, with params ")

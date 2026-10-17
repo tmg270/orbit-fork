@@ -61,7 +61,7 @@ public final class OrbitBackupManager {
         }
 
         public String confirmationMessage() {
-            return "This valid Orbit " + sourceVersion + " backup contains " +
+            return "This valid GrokLink " + sourceVersion + " backup contains " +
                     data.optJSONArray("conversations").length() + " chats, " +
                     data.optJSONArray("memories").length() + " memories, " +
                     data.optJSONArray("routines").length() + " routines and " +
@@ -69,7 +69,7 @@ public final class OrbitBackupManager {
                     data.optJSONArray("reminders").length() + " reminders, plus " +
                     optionalArray(data, "extensions").length() + " extensions and " +
                     optionalArray(data, "vault").length() + " saved Vault items.\n\n" +
-                    "Restoring will replace Orbit's backed-up local data on this device. " +
+                    "Restoring will replace GrokLink's backed-up local data on this device. " +
                     "Account credentials, Android permissions and default-assistant status are not included.";
         }
 
@@ -117,18 +117,18 @@ public final class OrbitBackupManager {
             throw new IllegalArgumentException("The selected file is not valid JSON.");
         }
         if (!FORMAT.equals(root.optString("format", "")))
-            throw new IllegalArgumentException("The selected file is not an Orbit backup.");
+            throw new IllegalArgumentException("The selected file is not an GrokLink backup.");
         if (root.optInt("schemaVersion", -1) != SCHEMA_VERSION)
-            throw new IllegalArgumentException("This Orbit backup version is not supported.");
+            throw new IllegalArgumentException("This GrokLink backup version is not supported.");
         String version = root.optString("orbitVersionName", "").trim();
         int versionCode = root.optInt("orbitVersionCode", -1);
         long created = root.optLong("createdAtEpochMillis", 0L);
         String createdUtc = root.optString("createdAtUtc", "").trim();
         JSONObject data = root.optJSONObject("data");
         if (version.isEmpty() || versionCode <= 0 || created <= 0L || createdUtc.isEmpty() || data == null)
-            throw new IllegalArgumentException("The Orbit backup metadata is incomplete.");
+            throw new IllegalArgumentException("The GrokLink backup metadata is incomplete.");
         try { Instant.parse(createdUtc); }
-        catch (Exception e) { throw new IllegalArgumentException("The Orbit backup creation time is invalid."); }
+        catch (Exception e) { throw new IllegalArgumentException("The GrokLink backup creation time is invalid."); }
         validateData(data);
         return new PreparedRestore(new JSONObject(data.toString()), version, created);
     }
@@ -159,7 +159,7 @@ public final class OrbitBackupManager {
             for (File file : createdFiles) if (file != null) file.delete();
             RoutineTriggerScheduler.rescheduleAll(context);
             ReminderScheduler.rescheduleAll(context);
-            throw new IllegalStateException("Orbit could not replace all local data; the previous data was restored.");
+            throw new IllegalStateException("GrokLink could not replace all local data; the previous data was restored.");
         }
         // Extension credentials are intentionally never part of portable backups.
         // Clear device-local encrypted values only after the full safe snapshot commits,
@@ -169,7 +169,7 @@ public final class OrbitBackupManager {
             RoutineTriggerScheduler.rescheduleAll(context);
             ReminderScheduler.rescheduleAll(context);
             throw new IllegalStateException(
-                    "Orbit could not securely clear extension credentials; the previous local data was restored.");
+                    "GrokLink could not securely clear extension credentials; the previous local data was restored.");
         }
         RoutineTriggerScheduler.rescheduleAll(context);
         ReminderScheduler.rescheduleAll(context);
@@ -186,7 +186,7 @@ public final class OrbitBackupManager {
                 .put("preferences", Prefs.backupSnapshot(c))
                 .put("conversations", parseArray("conversation history", ConversationStore.backupJson(c)))
                 .put("actionResults", ActionResultStore.backupSnapshot(c))
-                .put("memories", parseArray("Orbit Memory", MemoryStore.backupJson(c)))
+                .put("memories", parseArray("GrokLink Memory", MemoryStore.backupJson(c)))
                 .put("routines", parseArray("Routines", RoutineStore.backupJson(c)))
                 .put("customCommands", parseArray("Custom Commands", CustomCommandStore.backupJson(c)))
                 .put("routineTriggers", parseArray("Routine triggers", RoutineTriggerStore.backupJson(c)))
@@ -204,7 +204,7 @@ public final class OrbitBackupManager {
 
     private static JSONArray parseArray(String name, String raw) throws Exception {
         try { return new JSONArray(raw == null ? "[]" : raw); }
-        catch (Exception e) { throw new IllegalStateException("Orbit's " + name + " store is damaged."); }
+        catch (Exception e) { throw new IllegalStateException("GrokLink's " + name + " store is damaged."); }
     }
 
     private static boolean applySnapshot(Context c, JSONObject data) {
@@ -484,14 +484,14 @@ public final class OrbitBackupManager {
     }
 
     private static void validateMemories(JSONArray a) throws Exception {
-        if (a.length() > 150) invalid("Orbit Memory");
+        if (a.length() > 150) invalid("GrokLink Memory");
         Set<String> ids = new HashSet<>();
         Set<String> categories = set("Preference", "Person", "Place", "Device", "Other");
         for (int i = 0; i < a.length(); i++) {
             JSONObject o = a.optJSONObject(i);
             if (o == null || !addUnique(ids, o.optString("id", "")) ||
                     o.optString("text", "").trim().isEmpty() || !categories.contains(o.optString("category", "")))
-                invalid("Orbit Memory");
+                invalid("GrokLink Memory");
         }
     }
 
@@ -822,7 +822,7 @@ public final class OrbitBackupManager {
             JSONObject record = records.getJSONObject(i);
             String path = OrbitVaultMedia.writeBytes(c,
                     Base64.decode(record.getString("data"), Base64.DEFAULT));
-            if (path.isEmpty()) throw new IllegalStateException("Orbit could not prepare Vault image storage.");
+            if (path.isEmpty()) throw new IllegalStateException("GrokLink could not prepare Vault image storage.");
             created.add(new File(path));
             paths.put(record.getString("id"), path);
         }
@@ -855,7 +855,7 @@ public final class OrbitBackupManager {
             bytesById.put(record.getString("id"), Base64.decode(record.getString("data"), Base64.DEFAULT));
         }
         File directory = new File(c.getFilesDir(), "orbit_attachments/history");
-        if (!directory.exists() && !directory.mkdirs()) throw new IllegalStateException("Orbit could not prepare attachment storage.");
+        if (!directory.exists() && !directory.mkdirs()) throw new IllegalStateException("GrokLink could not prepare attachment storage.");
         Map<String, String> paths = new HashMap<>();
         for (Map.Entry<String, byte[]> entry : bytesById.entrySet()) {
             File file = new File(directory, "restored-" + UUID.randomUUID() + ".jpg");

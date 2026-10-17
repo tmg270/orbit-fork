@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Orbit writing to a calendar, and refusing to.
  *
- * <p>The acceptance criterion for 0.7.7.7 is not "Orbit opened the calendar app". It is that after
+ * <p>The acceptance criterion for 0.7.7.7 is not "GrokLink opened the calendar app". It is that after
  * a confirmation and a real permission grant, Orbit itself persists the events, verifies them,
  * avoids duplicates, and reports what actually happened. Each of those four is a case here, and so
  * is each way the whole thing must instead write nothing at all.
@@ -380,7 +380,7 @@ public final class CalendarWriteTest {
 
         assertEquals(0, outcome.added);
         assertEquals(3, outcome.failed);
-        assertEquals("nothing may be inserted while Orbit cannot tell new from existing",
+        assertEquals("nothing may be inserted while GrokLink cannot tell new from existing",
                 0, provider.insertAttempts);
     }
 

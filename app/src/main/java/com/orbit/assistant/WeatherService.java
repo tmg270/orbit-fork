@@ -77,7 +77,7 @@ public final class WeatherService {
             }
 
             if (place == null) {
-                return text("I can give you the weather directly in Orbit now. Tell me a city once, or enable device location for weather in Orbit Settings.");
+                return text("I can give you the weather directly in GrokLink now. Tell me a city once, or enable device location for weather in GrokLink Settings.");
             }
 
             Weather w = fetch(place, usesFahrenheit(context));

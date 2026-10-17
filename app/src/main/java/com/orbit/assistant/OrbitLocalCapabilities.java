@@ -57,7 +57,7 @@ final class OrbitLocalCapabilities {
     }
 
     static final String CHAT = "Chat";
-    static final String MEMORY = "Orbit Memory";
+    static final String MEMORY = "GrokLink Memory";
     static final String SCREEN = "Screen text";
     static final String ASK_VAULT = "Ask Vault";
     static final String ATTACHMENTS = "Text, PDF and document attachments";
@@ -84,13 +84,13 @@ final class OrbitLocalCapabilities {
             out.add(new Capability(CHAT, Availability.READY, ""));
             out.add(s.memoryEnabled
                     ? new Capability(MEMORY, Availability.READY, "")
-                    : new Capability(MEMORY, Availability.NEEDS_SETUP, "Orbit Memory is off"));
+                    : new Capability(MEMORY, Availability.NEEDS_SETUP, "GrokLink Memory is off"));
             out.add(new Capability(SCREEN, Availability.READY, s.screenContextEnabled
                     ? "" : "When you attach the screen"));
             out.add(s.smartVaultEnabled
                     ? new Capability(ASK_VAULT, Availability.READY, "")
                     : new Capability(ASK_VAULT, Availability.NEEDS_SETUP, "Turn on Smart Vault"));
-            out.add(new Capability(ATTACHMENTS, Availability.READY, "The text Orbit reads from them"));
+            out.add(new Capability(ATTACHMENTS, Availability.READY, "The text GrokLink reads from them"));
             if (!s.notificationAccess) {
                 out.add(new Capability(NOTIFICATIONS, Availability.NEEDS_SETUP,
                         "Needs notification access"));
@@ -112,7 +112,7 @@ final class OrbitLocalCapabilities {
         }
         out.add(new Capability(WEB, Availability.CLOUD_ONLY, ""));
         out.add(new Capability(PICTURES, Availability.CLOUD_ONLY,
-                "Text Orbit reads from a picture still works"));
+                "Text GrokLink reads from a picture still works"));
         out.add(new Capability(ROUTINES, Availability.CLOUD_ONLY, ""));
         out.add(new Capability(SUGGESTIONS, Availability.CLOUD_ONLY, ""));
         return Collections.unmodifiableList(out);

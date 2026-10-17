@@ -141,7 +141,7 @@ public final class ThemePreviewView extends LinearLayout {
 
         assistantBubble.setBackground(
                 UiKit.bubbleSurface(c, tokens.assistantBubble, tokens.accent, style));
-        assistantBubble.setContentDescription("Orbit's reply bubble, "
+        assistantBubble.setContentDescription("GrokLink's reply bubble, "
                 + OrbitColorName.of(tokens.assistantBubble) + shapeDescription());
         assistantHeading.setTextColor(tokens.assistantBubbleInk);
         assistantBody.setTextColor(tokens.assistantBubbleInk);
@@ -192,7 +192,7 @@ public final class ThemePreviewView extends LinearLayout {
                 + ", cards " + OrbitColorName.of(tokens.surface)
                 + ", accent " + OrbitColorName.of(tokens.accent)
                 + ", your messages " + OrbitColorName.of(tokens.userBubble)
-                + ", Orbit's replies " + OrbitColorName.of(tokens.assistantBubble) + ".";
+                + ", GrokLink's replies " + OrbitColorName.of(tokens.assistantBubble) + ".";
     }
 
     /** How the premium message shape reads aloud, or nothing when it is Orbit's own. */

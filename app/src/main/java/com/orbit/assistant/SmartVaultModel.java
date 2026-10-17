@@ -213,7 +213,7 @@ final class SmartVaultModel {
                     .enqueueUniqueWork(UNIQUE_WORK, ExistingWorkPolicy.KEEP, downloadRequest());
         } catch (Exception e) {
             prefs(c).edit().putBoolean(KEY_RUNNING, false)
-                    .putString(KEY_ERROR, "Orbit could not schedule the download.").apply();
+                    .putString(KEY_ERROR, "GrokLink could not schedule the download.").apply();
         }
     }
 
@@ -261,7 +261,7 @@ final class SmartVaultModel {
      */
     static String download(Context c, ProgressListener listener) {
         File d = dir(c);
-        if (!d.isDirectory() && !d.mkdirs()) return "Orbit could not create the model folder.";
+        if (!d.isDirectory() && !d.mkdirs()) return "GrokLink could not create the model folder.";
         long done = 0L;
         for (Asset asset : new Asset[]{VOCAB, WEIGHTS}) {
             File target = new File(d, asset.name);
@@ -280,22 +280,22 @@ final class SmartVaultModel {
             if (!sha256(part).equalsIgnoreCase(asset.sha256)) {
                 //noinspection ResultOfMethodCallIgnored
                 part.delete();
-                return "The downloaded model did not match Orbit's pinned checksum, so it was "
+                return "The downloaded model did not match GrokLink's pinned checksum, so it was "
                         + "discarded.";
             }
             //noinspection ResultOfMethodCallIgnored
             target.delete();
-            if (!part.renameTo(target)) return "Orbit could not store the model.";
+            if (!part.renameTo(target)) return "GrokLink could not store the model.";
             done += asset.size;
             // The small vocabulary finishes below the reporting step, so report each file whole.
             if (listener != null) listener.onProgress(done);
         }
         try {
             if (!new File(d, VERIFIED_MARKER).createNewFile() && !new File(d, VERIFIED_MARKER).exists()) {
-                return "Orbit could not store the model.";
+                return "GrokLink could not store the model.";
             }
         } catch (Exception e) {
-            return "Orbit could not store the model.";
+            return "GrokLink could not store the model.";
         }
         return "";
     }
@@ -320,7 +320,7 @@ final class SmartVaultModel {
             }
             // A redirect may only ever land on another https address.
             if (!"https".equalsIgnoreCase(connection.getURL().getProtocol())) {
-                return "The model download was redirected somewhere unsafe, so Orbit stopped.";
+                return "The model download was redirected somewhere unsafe, so GrokLink stopped.";
             }
             long written = 0L;
             try (InputStream in = connection.getInputStream();
@@ -341,7 +341,7 @@ final class SmartVaultModel {
             if (written != expected) return "The model download was incomplete. Try again.";
             return "";
         } catch (java.net.UnknownHostException e) {
-            return "No connection to the model server. Orbit will try again when you are online.";
+            return "No connection to the model server. GrokLink will try again when you are online.";
         } catch (Exception e) {
             return "The model download failed. Try again later.";
         } finally {

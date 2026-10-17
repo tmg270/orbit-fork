@@ -271,6 +271,6 @@ public final class DeviceStatusPhrasingTest {
         assertFalse(none.available);
         assertTrue(none.text.startsWith("I couldn't"));
         assertFalse("an unreadable value is not a permission problem", none.needsAccess);
-        assertFalse(none.text.contains("Orbit could not"));
+        assertFalse(none.text.contains("GrokLink could not"));
     }
 }

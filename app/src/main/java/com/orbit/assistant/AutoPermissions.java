@@ -78,7 +78,7 @@ public final class AutoPermissions {
         if (key != null) Prefs.get(c).edit().putBoolean(key, false).apply();
     }
 
-    /** "ChatGPT, Orbit Local": what Auto may use right now, for one quiet summary line. */
+    /** "ChatGPT, GrokLink Local": what Auto may use right now, for one quiet summary line. */
     public static String summary(Context c) {
         StringBuilder out = new StringBuilder();
         for (String provider : PROVIDERS) {
@@ -92,7 +92,7 @@ public final class AutoPermissions {
     /** The name the Auto sheet uses: the company for API providers, the product otherwise. */
     static String shortName(String provider) {
         if (Prefs.PROVIDER_CHATGPT.equals(provider)) return "ChatGPT";
-        if (Prefs.PROVIDER_LOCAL.equals(provider)) return "Orbit Local";
+        if (Prefs.PROVIDER_LOCAL.equals(provider)) return "GrokLink Local";
         if (Prefs.PROVIDER_ANTHROPIC.equals(provider)) return "Anthropic";
         if (Prefs.PROVIDER_XAI.equals(provider)) return "xAI";
         if (Prefs.PROVIDER_OPENROUTER.equals(provider)) return "OpenRouter";

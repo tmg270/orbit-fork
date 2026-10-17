@@ -73,7 +73,7 @@ public class RoutineRunHistoryActivity extends Activity {
 
         TextView intro = UiKit.text(this,
                 "The most recent routine runs, whether they finished, and where a run stopped. "
-                        + "Orbit keeps the last " + RoutineRunHistoryStore.MAX_ENTRIES
+                        + "GrokLink keeps the last " + RoutineRunHistoryStore.MAX_ENTRIES
                         + " runs on this phone and records nothing from a routine's settings or extension credentials.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);

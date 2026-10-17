@@ -59,9 +59,9 @@ public final class AiProvidersTest {
         assertTrue(openRouter.selectable(context));
         assertEquals(AiProvider.Status.NEEDS_SETUP, openRouter.status(context));
         assertEquals("Not connected", openRouter.statusDetail(context));
-        assertFalse("OpenRouter models do not run Orbit's device actions",
+        assertFalse("OpenRouter models do not run GrokLink's device actions",
                 openRouter.capabilities().deviceActions);
-        assertFalse("Orbit does not invoke OpenRouter web search",
+        assertFalse("GrokLink does not invoke OpenRouter web search",
                 openRouter.capabilities().hostedWebSearch);
     }
 
@@ -94,7 +94,7 @@ public final class AiProvidersTest {
         assertFalse(chatgpt.offline);
 
         AiCapabilities local = AiProviders.byId(Prefs.PROVIDER_LOCAL).capabilities();
-        assertTrue("offline operation is Orbit Local's whole point", local.offline);
+        assertTrue("offline operation is GrokLink Local's whole point", local.offline);
         assertTrue(local.streaming);
         assertFalse("device actions are not implemented locally yet and must not be claimed",
                 local.deviceActions);
@@ -113,7 +113,7 @@ public final class AiProvidersTest {
             assertTrue(api.images);
             assertTrue(api.reasoningLevels);
             assertTrue(api.needsCredentials);
-            assertFalse("API models cannot claim Orbit's device action envelope", api.deviceActions);
+            assertFalse("API models cannot claim GrokLink's device action envelope", api.deviceActions);
             assertFalse(api.offline);
         }
     }
@@ -134,7 +134,7 @@ public final class AiProvidersTest {
         error.set(null);
         AiProviders.byId(Prefs.PROVIDER_LOCAL).send(context, request, callback);
         assertNotNull(error.get());
-        assertTrue("Orbit Local without its model must say so, got: " + error.get(),
+        assertTrue("GrokLink Local without its model must say so, got: " + error.get(),
                 error.get().contains("not installed"));
 
         error.set(null);

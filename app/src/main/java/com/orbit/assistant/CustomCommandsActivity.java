@@ -101,7 +101,7 @@ public final class CustomCommandsActivity extends Activity {
         page.addView(commandList);
 
         TextView note = UiKit.text(this,
-                "You can also say “Orbit, …” or “please …”. Existing Orbit commands always keep priority.",
+                "You can also say “GrokLink, …” or “please …”. Existing GrokLink commands always keep priority.",
                 12, UiKit.MUTED, false);
         note.setGravity(Gravity.CENTER);
         note.setPadding(UiKit.dp(this, 7), UiKit.dp(this, 8), UiKit.dp(this, 7), 0);

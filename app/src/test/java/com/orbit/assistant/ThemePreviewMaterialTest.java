@@ -63,7 +63,7 @@ public final class ThemePreviewMaterialTest {
         Drawable tile = renderTile(theme);
         assertFalse("Solid must not be glass", tile instanceof OrbitGlass.GlassDrawable);
         assertTrue(tile instanceof GradientDrawable);
-        assertArrayEquals("and must be exactly Orbit's Solid surface for this theme",
+        assertArrayEquals("and must be exactly GrokLink's Solid surface for this theme",
                 expectedSolid(theme).getColors(), ((GradientDrawable) tile).getColors());
     }
 
@@ -225,7 +225,7 @@ public final class ThemePreviewMaterialTest {
             DeckTile tile = DeckLayoutStore.layout(context).get(0);
             DeckTileView real = new DeckTileView(context, tile,
                     DeckTileResolver.resolve(context, tile), null);
-            assertTrue("a real tile is still Orbit's interactive surface",
+            assertTrue("a real tile is still GrokLink's interactive surface",
                     real.getBackground() instanceof RippleDrawable);
             Drawable realSurface = ((RippleDrawable) real.getBackground()).getDrawable(0);
             Drawable previewSurface = renderTile(theme);

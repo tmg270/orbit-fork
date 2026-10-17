@@ -26,7 +26,7 @@ public final class OrbitWidgetConfigureActivity extends Activity {
             OrbitWidgets.TYPE_REMINDER, OrbitWidgets.TYPE_NONE
     };
     private static final String[] ACTION_LABELS = {
-            "Ask Orbit", "Run a Routine", "Flashlight", "Create reminder", "Empty"
+            "Ask GrokLink", "Run a Routine", "Flashlight", "Create reminder", "Empty"
     };
 
     private int widgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
@@ -43,7 +43,7 @@ public final class OrbitWidgetConfigureActivity extends Activity {
                 : getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         if (!OrbitWidgets.isOwnedConfiguration(this, widgetId)) {
-            Toast.makeText(this, "This Orbit widget is no longer available.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "This GrokLink widget is no longer available.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -106,7 +106,7 @@ public final class OrbitWidgetConfigureActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this, runRoutineWidget
-                        ? "Choose the saved Routine this widget will open and run through Orbit's normal Action Engine."
+                        ? "Choose the saved Routine this widget will open and run through GrokLink's normal Action Engine."
                         : "Choose up to four concise actions. Compact widget sizes show the first two slots.",
                 13, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.14f);
@@ -228,7 +228,7 @@ public final class OrbitWidgetConfigureActivity extends Activity {
                 return;
             }
             if (!OrbitWidgets.saveRunRoutine(this, widgetId, runRoutineId)) {
-                Toast.makeText(this, "Orbit could not save this widget.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GrokLink could not save this widget.", Toast.LENGTH_SHORT).show();
                 return;
             }
             OrbitWidgets.updateRunRoutine(this, AppWidgetManager.getInstance(this), widgetId);
@@ -248,7 +248,7 @@ public final class OrbitWidgetConfigureActivity extends Activity {
                 }
             }
             if (!OrbitWidgets.saveQuickSlots(this, widgetId, quickTypes, quickRoutineIds)) {
-                Toast.makeText(this, "Orbit could not save this widget.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GrokLink could not save this widget.", Toast.LENGTH_SHORT).show();
                 return;
             }
             OrbitWidgets.updateQuickActions(this, AppWidgetManager.getInstance(this), widgetId);

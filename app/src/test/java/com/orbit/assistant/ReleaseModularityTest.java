@@ -57,9 +57,9 @@ public final class ReleaseModularityTest {
             if (trimmed.startsWith("//")) continue;
             if (trimmed.contains(RUNTIME_DEPENDENCY)) declared = true;
         }
-        assertFalse("The main Orbit package has accidentally regained the local inference runtime ("
-                        + RUNTIME_DEPENDENCY + " in app/build.gradle). Orbit Local is no longer "
-                        + "optional: every Orbit install would carry the MediaPipe/LiteRT native "
+        assertFalse("The main GrokLink package has accidentally regained the local inference runtime ("
+                        + RUNTIME_DEPENDENCY + " in app/build.gradle). GrokLink Local is no longer "
+                        + "optional: every GrokLink install would carry the MediaPipe/LiteRT native "
                         + "libraries again. Move the dependency back to the :local component.",
                 declared);
     }
@@ -80,7 +80,7 @@ public final class ReleaseModularityTest {
                     })
                     .map(path -> path.getFileName().toString())
                     .collect(java.util.stream.Collectors.toList());
-            assertTrue("The main Orbit package has accidentally regained the local inference "
+            assertTrue("The main GrokLink package has accidentally regained the local inference "
                             + "runtime: " + offenders + " import " + RUNTIME_PACKAGE
                             + ". Inference belongs in the optional :local component.",
                     offenders.isEmpty());
@@ -90,7 +90,7 @@ public final class ReleaseModularityTest {
     // ---- the component must carry it -------------------------------------------------------------
 
     @Test public void theComponentDoesDependOnTheInferenceRuntime() {
-        assertTrue("The Orbit Local component must contain the inference runtime; without it "
+        assertTrue("The GrokLink Local component must contain the inference runtime; without it "
                         + "there is nothing to run the model.",
                 read("local/build.gradle").contains(RUNTIME_DEPENDENCY));
     }
@@ -123,7 +123,7 @@ public final class ReleaseModularityTest {
         String manifest = read("local/src/main/AndroidManifest.xml");
         assertTrue("the bind permission must exist",
                 manifest.contains("com.orbit.assistant.permission.BIND_ORBIT_LOCAL"));
-        assertTrue("and it must be signature-level, so only Orbit's own signer can hold it",
+        assertTrue("and it must be signature-level, so only GrokLink's own signer can hold it",
                 manifest.contains("android:protectionLevel=\"signature\""));
         assertTrue("the service must require it",
                 manifest.contains("android:permission=\"com.orbit.assistant.permission.BIND_ORBIT_LOCAL\""));
@@ -150,7 +150,7 @@ public final class ReleaseModularityTest {
         String componentGradle = read("local/build.gradle");
         assertTrue(componentGradle.contains("ORBIT_RELEASE_STORE_FILE"));
         assertTrue(componentGradle.contains("ORBIT_RELEASE_KEY_ALIAS"));
-        assertTrue("an unsigned component would be refused by Orbit at install time",
+        assertTrue("an unsigned component would be refused by GrokLink at install time",
                 componentGradle.contains("signingConfigs.release"));
     }
 
@@ -160,12 +160,12 @@ public final class ReleaseModularityTest {
         String workflow = read(".github/workflows/release.yml");
         assertTrue(workflow.contains("EXPECTED_COMPONENT_PACKAGE_NAME: com.orbit.assistant.local"));
         assertTrue(workflow.contains("local/build/outputs/apk/release/local-release.apk"));
-        assertTrue(workflow.contains("::error::Orbit Local component package name verification failed."));
-        assertTrue(workflow.contains("::error::Orbit Local component version verification failed."));
-        assertTrue(workflow.contains("::error::Orbit Local component signer-count verification failed."));
-        assertTrue(workflow.contains("::error::Orbit Local component signing certificate verification failed."));
+        assertTrue(workflow.contains("::error::GrokLink Local component package name verification failed."));
+        assertTrue(workflow.contains("::error::GrokLink Local component version verification failed."));
+        assertTrue(workflow.contains("::error::GrokLink Local component signer-count verification failed."));
+        assertTrue(workflow.contains("::error::GrokLink Local component signing certificate verification failed."));
         assertTrue("the component APK must be published",
-                workflow.contains("Orbit-Local-v${EXPECTED_VERSION_NAME}.apk"));
+                workflow.contains("GrokLink-Local-v${EXPECTED_VERSION_NAME}.apk"));
         assertTrue("and its checksum with it",
                 workflow.contains("output_component_checksum=\"${output_component}.sha256\""));
     }
@@ -180,8 +180,8 @@ public final class ReleaseModularityTest {
                 workflow.contains("\"schema\": 1"));
         assertTrue("component metadata is additive", workflow.contains("\"component\": {"));
         assertTrue(workflow.contains("\"protocol\": int(os.environ[\"COMPONENT_PROTOCOL\"])"));
-        assertTrue("the main APK keeps the name older Orbit versions expect",
-                workflow.contains("Orbit-Assistant-v${EXPECTED_VERSION_NAME}.apk"));
+        assertTrue("the main APK keeps the name older GrokLink versions expect",
+                workflow.contains("GrokLink-Assistant-v${EXPECTED_VERSION_NAME}.apk"));
     }
 
     /**
@@ -203,7 +203,7 @@ public final class ReleaseModularityTest {
      */
     @Test public void bothSidesAndTheReleaseManifestAgreeOnTheProtocol() {
         String expected = String.valueOf(OrbitLocalComponent.PROTOCOL_VERSION);
-        assertTrue("the component must implement the protocol Orbit speaks",
+        assertTrue("the component must implement the protocol GrokLink speaks",
                 read("local/src/main/java/com/orbit/assistant/local/OrbitLocalService.java")
                         .contains("PROTOCOL_VERSION = " + expected));
         assertTrue("and the release manifest must publish it",

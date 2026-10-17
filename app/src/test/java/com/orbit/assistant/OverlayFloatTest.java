@@ -283,7 +283,7 @@ public class OverlayFloatTest {
     }
 
     private static View handle(View root) {
-        return findStarting(root, "Tap to minimize Orbit", "Swipe up to open this chat");
+        return findStarting(root, "Tap to minimize GrokLink", "Swipe up to open this chat");
     }
 
     private static View capsule(View root) {

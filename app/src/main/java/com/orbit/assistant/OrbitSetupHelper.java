@@ -30,7 +30,7 @@ public final class OrbitSetupHelper {
             try {
                 if (candidate.resolveActivity(activity.getPackageManager()) == null) continue;
                 if (explain) Toast.makeText(activity,
-                        "Choose Orbit as the Digital assistant app", Toast.LENGTH_LONG).show();
+                        "Choose GrokLink as the Digital assistant app", Toast.LENGTH_LONG).show();
                 activity.startActivityForResult(candidate, requestCode);
                 return true;
             } catch (Exception ignored) {}

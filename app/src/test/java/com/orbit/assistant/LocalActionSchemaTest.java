@@ -121,7 +121,7 @@ public final class LocalActionSchemaTest {
         assertEquals("Pasta", accepted(
                 "{\"action\":\"SET_TIMER\",\"params\":{\"seconds\":600,\"label\":\"Pasta\"}}")
                 .params.optString("label"));
-        assertEquals("a label made only of punctuation names nothing", "Orbit timer", accepted(
+        assertEquals("a label made only of punctuation names nothing", "GrokLink timer", accepted(
                 "{\"action\":\"SET_TIMER\",\"params\":{\"seconds\":60,\"label\":\"<>{}\"}}")
                 .params.optString("label"));
         String longLabel = accepted("{\"action\":\"SET_TIMER\",\"params\":{\"seconds\":60,"

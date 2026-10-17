@@ -62,7 +62,7 @@ public final class DeckActionExecutor {
      */
     public static void execute(Activity activity, DeckTile tile, Callback callback) {
         if (activity == null || tile == null) {
-            finish(callback, Outcome.failed("Orbit could not run this tile."));
+            finish(callback, Outcome.failed("GrokLink could not run this tile."));
             return;
         }
 
@@ -143,7 +143,7 @@ public final class DeckActionExecutor {
         if (DeckTileRegistry.TYPE_MEDIA.equals(type)) {
             runMedia(activity, callback); return;
         }
-        finish(callback, Outcome.failed("Orbit does not know how to run that tile."));
+        finish(callback, Outcome.failed("GrokLink does not know how to run that tile."));
     }
 
     // ---- kinds ------------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ public final class DeckActionExecutor {
 
     private static void runFlashlight(Activity activity, Callback callback) {
         OrbitWidgetExecutor.toggleFlashlight(activity, result -> {
-            if (result == null) { finish(callback, Outcome.failed("Orbit could not do that.")); return; }
+            if (result == null) { finish(callback, Outcome.failed("GrokLink could not do that.")); return; }
             finish(callback, result.success
                     ? Outcome.ok(result.message)
                     : Outcome.failed(result.message));
@@ -200,13 +200,13 @@ public final class DeckActionExecutor {
             try {
                 result = MediaControl.execute(app, MediaControl.Command.PLAY_PAUSE);
             } catch (Exception e) {
-                result = DeviceActionExecutor.Result.failed("Orbit could not reach media playback.");
+                result = DeviceActionExecutor.Result.failed("GrokLink could not reach media playback.");
             }
             DeviceActionExecutor.Result finalResult = result;
             finish(callback, finalResult != null && finalResult.success
                     ? Outcome.ok(finalResult.message)
                     : Outcome.failed(finalResult == null
-                            ? "Orbit could not reach media playback." : finalResult.message));
+                            ? "GrokLink could not reach media playback." : finalResult.message));
         });
     }
 
@@ -218,7 +218,7 @@ public final class DeckActionExecutor {
             UiKit.applyPageTransition(activity);
             finish(callback, Outcome.navigated());
         } catch (Exception e) {
-            finish(callback, Outcome.failed("Orbit could not open that."));
+            finish(callback, Outcome.failed("GrokLink could not open that."));
         }
     }
 

@@ -39,7 +39,7 @@ public final class OrbitVersionTest {
                 "0.7.7.5-test", "0.7.7.5-rc.1", "0.7.7.5-BETA.1", "0.7.7.5beta1",
                 "0.7.7.5-beta.1.2", "beta.1", "", "0", "not-a-version"}) {
             assertFalse(bad + " must not read as a Beta", OrbitVersion.isBeta(bad));
-            assertFalse(bad + " must not read as a valid Orbit version", OrbitVersion.isValid(bad));
+            assertFalse(bad + " must not read as a valid GrokLink version", OrbitVersion.isValid(bad));
         }
         assertFalse(OrbitVersion.isValid(null));
     }
@@ -74,8 +74,8 @@ public final class OrbitVersionTest {
     }
 
     @Test public void releaseTitlesMatchTheWorkflow() {
-        assertEquals("Orbit Assistant v0.7.7.4", OrbitVersion.releaseTitle("0.7.7.4"));
-        assertEquals("Orbit Assistant v0.7.7.5 Beta 1", OrbitVersion.releaseTitle("0.7.7.5-beta.1"));
+        assertEquals("GrokLink v0.7.7.4", OrbitVersion.releaseTitle("0.7.7.4"));
+        assertEquals("GrokLink v0.7.7.5 Beta 1", OrbitVersion.releaseTitle("0.7.7.5-beta.1"));
     }
 
     // ---- tags -------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ public final class OrbitVersionTest {
      * fails at build time rather than on a phone.
      */
     @Test public void thisBuildHasAVersionOrbitUnderstands() {
-        assertTrue("BuildConfig version must be a valid Orbit version",
+        assertTrue("BuildConfig version must be a valid GrokLink version",
                 OrbitVersion.isValid(BuildConfig.VERSION_NAME));
         assertEquals(OrbitVersion.displayName(BuildConfig.VERSION_NAME),
                 OrbitVersion.installedDisplayName());
@@ -161,7 +161,7 @@ public final class OrbitVersionTest {
         assertEquals("0.8.4.1", OrbitVersion.baseVersion(version));
         assertEquals("a Stable release has no beta counter", 0, OrbitVersion.betaNumber(version));
 
-        assertEquals("Orbit Assistant v0.8.4.1", OrbitVersion.releaseTitle(version));
+        assertEquals("GrokLink v0.8.4.1", OrbitVersion.releaseTitle(version));
         assertEquals("v0.8.4.1", OrbitVersion.tagFor(version));
         assertTrue("the release workflow must publish it as a normal release",
                 OrbitVersion.isStableTag(OrbitVersion.tagFor(version)));

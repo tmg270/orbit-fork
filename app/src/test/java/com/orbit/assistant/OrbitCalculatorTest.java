@@ -35,7 +35,7 @@ public final class OrbitCalculatorTest {
         assertEquals("multiplication binds tighter than addition",
                 "2 + 3 * 4 = 14", answer("2 + 3 * 4"));
         assertEquals("(14 + 6) / 4 = 5", answer("(14 + 6) / 4"));
-        assertEquals("brackets must survive Orbit's text tidying",
+        assertEquals("brackets must survive GrokLink's text tidying",
                 "(2 + 3) * 4 = 20", answer("(2 + 3) * 4"));
     }
 

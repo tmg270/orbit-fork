@@ -117,7 +117,7 @@ public final class OrbitSwitchTest {
     @Test public void theRowLabelsTheControlRatherThanCompetingWithIt() {
         OrbitSwitch control = new OrbitSwitch(context);
         LinearLayout row = UiKit.switchRow(context, "Hands-free voice follow-ups",
-                "Listen again after Orbit speaks.", control);
+                "Listen again after GrokLink speaks.", control);
 
         assertEquals("Hands-free voice follow-ups", control.getContentDescription());
         View labels = row.getChildAt(0);

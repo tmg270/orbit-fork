@@ -75,7 +75,7 @@ public final class OrbitVaultActivity extends Activity {
 
     static final String EMPTY_TITLE = "Your Vault is empty";
     static final String EMPTY_BODY =
-            "Save text, images, links, and useful Orbit answers here.";
+            "Save text, images, links, and useful GrokLink answers here.";
 
     /**
      * The three ways a list can be empty, said apart rather than together.
@@ -149,9 +149,9 @@ public final class OrbitVaultActivity extends Activity {
     static final String NEARLY_FULL_TITLE = "Your Vault is nearly full";
     static final String FULL_TITLE = "Your Vault is full";
     /** Why a result matched, under its preview, when the card does not already show it. */
-    static final String MATCH_RECOGNIZED = "Found in text Orbit read";
+    static final String MATCH_RECOGNIZED = "Found in text GrokLink read";
     /** Some of the words, not the phrase as typed (v0.8.1.0-beta.2). */
-    static final String MATCH_RECOGNIZED_WORDS = "Words found in text Orbit read";
+    static final String MATCH_RECOGNIZED_WORDS = "Words found in text GrokLink read";
     static final String MATCH_MEANING = "Similar meaning";
 
     /**
@@ -198,9 +198,9 @@ public final class OrbitVaultActivity extends Activity {
     static final String NOTE_FIELD_HINT = "Note (optional)";
 
     /** What the Vault says about itself when the user has switched it off in Settings. */
-    static final String OFF_TITLE = "Orbit Vault is turned off";
+    static final String OFF_TITLE = "GrokLink Vault is turned off";
     static final String OFF_BODY =
-            "Nothing has been deleted. Turn Orbit Vault back on in Settings to save new items "
+            "Nothing has been deleted. Turn GrokLink Vault back on in Settings to save new items "
                     + "and to see everything you already saved.";
 
     /** What a swiped-away card says while it can still be brought back. */
@@ -579,8 +579,8 @@ public final class OrbitVaultActivity extends Activity {
             body.setPadding(0, UiKit.dp(this, 6), 0, UiKit.dp(this, 2));
             empty.addView(body);
             TextView how = UiKit.text(this,
-                    "Use Save to Vault above, share something to Orbit from another app, or "
-                            + "hold an Orbit answer in a chat and choose Save to Vault.",
+                    "Use Save to Vault above, share something to GrokLink from another app, or "
+                            + "hold an GrokLink answer in a chat and choose Save to Vault.",
                     12, UiKit.MUTED, false);
             how.setPadding(0, UiKit.dp(this, 8), 0, 0);
             empty.addView(how);
@@ -748,10 +748,10 @@ public final class OrbitVaultActivity extends Activity {
     static String capacityBody(int total) {
         if (total >= OrbitVaultStore.MAX_ITEMS) {
             return "Your Vault holds " + OrbitVaultStore.MAX_ITEMS + " items, its current limit. "
-                    + "New saves are paused. Orbit never deletes saved items to make room, so "
+                    + "New saves are paused. GrokLink never deletes saved items to make room, so "
                     + "delete ones you no longer need to keep saving.";
         }
-        return total + " of " + OrbitVaultStore.MAX_ITEMS + " spaces used. Orbit never deletes "
+        return total + " of " + OrbitVaultStore.MAX_ITEMS + " spaces used. GrokLink never deletes "
                 + "saved items to make room. When the Vault is full, new saves pause until you "
                 + "delete something.";
     }
@@ -799,7 +799,7 @@ public final class OrbitVaultActivity extends Activity {
     private void confirmAskVault(String query, List<OrbitVaultItem> items) {
         if (items.isEmpty()) return;
         StringBuilder message = new StringBuilder(
-                "Orbit will open a chat with your question and these saved items attached. "
+                "GrokLink will open a chat with your question and these saved items attached. "
                         + "Nothing is sent until you press Send.\n");
         for (int i = 0; i < items.size(); i++) {
             message.append("\n").append(i + 1).append(". ").append(items.get(i).displayTitle());
@@ -909,7 +909,7 @@ public final class OrbitVaultActivity extends Activity {
      * One filter selector: its current answer, and a caret saying there are others.
      *
      * <p>Weighted rather than sized by its words, so the row is the same shape whichever answers
-     * are showing and a long one - "Screen selection", "Orbit Documents" - shortens itself instead
+     * are showing and a long one - "Screen selection", "GrokLink Documents" - shortens itself instead
      * of pushing its neighbour off the screen. The chosen state is the accent fill with its own
      * contrast colour, and it is written into the spoken description as well, so which selector is
      * narrowing the Vault is never carried by colour alone.
@@ -1258,7 +1258,7 @@ public final class OrbitVaultActivity extends Activity {
         if (existing == null) return;
         boolean wanted = !existing.pinned;
         if (!OrbitVaultStore.setPinned(this, id, wanted)) {
-            Toast.makeText(this, "Orbit could not update that item", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not update that item", Toast.LENGTH_SHORT).show();
             return;
         }
         OrbitSwipeRow.resetActive();
@@ -1380,7 +1380,7 @@ public final class OrbitVaultActivity extends Activity {
 
     private void copy(OrbitVaultItem item) {
         String text = item.isImage() ? item.displayTitle() : item.body;
-        MessageActions.copy(this, "Orbit Vault", text,
+        MessageActions.copy(this, "GrokLink Vault", text,
                 () -> Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show());
     }
 
@@ -1453,7 +1453,7 @@ public final class OrbitVaultActivity extends Activity {
         form.addView(userNote, noteLp);
 
         TextView note = UiKit.text(this,
-                "Saved on this device only. Orbit does not send it anywhere.", 12, UiKit.MUTED, false);
+                "Saved on this device only. GrokLink does not send it anywhere.", 12, UiKit.MUTED, false);
         note.setPadding(0, UiKit.dp(this, 12), 0, 0);
         form.addView(note);
 
@@ -1480,7 +1480,7 @@ public final class OrbitVaultActivity extends Activity {
                 if (OrbitVaultStore.saveText(this, title.getText().toString(), text,
                         OrbitVaultSource.QUICK_CAPTURE,
                         userNote.getText().toString()) == null) {
-                    Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "Orbit could not save that"), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save that"), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 dialog.dismiss();
@@ -1548,7 +1548,7 @@ public final class OrbitVaultActivity extends Activity {
         form.addView(userNote, noteLp);
 
         TextView where = UiKit.text(this,
-                "Saved on this device only. Orbit does not send it anywhere.", 12, UiKit.MUTED, false);
+                "Saved on this device only. GrokLink does not send it anywhere.", 12, UiKit.MUTED, false);
         where.setPadding(0, UiKit.dp(this, 12), 0, 0);
         form.addView(where);
 
@@ -1570,7 +1570,7 @@ public final class OrbitVaultActivity extends Activity {
                 if (OrbitVaultStore.saveText(this, title.getText().toString(), text,
                         OrbitVaultSource.CLIPBOARD,
                         userNote.getText().toString()) == null) {
-                    Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "Orbit could not save that"), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save that"), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 dialog.dismiss();
@@ -1596,7 +1596,7 @@ public final class OrbitVaultActivity extends Activity {
         if (requestCode != REQ_PICK_IMAGE || resultCode != RESULT_OK) return;
         List<Uri> picked = AttachmentUriCollector.fromPickerResult(data);
         if (picked.isEmpty()) {
-            Toast.makeText(this, "Orbit could not read that image", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not read that image", Toast.LENGTH_SHORT).show();
             return;
         }
         saveImageFrom(picked.get(0));
@@ -1617,13 +1617,13 @@ public final class OrbitVaultActivity extends Activity {
             image = null;
         }
         if (image == null) {
-            Toast.makeText(this, "Orbit could not read that image", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GrokLink could not read that image", Toast.LENGTH_SHORT).show();
             return;
         }
         OrbitVaultItem item = OrbitVaultStore.saveImage(this, image, "", OrbitVaultSource.PHOTO);
         image.recycle();
         if (item == null) {
-            Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "Orbit could not save that image"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save that image"), Toast.LENGTH_SHORT).show();
             return;
         }
         saved();

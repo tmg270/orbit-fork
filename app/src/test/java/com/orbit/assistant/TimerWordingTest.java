@@ -35,14 +35,14 @@ public final class TimerWordingTest {
 
     private String spokenReply(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should act on: " + prompt, reply);
+        assertNotNull("GrokLink should act on: " + prompt, reply);
         return reply.text;
     }
 
     private static AssistantReply.Action timerAction(int seconds) {
         try {
             return new AssistantReply.Action(RoutineActionCatalog.SET_TIMER,
-                    new JSONObject().put("seconds", seconds).put("label", "Orbit timer"), false);
+                    new JSONObject().put("seconds", seconds).put("label", "GrokLink timer"), false);
         } catch (Exception e) {
             throw new AssertionError("could not build a timer action", e);
         }

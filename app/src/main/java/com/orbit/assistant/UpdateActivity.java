@@ -109,7 +109,7 @@ public final class UpdateActivity extends Activity {
         titles.setPadding(UiKit.dp(this, 13), 0, 0, 0);
         titles.addView(UiKit.text(this, "About & updates", 24, UiKit.TEXT, true));
         titles.addView(UiKit.text(this, OrbitDistribution.isPlay()
-                ? "Orbit from Google Play" : "Official Orbit releases", 13, UiKit.MUTED, false));
+                ? "GrokLink from Google Play" : "Official GrokLink releases", 13, UiKit.MUTED, false));
         header.addView(titles, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         page.addView(header);
@@ -135,7 +135,7 @@ public final class UpdateActivity extends Activity {
         LinearLayout nameRow = new LinearLayout(this);
         nameRow.setOrientation(LinearLayout.HORIZONTAL);
         nameRow.setGravity(Gravity.CENTER_VERTICAL);
-        nameRow.addView(UiKit.text(this, "Orbit Assistant", 18, UiKit.TEXT, true));
+        nameRow.addView(UiKit.text(this, "GrokLink", 18, UiKit.TEXT, true));
         if (OrbitVersion.installedIsBeta()) {
             TextView pill = betaPill("BETA BUILD");
             LinearLayout.LayoutParams pillLp = new LinearLayout.LayoutParams(
@@ -210,7 +210,7 @@ public final class UpdateActivity extends Activity {
         roadmapCopy.setOrientation(LinearLayout.VERTICAL);
         roadmapCopy.addView(UiKit.text(this, "Roadmap", 17, UiKit.TEXT, true));
         TextView roadmapDescription = UiKit.text(this,
-                "See what's next for Orbit", 12, UiKit.MUTED, false);
+                "See what's next for GrokLink", 12, UiKit.MUTED, false);
         roadmapDescription.setPadding(0, UiKit.dp(this, 3), 0, 0);
         roadmapCopy.addView(roadmapDescription);
         roadmap.addView(roadmapCopy, new LinearLayout.LayoutParams(
@@ -224,8 +224,8 @@ public final class UpdateActivity extends Activity {
         page.addView(linksCard());
 
         TextView privacy = UiKit.text(this, OrbitDistribution.isPlay()
-                ? "This copy of Orbit was installed from Google Play, which delivers and verifies its updates. Orbit itself never downloads or installs app updates."
-                : "Orbit checks only the public lpnovi/Orbit-Assistant releases — stable releases, plus official Beta prereleases when you have joined the Beta channel. It sends no account credentials, never downloads without your approval, verifies the APK checksum, package, version and permanent signing certificate, then uses Android's normal installer. Every build is verified the same way, whichever channel it came from.",
+                ? "This copy of GrokLink was installed from Google Play, which delivers and verifies its updates. GrokLink itself never downloads or installs app updates."
+                : "GrokLink checks only the public lpnovi/Orbit-Assistant releases — stable releases, plus official Beta prereleases when you have joined the Beta channel. It sends no account credentials, never downloads without your approval, verifies the APK checksum, package, version and permanent signing certificate, then uses Android's normal installer. Every build is verified the same way, whichever channel it came from.",
                 12, UiKit.MUTED, false);
         privacy.setLineSpacing(0, 1.12f);
         LinearLayout.LayoutParams privacyLp = new LinearLayout.LayoutParams(
@@ -331,7 +331,7 @@ public final class UpdateActivity extends Activity {
             if (!checked) OrbitUpdateNotifier.cancel(this);
         });
         card.addView(UiKit.switchRow(this, "Update notifications",
-                "Notify me when a new Orbit version is available", updateNotifications));
+                "Notify me when a new GrokLink version is available", updateNotifications));
     }
 
     /**
@@ -361,8 +361,8 @@ public final class UpdateActivity extends Activity {
 
     private String idleMessage() {
         return Prefs.betaChannel(this)
-                ? "Ready to check for the newest Orbit release, including Betas."
-                : "Ready to check for a stable Orbit release.";
+                ? "Ready to check for the newest GrokLink release, including Betas."
+                : "Ready to check for a stable GrokLink release.";
     }
 
     /**
@@ -374,12 +374,12 @@ public final class UpdateActivity extends Activity {
      * will not downgrade it, so it says exactly that instead of pretending to be up to date.
      */
     private String upToDateMessage() {
-        if (Prefs.betaChannel(this)) return "You're on the newest available Orbit build.";
+        if (Prefs.betaChannel(this)) return "You're on the newest available GrokLink build.";
         if (OrbitVersion.installedIsBeta()) {
-            return "You're running a newer Beta build. Orbit will return to Stable updates when a "
+            return "You're running a newer Beta build. GrokLink will return to Stable updates when a "
                     + "newer Stable release becomes available.";
         }
-        return "Orbit is up to date.";
+        return "GrokLink is up to date.";
     }
 
     // ---- update channel -------------------------------------------------------------------------
@@ -520,10 +520,10 @@ public final class UpdateActivity extends Activity {
         title.setAccessibilityHeading(true);
         content.addView(title);
         TextView body = UiKit.text(this,
-                "Beta builds give you new Orbit features earlier, but they may contain bugs, "
+                "Beta builds give you new GrokLink features earlier, but they may contain bugs, "
                         + "crashes, regressions, increased battery use, or unfinished behavior.\n\n"
-                        + "Beta updates are still officially signed and verified by Orbit.\n\n"
-                        + "You can return to Stable at any time. Orbit will never automatically "
+                        + "Beta updates are still officially signed and verified by GrokLink.\n\n"
+                        + "You can return to Stable at any time. GrokLink will never automatically "
                         + "downgrade your installed version.",
                 14, UiKit.TEXT, false);
         body.setLineSpacing(0, 1.14f);
@@ -608,7 +608,7 @@ public final class UpdateActivity extends Activity {
 
     private void showAvailableState(OrbitUpdater.Release release, boolean showDialog) {
         hideDownloadProgress();
-        status.setText("Update available: Orbit Assistant v" + release.displayName());
+        status.setText("Update available: GrokLink v" + release.displayName());
         status.setTextColor(UiKit.accent(this));
         setAction("View update", () -> showUpdateDialog(release), true);
         if (showDialog) showUpdateDialog(release);
@@ -627,7 +627,7 @@ public final class UpdateActivity extends Activity {
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = UiKit.text(this,
-                "Orbit Assistant v" + release.displayName(), 20, UiKit.TEXT, true);
+                "GrokLink v" + release.displayName(), 20, UiKit.TEXT, true);
         title.setAccessibilityHeading(true);
         titleRow.addView(title, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -642,7 +642,7 @@ public final class UpdateActivity extends Activity {
             // One short line, once, at the moment of installing. The user opted into Beta
             // already; the full warning is not repeated for every update.
             TextView betaNote = UiKit.text(this,
-                    "Beta build · may be less stable than a normal Orbit release.",
+                    "Beta build · may be less stable than a normal GrokLink release.",
                     12, UiKit.MUTED, false);
             betaNote.setLineSpacing(0, 1.1f);
             betaNote.setPadding(0, UiKit.dp(this, 7), 0, 0);
@@ -745,7 +745,7 @@ public final class UpdateActivity extends Activity {
         if (readyApk == null || readyRelease == null) return;
         if (!OrbitUpdater.canRequestPackageInstalls(this)) {
             waitingForInstallPermission = true;
-            status.setText("Android needs permission to install updates from Orbit. Allow this source, then return to Orbit.");
+            status.setText("Android needs permission to install updates from GrokLink. Allow this source, then return to GrokLink.");
             status.setTextColor(UiKit.TEXT);
             setAction("Allow installation", () -> OrbitUpdater.openUnknownSourcesSettings(this), true);
             OrbitUpdater.openUnknownSourcesSettings(this);

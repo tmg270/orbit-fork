@@ -61,9 +61,9 @@ public final class OrbitThemeFileCodec {
     /** The oldest theme document this build can still read. Beta 1 wrote schema 1. */
     public static final int MIN_SUPPORTED_SCHEMA = 1;
 
-    private static final String NOT_A_THEME = "This isn't a supported Orbit theme.";
-    private static final String FROM_THE_FUTURE = "This theme was made for a newer version of Orbit.";
-    private static final String TOO_LARGE = "This file is too large to be an Orbit theme.";
+    private static final String NOT_A_THEME = "This isn't a supported GrokLink theme.";
+    private static final String FROM_THE_FUTURE = "This theme was made for a newer version of GrokLink.";
+    private static final String TOO_LARGE = "This file is too large to be an GrokLink theme.";
 
     /**
      * A file Orbit will not open, and the sentence to show for it.
@@ -285,6 +285,6 @@ public final class OrbitThemeFileCodec {
     }
 
     private static String surfaceLabel(String token) {
-        return OrbitTheme.isHexToken(token) ? "custom " + token : "Orbit default";
+        return OrbitTheme.isHexToken(token) ? "custom " + token : "GrokLink default";
     }
 }

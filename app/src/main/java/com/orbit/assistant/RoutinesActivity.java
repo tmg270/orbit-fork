@@ -113,7 +113,7 @@ public class RoutinesActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Save reliable device-action chains once, run them here or ask Orbit by name, and add automatic schedules when you want them. Routines use the same Action Engine as normal Orbit commands.",
+                "Save reliable device-action chains once, run them here or ask GrokLink by name, and add automatic schedules when you want them. Routines use the same Action Engine as normal GrokLink commands.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(
@@ -124,7 +124,7 @@ public class RoutinesActivity extends Activity {
         Button create = primaryButton("+  New routine");
         create.setOnClickListener(v -> {
             if (RoutineStore.list(this).size() >= RoutineStore.MAX_ROUTINES) {
-                Toast.makeText(this, "Orbit supports up to " + RoutineStore.MAX_ROUTINES + " routines.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "GrokLink supports up to " + RoutineStore.MAX_ROUTINES + " routines.", Toast.LENGTH_SHORT).show();
                 return;
             }
             startActivity(new Intent(this, RoutineEditorActivity.class));
@@ -132,7 +132,7 @@ public class RoutinesActivity extends Activity {
         page.addView(create, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 50)));
 
-        Button createWithOrbit = secondaryButton("Create with Orbit");
+        Button createWithOrbit = secondaryButton("Create with GrokLink");
         createWithOrbit.setOnClickListener(v ->
                 startActivity(new Intent(this, RoutineBuilderActivity.class)));
         LinearLayout.LayoutParams createLp = new LinearLayout.LayoutParams(
@@ -578,7 +578,7 @@ public class RoutinesActivity extends Activity {
     private void confirmDelete(RoutineStore.Routine routine) {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Delete " + routine.name + "?")
-                .setMessage("This removes the saved routine from Orbit. It does not change any current device settings.")
+                .setMessage("This removes the saved routine from GrokLink. It does not change any current device settings.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Delete", (d, w) -> {
                     if (RoutineStore.delete(this, routine.id)) refresh();
@@ -759,7 +759,7 @@ public class RoutinesActivity extends Activity {
 
     private void showActionConfirmation(AssistantReply.Action action, Runnable onAllow, Runnable onCancel) {
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Let Orbit do this?")
+                .setTitle("Let GrokLink do this?")
                 .setMessage(action == null ? "Device action" : RoutineActionCatalog.title(action))
                 .setNegativeButton("Cancel", (d, w) -> onCancel.run())
                 .setPositiveButton("Continue", (d, w) -> onAllow.run())

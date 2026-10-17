@@ -35,7 +35,7 @@ public interface AiProvider {
     /** Stable internal id, also the value stored in {@link Prefs#PROVIDER}. */
     String id();
 
-    /** Short user-facing name, e.g. "ChatGPT" or "Orbit Local". */
+    /** Short user-facing name, e.g. "ChatGPT" or "GrokLink Local". */
     String displayName();
 
     /** One-line user-facing description for provider management UI. */

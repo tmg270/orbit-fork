@@ -37,13 +37,13 @@ public final class OrbitVaultSource {
     /** Chosen by the user in their gallery picker, from Quick Capture. */
     public static final String PHOTO = "Photo";
     /** Arrived through Android's share sheet. Never names the sending app. */
-    public static final String SHARED = "Shared to Orbit";
+    public static final String SHARED = "Shared to GrokLink";
     /** Selected in another app and sent to Orbit through the text-selection menu. */
     public static final String SELECTED_TEXT = "Selected text";
     /** Cropped or marked up in Orbit's own screen selection editor. */
     public static final String SCREEN_SELECTION = "Screen selection";
     /** An answer Orbit gave, saved from a conversation. */
-    public static final String ORBIT_REPLY = "Orbit answer";
+    public static final String ORBIT_REPLY = "GrokLink answer";
     /**
      * A sourced picture Orbit showed inside an answer, saved from the image viewer.
      *
@@ -75,7 +75,7 @@ public final class OrbitVaultSource {
      *
      * <p>Never stored, never compared, and never written into an item.
      */
-    public static final String DOCUMENT_DISPLAY = "Orbit Documents";
+    public static final String DOCUMENT_DISPLAY = "GrokLink Documents";
 
     private OrbitVaultSource() {}
 
@@ -86,8 +86,8 @@ public final class OrbitVaultSource {
      * source list offered "Document" one control away from a type filter called "Documents", which
      * on a phone read as the same filter written twice. They are not the same question at all -
      * one asks what an item <em>is</em>, the other asks which door of Orbit it came through - and
-     * the shorter word was doing nothing to say so. "Orbit Documents" names a surface of Orbit,
-     * which is exactly what a source is, and puts it in the same shape as "Orbit answer" beside it.
+     * the shorter word was doing nothing to say so. "GrokLink Documents" names a surface of Orbit,
+     * which is exactly what a source is, and puts it in the same shape as "GrokLink answer" beside it.
      *
      * <p>Nothing is migrated for this. The stored value stays {@link #DOCUMENT}, "Document · Page
      * 7" stays exactly that under a saved page, backups written by Beta 1 through Beta 4 restore

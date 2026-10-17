@@ -239,7 +239,7 @@ public final class SmartVaultWorker extends Worker {
             String page = SmartVaultIndex.currentDerived(derived, item, SmartVaultDb.KIND_PAGE);
             if (!SmartVaultEnrichment.hasMaterial(item, ocr, page)) {
                 db.putJob(item.id, SmartVaultDb.STATE_DONE, fingerprint, job.attempts,
-                        "There is no text here for Orbit to describe yet.");
+                        "There is no text here for GrokLink to describe yet.");
                 continue;
             }
             String prompt = SmartVaultEnrichment.prompt(item, ocr, page, existingTopics);
@@ -298,7 +298,7 @@ public final class SmartVaultWorker extends Worker {
                 // the new version, a bounded number of times.
                 db.putJob(item.id, attempts < 3 ? SmartVaultDb.STATE_QUEUED : SmartVaultDb.STATE_FAILED,
                         "", attempts, attempts < 3 ? ""
-                                : "The item kept changing, so Orbit stopped suggesting details.");
+                                : "The item kept changing, so GrokLink stopped suggesting details.");
             } else {
                 db.putJob(item.id, SmartVaultDb.STATE_DONE, fingerprint, attempts, "");
             }

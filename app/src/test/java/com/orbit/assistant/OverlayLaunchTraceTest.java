@@ -201,7 +201,7 @@ public final class OverlayLaunchTraceTest {
                 OverlayLaunchTrace.State.of().reason(OverlayLaunchTrace.REASON_SYSTEM_DIALOGS));
 
         OverlayLaunchTrace.Attempt attempt = OverlayLaunchTrace.attempts(context).get(0);
-        assertEquals("nothing Orbit did before the hide explains it", "", attempt.endingReason);
+        assertEquals("nothing GrokLink did before the hide explains it", "", attempt.endingReason);
         assertEquals(OverlayLaunchTrace.SYSTEM_HIDE,
                 OverlayLaunchTrace.status(attempt, false));
     }
@@ -400,7 +400,7 @@ public final class OverlayLaunchTraceTest {
                 OverlayLaunchTrace.State.of().foreground("com.second.app", "Second"));
 
         String report = OverlayLaunchTrace.report(context);
-        assertTrue(report.startsWith("Orbit overlay launch diagnostics"));
+        assertTrue(report.startsWith("GrokLink overlay launch diagnostics"));
         assertTrue(report.contains("Stored attempts: 2"));
         assertTrue(report.indexOf("com.first.app") < report.indexOf("com.second.app"));
         assertTrue(report.indexOf("Attempt 1 of 2") < report.indexOf("Attempt 2 of 2"));

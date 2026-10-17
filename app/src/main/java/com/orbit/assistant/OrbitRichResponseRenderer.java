@@ -418,7 +418,7 @@ public final class OrbitRichResponseRenderer {
         copy.setContentDescription("Copy code block");
         copy.setOnClickListener(v -> {
             ClipboardManager manager = (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE);
-            if (manager != null) manager.setPrimaryClip(ClipData.newPlainText("Orbit code", code));
+            if (manager != null) manager.setPrimaryClip(ClipData.newPlainText("GrokLink code", code));
             Toast.makeText(c, "Code copied", Toast.LENGTH_SHORT).show();
         });
         // Held back rather than hidden, so the header does not change shape when the block closes
@@ -528,7 +528,7 @@ public final class OrbitRichResponseRenderer {
 
         if (!RemoteImageLoader.hasSafeHttpsSyntax(url)) {
             showImageFailure(c, frame, description, url,
-                    "Orbit blocked this private or unsafe image address", foreground);
+                    "GrokLink blocked this private or unsafe image address", foreground);
             return card;
         }
         RemoteImageLoader.load(c, url, (bitmap, error) -> {
@@ -593,7 +593,7 @@ public final class OrbitRichResponseRenderer {
         failure.addView(label);
 
         boolean openable = RemoteImageLoader.hasSafeHttpsSyntax(url)
-                && (error == null || !error.startsWith("Orbit blocked"));
+                && (error == null || !error.startsWith("GrokLink blocked"));
         if (openable) {
             TextView open = UiKit.text(c, "Open image", chatSize(c, 11.5f), UiKit.accent(c), false);
             open.setContentDescription("Open original image in browser");

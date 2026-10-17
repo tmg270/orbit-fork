@@ -80,7 +80,7 @@ public final class MediaControl {
             }
         } catch (SecurityException e) {
             return DeviceActionExecutor.Result.permission(
-                    "Android would not let Orbit control " + app + ".");
+                    "Android would not let GrokLink control " + app + ".");
         } catch (Exception e) {
             return DeviceActionExecutor.Result.failed("Could not reach " + app + ".");
         }
@@ -170,7 +170,7 @@ public final class MediaControl {
             return DeviceActionExecutor.Result.failed("Could not send the media command.");
         }
         return DeviceActionExecutor.Result.success(sentWording(command)
-                + " to whatever is playing. Orbit cannot confirm it without notification access.");
+                + " to whatever is playing. GrokLink cannot confirm it without notification access.");
     }
 
     static int keyCode(Command command) {

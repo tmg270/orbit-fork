@@ -24,7 +24,7 @@ final class OrbitEdition {
     /** Read by {@link OrbitDistribution}. */
     static final String ID = "github";
 
-    private static final String REPOSITORY = "lpnovi/Orbit-Assistant";
+    private static final String REPOSITORY = "lpnovi/GrokLink-Assistant";
 
     private OrbitEdition() {}
 

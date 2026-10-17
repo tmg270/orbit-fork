@@ -55,7 +55,7 @@ public final class OrbitLaunchSequenceActivity extends Activity {
         // A real, focusable way out that does not depend on the gesture, the drawing, or on being
         // able to see anything at all.
         TextView close = UiKit.text(this, "Close", 14, UiKit.MUTED, true);
-        close.setContentDescription("Close the Orbit launch sequence");
+        close.setContentDescription("Close the GrokLink launch sequence");
         close.setFocusable(true);
         close.setClickable(true);
         close.setPadding(UiKit.dp(this, 18), UiKit.dp(this, 10),

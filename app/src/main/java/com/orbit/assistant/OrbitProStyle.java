@@ -639,7 +639,7 @@ public final class OrbitProStyle {
     public String bubbleRadiusLabel() {
         if (bubbleRadiusDp <= 11) return "Squared";
         if (bubbleRadiusDp <= 15) return "Restrained";
-        if (bubbleRadiusDp == BUBBLE_RADIUS_DEFAULT) return "Orbit default";
+        if (bubbleRadiusDp == BUBBLE_RADIUS_DEFAULT) return "GrokLink default";
         if (bubbleRadiusDp <= 22) return "Soft";
         return "Rounded";
     }
@@ -655,13 +655,13 @@ public final class OrbitProStyle {
     }
 
     public String glassOpacityLabel() {
-        if (glassOpacity == GLASS_OPACITY_DEFAULT) return "Orbit default";
+        if (glassOpacity == GLASS_OPACITY_DEFAULT) return "GrokLink default";
         return glassOpacity < GLASS_OPACITY_DEFAULT ? "More see-through" : "More solid";
     }
 
     /** Shared by tint and edge, which are the same percentage scale with the same three landmarks. */
     public static String strengthLabel(int value) {
-        if (value == 100) return "Orbit default";
+        if (value == 100) return "GrokLink default";
         if (value == 0) return "Neutral";
         return value < 100 ? "Subtle" : "Stronger";
     }
@@ -717,7 +717,7 @@ public final class OrbitProStyle {
     public static String glowStrengthLabel(int value) {
         if (value <= 20) return "Faint";
         if (value <= 40) return "Subtle";
-        if (value == GLOW_STRENGTH_DEFAULT) return "Orbit default";
+        if (value == GLOW_STRENGTH_DEFAULT) return "GrokLink default";
         if (value <= 70) return "Clear";
         return "Dramatic";
     }
@@ -739,7 +739,7 @@ public final class OrbitProStyle {
 
     public static String glowSizeLabel(int value) {
         if (value <= 35) return "Focused";
-        if (value == GLOW_SIZE_DEFAULT) return "Orbit default";
+        if (value == GLOW_SIZE_DEFAULT) return "GrokLink default";
         if (value <= 75) return "Wide";
         return "Atmospheric";
     }

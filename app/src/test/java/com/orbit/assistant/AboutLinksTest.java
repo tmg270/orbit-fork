@@ -23,7 +23,7 @@ import org.robolectric.shadows.ShadowToast;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {29, 35})
 public class AboutLinksTest {
-    private static final String REPO = "https://github.com/lpnovi/Orbit-Assistant";
+    private static final String REPO = "https://github.com/lpnovi/GrokLink-Assistant";
 
     @org.junit.Before public void setUp() {
         TestWorkManager.ensureInitialized(RuntimeEnvironment.getApplication());

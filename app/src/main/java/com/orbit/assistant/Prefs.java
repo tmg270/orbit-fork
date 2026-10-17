@@ -391,15 +391,13 @@ public final class Prefs {
     }
 
     public static String provider(Context c) {
-        return normalizeProvider(get(c).getString(PROVIDER, PROVIDER_CHATGPT));
+        return normalizeProvider(get(c).getString(PROVIDER, PROVIDER_XAI));
     }
 
     /** Unknown stored provider ids resolve to ChatGPT rather than to undefined behavior. */
     public static String normalizeProvider(String provider) {
-        if (PROVIDER_CHATGPT.equals(provider) || PROVIDER_RELAY.equals(provider) ||
-                PROVIDER_LOCAL.equals(provider) || PROVIDER_OPENROUTER.equals(provider)
-                || PROVIDER_ANTHROPIC.equals(provider) || PROVIDER_XAI.equals(provider)) return provider;
-        return PROVIDER_CHATGPT;
+        // GrokLink: xAI is the only provider; anything else stored by Orbit falls back to it.
+        return PROVIDER_XAI;
     }
     public static String backendUrl(Context c) { return get(c).getString(BACKEND_URL, "").trim(); }
     public static String token(Context c) { return SecureStore.loadRelayToken(c); }

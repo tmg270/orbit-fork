@@ -16,11 +16,11 @@ public final class AskOrbitTileService extends TileService {
         if (tile == null) return;
         boolean active = VoiceInteractionService.isActiveService(this,
                 new ComponentName(this, OrbitVoiceInteractionService.class));
-        tile.setLabel("Orbit");
+        tile.setLabel("GrokLink");
         tile.setState(active ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
-        if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(active ? "Ask Orbit" : "Set up assistant");
+        if (Build.VERSION.SDK_INT >= 29) tile.setSubtitle(active ? "Ask GrokLink" : "Set up assistant");
         if (Build.VERSION.SDK_INT >= 30) {
-            tile.setStateDescription(active ? "Ready" : "Orbit is not the active assistant");
+            tile.setStateDescription(active ? "Ready" : "GrokLink is not the active assistant");
         }
         tile.updateTile();
     }

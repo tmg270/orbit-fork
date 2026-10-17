@@ -72,7 +72,7 @@ public final class ReleaseWorkflowAuditTest {
                 "v0.7.7.5-test", "beta-v0.7.7.5", "v0.7.7.5-beta.01"}) {
             assertTrue(tag + " must be rejected by the workflow",
                     !stable.matcher(tag).matches() && !beta.matcher(tag).matches());
-            assertTrue(tag + " must be rejected by Orbit", !OrbitVersion.isValidTag(tag));
+            assertTrue(tag + " must be rejected by GrokLink", !OrbitVersion.isValidTag(tag));
         }
     }
 
@@ -144,16 +144,16 @@ public final class ReleaseWorkflowAuditTest {
     @Test public void theReleaseTitleUsesTheReadableBuildName() {
         String yaml = workflow();
         contains(yaml, "display_name=\"${base_version} Beta ${beta_number}\"",
-                "a Beta release is titled Orbit Assistant v<version> Beta <n>");
-        contains(yaml, "--title \"Orbit Assistant v${{ steps.source.outputs.display_name }}\"",
+                "a Beta release is titled GrokLink v<version> Beta <n>");
+        contains(yaml, "--title \"GrokLink v${{ steps.source.outputs.display_name }}\"",
                 "the published title must use that readable name");
     }
 
     /** The workflow's title format and Orbit's own must produce the same string. */
     @Test public void theTitleFormatMatchesOrbitsHelper() {
-        assertTrue(OrbitVersion.releaseTitle("0.7.7.4").equals("Orbit Assistant v0.7.7.4"));
+        assertTrue(OrbitVersion.releaseTitle("0.7.7.4").equals("GrokLink v0.7.7.4"));
         assertTrue(OrbitVersion.releaseTitle("0.7.7.5-beta.1")
-                .equals("Orbit Assistant v0.7.7.5 Beta 1"));
+                .equals("GrokLink v0.7.7.5 Beta 1"));
     }
 
     // ---- verification that must never be weakened ----------------------------------------------------
@@ -169,9 +169,9 @@ public final class ReleaseWorkflowAuditTest {
                 "the package name is pinned in the workflow");
         contains(yaml, "EXPECTED_CERT_SHA256: 7D:AD:61:93:85:DF:F1:1E:C7:31:AA:55:5F:2B:44:8A:"
                         + "94:3C:73:91:81:3D:1A:94:DF:1C:B4:23:2E:CD:41:E3",
-                "the permanent Orbit certificate is pinned in the workflow");
+                "the permanent GrokLink certificate is pinned in the workflow");
         contains(yaml, "sha256sum", "the APK checksum file is generated");
-        contains(yaml, "\"schema\": 1", "the manifest schema stays 1 for older Orbit installs");
+        contains(yaml, "\"schema\": 1", "the manifest schema stays 1 for older GrokLink installs");
         contains(yaml, "orbit-update.json", "the update manifest is generated and published");
         contains(yaml, "--verify-tag", "gh must confirm the tag before publishing");
     }
@@ -181,8 +181,8 @@ public final class ReleaseWorkflowAuditTest {
      * must not change in the release that v0.7.7.3 users are meant to receive.
      */
     @Test public void theApkAssetNamingIsUnchanged() {
-        contains(workflow(), "Orbit-Assistant-v${EXPECTED_VERSION_NAME}.apk",
-                "the APK asset keeps the name older Orbit versions expect");
+        contains(workflow(), "GrokLink-Assistant-v${EXPECTED_VERSION_NAME}.apk",
+                "the APK asset keeps the name older GrokLink versions expect");
     }
 
     @Test public void theCertificatePinMatchesTheOneCompiledIntoOrbit() throws Exception {
@@ -202,7 +202,7 @@ public final class ReleaseWorkflowAuditTest {
                 "notes are keyed by the exact versionName, Beta suffix included");
         contains(yaml, "No CHANGELOG.md entry found for v", "a missing entry fails the release");
         contains(yaml, "if body_words > 200:", "release notes stay concise");
-        contains(yaml, "notes = f'## Orbit Assistant v{display}", "the heading uses the readable name");
+        contains(yaml, "notes = f'## GrokLink v{display}", "the heading uses the readable name");
     }
 
     /** The changelog entry this very release will be published from must already exist. */

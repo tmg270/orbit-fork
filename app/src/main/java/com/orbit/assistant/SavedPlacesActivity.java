@@ -94,7 +94,7 @@ public final class SavedPlacesActivity extends Activity {
         page.addView(header);
 
         TextView intro = UiKit.text(this,
-                "Save places such as Home, Work, or Gym once, then choose them while creating location triggers or location-based IF conditions. Saved coordinates stay local to Orbit.",
+                "Save places such as Home, Work, or Gym once, then choose them while creating location triggers or location-based IF conditions. Saved coordinates stay local to GrokLink.",
                 14, UiKit.MUTED, false);
         intro.setLineSpacing(0, 1.13f);
         LinearLayout.LayoutParams introLp = new LinearLayout.LayoutParams(-1, -2);

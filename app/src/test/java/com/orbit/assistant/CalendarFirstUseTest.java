@@ -137,7 +137,7 @@ public final class CalendarFirstUseTest {
      */
     private void answerPermissionPrompt(boolean grant) {
         Intent started = shadowApp().getNextStartedActivity();
-        assertNotNull("Orbit should have opened its permission bridge", started);
+        assertNotNull("GrokLink should have opened its permission bridge", started);
         assertEquals(CalendarPermissionActivity.class.getName(),
                 started.getComponent().getClassName());
         if (grant) grantCalendar();
@@ -353,12 +353,12 @@ public final class CalendarFirstUseTest {
         assertFalse("no writable calendar is not fixed by choosing one",
                 CalendarActionExecutor.needsTargetChoice(action,
                         DeviceActionExecutor.STATUS_UNAVAILABLE,
-                        "No writable calendar is set up on this phone, so Orbit has nowhere to add"
+                        "No writable calendar is set up on this phone, so GrokLink has nowhere to add"
                                 + " these events."));
         assertFalse("a missing permission already has Grant access",
                 CalendarActionExecutor.needsTargetChoice(action,
                         DeviceActionExecutor.STATUS_PERMISSION,
-                        "Allow Calendar access so Orbit can add these events."));
+                        "Allow Calendar access so GrokLink can add these events."));
         assertFalse("ordinary action cards stay as simple as they were",
                 CalendarActionExecutor.needsTargetChoice(
                         new AssistantReply.Action("SET_TIMER", new JSONObject(), false),

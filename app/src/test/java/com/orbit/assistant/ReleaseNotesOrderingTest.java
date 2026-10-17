@@ -30,7 +30,7 @@ public final class ReleaseNotesOrderingTest {
                     .put("tag_name", tag)
                     .put("draft", draft)
                     .put("prerelease", prerelease)
-                    .put("name", "Orbit Assistant " + tag)
+                    .put("name", "GrokLink " + tag)
                     .put("body", "Notes for " + tag)
                     .put("published_at", "2026-08-14T00:00:00Z");
         } catch (Exception e) {
@@ -102,14 +102,14 @@ public final class ReleaseNotesOrderingTest {
                 ReleaseNotesRepository.parseRelease(published("v0.7.2.15"));
         assertNotNull(note);
         assertEquals("0.7.2.15", note.versionName);
-        assertEquals("Orbit Assistant v0.7.2.15", note.title);
+        assertEquals("GrokLink v0.7.2.15", note.title);
         assertEquals("Notes for v0.7.2.15", note.body);
         assertEquals("2026-08-14T00:00:00Z", note.publishedAt);
     }
 
     @Test public void aMissingTitleFallsBackToTheTag() throws Exception {
         JSONObject object = published("v0.7.2.15").put("name", "");
-        assertEquals("Orbit Assistant v0.7.2.15",
+        assertEquals("GrokLink v0.7.2.15",
                 ReleaseNotesRepository.parseRelease(object).title);
     }
 

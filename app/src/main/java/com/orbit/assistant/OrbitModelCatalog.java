@@ -93,7 +93,7 @@ public final class OrbitModelCatalog {
 
     /** Orbit Local has one model and no reasoning parameter, so it exposes no strengths. */
     private static final List<AiModelSpec> LOCAL = Collections.singletonList(
-            new AiModelSpec(ORBIT_LOCAL, "Orbit Local", "Orbit Local", Prefs.PROVIDER_LOCAL,
+            new AiModelSpec(ORBIT_LOCAL, "GrokLink Local", "GrokLink Local", Prefs.PROVIDER_LOCAL,
                     "Private, on this phone", null, false, 0));
 
     /** Trusted offline baseline, verified against Anthropic's model overview on 2026-10-02. */
@@ -177,14 +177,8 @@ public final class OrbitModelCatalog {
 
     /** The models a provider offers, in picker order. Empty for a provider with no chat yet. */
     public static List<AiModelSpec> modelsFor(String providerId) {
-        if (Prefs.PROVIDER_CHATGPT.equals(providerId)) return CHATGPT;
-        if (Prefs.PROVIDER_RELAY.equals(providerId)) return RELAY;
-        if (Prefs.PROVIDER_LOCAL.equals(providerId)) return LOCAL;
-        if (Prefs.PROVIDER_ANTHROPIC.equals(providerId)) return dynamicAnthropic.isEmpty()
-                ? ANTHROPIC : dynamicAnthropic;
+        // GrokLink: only xAI models exist; every other provider id has none.
         if (Prefs.PROVIDER_XAI.equals(providerId)) return dynamicXai.isEmpty() ? XAI : dynamicXai;
-        if (Prefs.PROVIDER_OPENROUTER.equals(providerId)) return dynamicOpenRouter.isEmpty()
-                ? OPENROUTER : dynamicOpenRouter;
         return Collections.emptyList();
     }
 

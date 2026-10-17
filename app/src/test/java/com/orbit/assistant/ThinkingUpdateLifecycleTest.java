@@ -164,7 +164,7 @@ public final class ThinkingUpdateLifecycleTest {
         PendingRequestStore.Item item = queue("c-failed");
         OrbitRequestManager.dispatchThinking(item.id,
                 ThinkingUpdate.progress(ThinkingUpdate.Stage.WORKING));
-        OrbitRequestManager.dispatchError(item.id, "Orbit could not finish this response.");
+        OrbitRequestManager.dispatchError(item.id, "GrokLink could not finish this response.");
         assertNull(OrbitRequestManager.latestThinking(item.id));
     }
 

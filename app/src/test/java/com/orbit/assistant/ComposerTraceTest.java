@@ -143,7 +143,7 @@ public final class ComposerTraceTest {
         ComposerTrace.begin("side-button overlay");
         ComposerTrace.event("submit.before-clear");
         String report = ComposerTrace.report();
-        assertTrue(report.startsWith("Orbit typing diagnostics"));
+        assertTrue(report.startsWith("GrokLink typing diagnostics"));
         assertTrue(report.contains("submit.before-clear"));
     }
 

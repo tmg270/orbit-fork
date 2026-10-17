@@ -53,11 +53,11 @@ public final class DistributionBoundaryTest {
     }
 
     @Test public void theGitHubEditionKeepsItsUpdaterEndpoints() {
-        assertEquals("https://api.github.com/repos/lpnovi/Orbit-Assistant/releases/latest",
+        assertEquals("https://api.github.com/repos/lpnovi/GrokLink-Assistant/releases/latest",
                 OrbitEdition.latestReleaseApi());
-        assertEquals("https://api.github.com/repos/lpnovi/Orbit-Assistant/releases?per_page=15",
+        assertEquals("https://api.github.com/repos/lpnovi/GrokLink-Assistant/releases?per_page=15",
                 OrbitEdition.releasesListApi(15));
-        assertEquals("https://github.com/lpnovi/Orbit-Assistant/releases/download/",
+        assertEquals("https://github.com/lpnovi/GrokLink-Assistant/releases/download/",
                 OrbitEdition.releaseDownloadBase());
         assertEquals("application/vnd.android.package-archive",
                 OrbitEdition.apkInstallerIntent(android.net.Uri.parse("content://x/y")).getType());
@@ -68,7 +68,7 @@ public final class DistributionBoundaryTest {
         PackageInfo info = context.getPackageManager().getPackageInfo(
                 context.getPackageName(), PackageManager.GET_PERMISSIONS);
         List<String> requested = Arrays.asList(info.requestedPermissions);
-        assertTrue("the GitHub updater and Orbit Local installer need it",
+        assertTrue("the GitHub updater and GrokLink Local installer need it",
                 requested.contains("android.permission.REQUEST_INSTALL_PACKAGES"));
         assertTrue(read("app/src/main/AndroidManifest.xml")
                 .contains("android.permission.REQUEST_INSTALL_PACKAGES"));
@@ -271,7 +271,7 @@ public final class DistributionBoundaryTest {
         String instruction = "Enable Pro Preview in Diagnostics to try saved layouts.";
         assertEquals(instruction, OrbitProEntitlement.lockedGuidance(true, instruction));
         String stable = OrbitProEntitlement.lockedGuidance(false, instruction);
-        assertEquals("Orbit Pro isn't available for purchase yet.", stable);
+        assertEquals("GrokLink Pro isn't available for purchase yet.", stable);
         assertFalse(stable.contains("Preview"));
         assertFalse(stable.contains("Diagnostics"));
     }
@@ -308,8 +308,8 @@ public final class DistributionBoundaryTest {
     // ---- What's New in the Play edition ----------------------------------------------------------
 
     @Test public void playReleaseNotesDropOnlyTheApkFooter() {
-        String body = "## Orbit Assistant v0.8.0.0\n\nSummary.\n\n- One\n- Two\n\n"
-                + "This APK is signed with Orbit Assistant's permanent release certificate. "
+        String body = "## GrokLink v0.8.0.0\n\nSummary.\n\n- One\n- Two\n\n"
+                + "This APK is signed with GrokLink's permanent release certificate. "
                 + "The attached `.sha256` file can be used to verify the APK download.\n";
         String play = WhatsNewActivity.withoutApkFooter(body);
         assertFalse(play.contains("APK"));

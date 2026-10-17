@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * "Make Orbit yours", after Theme Studio.
+ * "Make GrokLink yours", after Theme Studio.
  *
  * <p>This page predates Theme Studio and had grown three colour controls of its own: an accent
  * picker and two bubble-colour pickers, each writing the same preference keys the editor writes.
@@ -47,7 +47,7 @@ import java.util.List;
 @Config(sdk = {29, 35})
 public final class OnboardingAppearanceTest {
 
-    /** "Make Orbit yours" is step 6 of 7, and stays there. */
+    /** "Make GrokLink yours" is step 6 of 7, and stays there. */
     private static final int PERSONALIZE_STEP = 5;
 
     private Context context;
@@ -78,7 +78,7 @@ public final class OnboardingAppearanceTest {
         String text = textOf(personalize().get());
         assertTrue("the step counter still reads six of seven", text.contains("6 of 7"));
         assertTrue("and the page is still the personalization page",
-                text.contains("Make Orbit yours"));
+                text.contains("Make GrokLink yours"));
 
         String source = source();
         assertTrue(source.contains("(step + 1) + \" of 7\""));
@@ -93,7 +93,7 @@ public final class OnboardingAppearanceTest {
         OnboardingState.setCurrentStep(context, PERSONALIZE_STEP);
         assertEquals(PERSONALIZE_STEP, OnboardingState.currentStep(context));
         Activity activity = personalize().get();
-        assertTrue(textOf(activity).contains("Make Orbit yours"));
+        assertTrue(textOf(activity).contains("Make GrokLink yours"));
         assertEquals("rendering the page must not move the stored step",
                 PERSONALIZE_STEP, OnboardingState.currentStep(context));
     }
@@ -123,7 +123,7 @@ public final class OnboardingAppearanceTest {
         String text = textOf(personalize().get());
         assertFalse("the standalone Accent selector is gone", text.contains("Accent"));
         assertFalse("the user bubble selector is gone", text.contains("Your bubbles"));
-        assertFalse("the Orbit bubble selector is gone", text.contains("Orbit bubbles"));
+        assertFalse("the GrokLink bubble selector is gone", text.contains("GrokLink bubbles"));
         assertFalse("and the section that held them is gone with them",
                 text.contains("Conversation style"));
 
@@ -159,7 +159,7 @@ public final class OnboardingAppearanceTest {
             assertNotNull(OrbitTheme.builtIn(preset.id));
             assertFalse("an AMOLED variant is a duplicate of another preset here", preset.amoled);
         }
-        assertEquals("Orbit's own default comes first", OrbitTheme.ID_DEFAULT, offered.get(0).id);
+        assertEquals("GrokLink's own default comes first", OrbitTheme.ID_DEFAULT, offered.get(0).id);
 
         String source = source();
         assertTrue("read from the canonical list",
@@ -180,7 +180,7 @@ public final class OnboardingAppearanceTest {
         for (OrbitTheme preset : OrbitThemeStore.onboardingPresets()) {
             assertNotNull("every preset needs a card: " + preset.name,
                     findByDescriptionPrefix(activity.getWindow().getDecorView(),
-                            preset.name + ", Orbit preset"));
+                            preset.name + ", GrokLink preset"));
         }
     }
 
@@ -207,7 +207,7 @@ public final class OnboardingAppearanceTest {
         assertTrue("and is described as independent of the preset",
                 text.contains("Works with any preset."));
         assertFalse("there is no separate AMOLED preset card to choose instead",
-                text.contains("Orbit AMOLED"));
+                text.contains("GrokLink AMOLED"));
     }
 
     /** Turning true black on keeps the colours the user chose, and only changes the page. */
@@ -252,21 +252,21 @@ public final class OnboardingAppearanceTest {
     /**
      * Orbit Default plus true black is Orbit AMOLED, and Theme Studio is told so.
      *
-     * <p>This is the case the canonical rule exists for. Storing "Orbit Default, AMOLED on" would
+     * <p>This is the case the canonical rule exists for. Storing "GrokLink Default, AMOLED on" would
      * leave the editor showing Orbit Default selected while Orbit drew a black page, which is a
      * screen lying about the user's own setting.
      */
     @Test public void theDefaultPresetWithTrueBlackIsRecordedAsOrbitAmoled() {
         Activity activity = personalize().get();
-        assertTrue(choose(activity, "Orbit Default"));
+        assertTrue(choose(activity, "GrokLink Default"));
         Activity again = personalize().get();
         assertTrue(toggleAmoled(again, true));
 
         OrbitTheme active = OrbitThemeStore.active(context);
         assertEquals(OrbitTheme.ID_AMOLED, active.id);
-        assertEquals("Orbit AMOLED", active.name);
+        assertEquals("GrokLink AMOLED", active.name);
         assertTrue(active.amoled);
-        assertTrue("and it is Orbit's shipped preset, not a copy of it",
+        assertTrue("and it is GrokLink's shipped preset, not a copy of it",
                 active.sameColours(OrbitTheme.builtIn(OrbitTheme.ID_AMOLED)));
     }
 
@@ -299,26 +299,26 @@ public final class OnboardingAppearanceTest {
                 studio.isDirty());
         assertNotNull("and with the chosen preset marked as the selected one",
                 findByDescriptionContaining(studio.getWindow().getDecorView(),
-                        "Moss, Orbit preset, selected"));
+                        "Moss, GrokLink preset, selected"));
         assertEquals(OrbitTheme.ID_MOSS, OrbitThemeStore.active(context).id);
     }
 
     /** The same holds for a preset plus true black, which is where a wrong label would show. */
     @Test public void themeStudioIsHonestAboutTrueBlackChosenDuringSetup() {
         Activity activity = personalize().get();
-        assertTrue(choose(activity, "Orbit Default"));
+        assertTrue(choose(activity, "GrokLink Default"));
         Activity again = personalize().get();
         assertTrue(toggleAmoled(again, true));
 
         ThemeStudioActivity studio =
                 Robolectric.buildActivity(ThemeStudioActivity.class).setup().get();
         assertFalse(studio.isDirty());
-        assertNotNull("Orbit AMOLED is what is selected, not Orbit Default",
+        assertNotNull("GrokLink AMOLED is what is selected, not GrokLink Default",
                 findByDescriptionContaining(studio.getWindow().getDecorView(),
-                        "Orbit AMOLED, Orbit preset, selected"));
-        assertNull("and Orbit Default must not also claim to be selected",
+                        "GrokLink AMOLED, GrokLink preset, selected"));
+        assertNull("and GrokLink Default must not also claim to be selected",
                 findByDescriptionContaining(studio.getWindow().getDecorView(),
-                        "Orbit Default, Orbit preset, selected"));
+                        "GrokLink Default, GrokLink preset, selected"));
     }
 
     // ---- typography stays -------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ public final class OnboardingAppearanceTest {
     @Test public void theappFontStays() {
         String text = textOf(personalize().get());
         assertTrue(text.contains("App font"));
-        assertTrue("with Orbit's own default shown", text.contains("Orbit Default"));
+        assertTrue("with GrokLink's own default shown", text.contains("GrokLink Default"));
         String source = source();
         for (String font : new String[]{"orbit_default", "times_new_roman", "light", "condensed",
                 "monospace", "casual"}) {
@@ -374,7 +374,7 @@ public final class OnboardingAppearanceTest {
 
     private boolean choose(Activity activity, String presetName) {
         View card = findByDescriptionPrefix(activity.getWindow().getDecorView(),
-                presetName + ", Orbit preset");
+                presetName + ", GrokLink preset");
         if (card == null) return false;
         card.performClick();
         return true;

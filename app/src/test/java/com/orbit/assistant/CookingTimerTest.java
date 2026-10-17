@@ -52,7 +52,7 @@ public final class CookingTimerTest {
 
     private AssistantReply.Action timer(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should still act on: " + prompt, reply);
+        assertNotNull("GrokLink should still act on: " + prompt, reply);
         assertTrue(prompt, reply.actions.size() >= 1);
         assertEquals(prompt, "SET_TIMER", reply.actions.get(0).type);
         return reply.actions.get(0);
@@ -64,7 +64,7 @@ public final class CookingTimerTest {
 
     private String spoken(String prompt) {
         AssistantReply reply = LocalCommandRouter.tryHandle(context, prompt);
-        assertNotNull("Orbit should still act on: " + prompt, reply);
+        assertNotNull("GrokLink should still act on: " + prompt, reply);
         return reply.text;
     }
 
@@ -92,19 +92,19 @@ public final class CookingTimerTest {
 
     /** Nothing was named, so nothing is invented: the ordinary Orbit label is kept. */
     @Test public void anUnnamedTimerKeepsTheGenericLabel() {
-        assertEquals("Orbit timer", label("Set a timer for 12 minutes"));
-        assertEquals("Orbit timer", label("set a timer for 20 minutes"));
-        assertEquals("Orbit timer", label("start a 10 minute timer"));
-        assertEquals("Orbit timer", label("set a timer for five minutes"));
-        assertEquals("Orbit timer", label("set a new timer for 3 minutes"));
-        assertEquals("Orbit timer", label("set another timer for 3 minutes"));
+        assertEquals("GrokLink timer", label("Set a timer for 12 minutes"));
+        assertEquals("GrokLink timer", label("set a timer for 20 minutes"));
+        assertEquals("GrokLink timer", label("start a 10 minute timer"));
+        assertEquals("GrokLink timer", label("set a timer for five minutes"));
+        assertEquals("GrokLink timer", label("set a new timer for 3 minutes"));
+        assertEquals("GrokLink timer", label("set another timer for 3 minutes"));
     }
 
     /** The duration is never mistaken for the thing being timed. */
     @Test public void countsAndUnitsAreNeverReadAsALabel() {
         for (String prompt : new String[]{"set a 45 second timer", "set a timer for 2 hours",
                 "set a timer for 90 secs", "start a 5 minute timer", "set a timer for one minute"}) {
-            assertEquals(prompt, "Orbit timer", label(prompt));
+            assertEquals(prompt, "GrokLink timer", label(prompt));
         }
     }
 
@@ -131,7 +131,7 @@ public final class CookingTimerTest {
         assertTrue(result.success);
 
         Intent started = shadowOf(context).getNextStartedActivity();
-        assertNotNull("Orbit must start the system Clock's timer", started);
+        assertNotNull("GrokLink must start the system Clock's timer", started);
         assertEquals(AlarmClock.ACTION_SET_TIMER, started.getAction());
         assertEquals(240, started.getIntExtra(AlarmClock.EXTRA_LENGTH, -1));
         assertEquals("Steak", started.getStringExtra(AlarmClock.EXTRA_MESSAGE));
@@ -143,7 +143,7 @@ public final class CookingTimerTest {
         assertNotNull(started);
         assertEquals(AlarmClock.ACTION_SET_TIMER, started.getAction());
         assertEquals(1200, started.getIntExtra(AlarmClock.EXTRA_LENGTH, -1));
-        assertEquals("Orbit timer", started.getStringExtra(AlarmClock.EXTRA_MESSAGE));
+        assertEquals("GrokLink timer", started.getStringExtra(AlarmClock.EXTRA_MESSAGE));
     }
 
     /** Durations are exactly what they were before labels existed. */

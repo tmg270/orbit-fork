@@ -125,7 +125,7 @@ public final class DiagnosticStore {
                                          int progressEvents, boolean moved) {
         c.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit()
                 .putString("back_outcome", safe(outcome))
-                .putString("back_path", moved ? "Orbit progress" : "dirty-state guarded")
+                .putString("back_path", moved ? "GrokLink progress" : "dirty-state guarded")
                 .putString("back_screen", safe(screen))
                 .putInt("back_progress_events", Math.max(0, progressEvents))
                 .putLong("back_updated", System.currentTimeMillis())

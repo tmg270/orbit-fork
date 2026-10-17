@@ -194,7 +194,7 @@ public final class ChatActivityMessageActionsTest {
         assertTrue(copied.contains("OLED vs Mini LED"));
         assertTrue(copied.contains("OLED is usually best."));
         assertFalse(copied.contains("Copy code block"));
-        assertFalse(copied.contains("Copy Orbit response"));
+        assertFalse(copied.contains("Copy GrokLink response"));
     }
 
     // ---- Long-press selection -----------------------------------------------------------------
@@ -208,7 +208,7 @@ public final class ChatActivityMessageActionsTest {
         assertTrue(bubble.performLongClick());
 
         Drawable held = bubble.getForeground();
-        assertTrue("the held message must carry Orbit's ripple selection",
+        assertTrue("the held message must carry GrokLink's ripple selection",
                 held instanceof OrbitMessageHighlight);
         assertEquals("the selection must use the live accent",
                 UiKit.accent(activity), ((OrbitMessageHighlight) held).accentColor());
@@ -406,7 +406,7 @@ public final class ChatActivityMessageActionsTest {
     }
 
     private static int countCopyButtons(View view) {
-        return countByDescription(view, "Copy Orbit response");
+        return countByDescription(view, "Copy GrokLink response");
     }
 
     private static int countRegenButtons(View view) {

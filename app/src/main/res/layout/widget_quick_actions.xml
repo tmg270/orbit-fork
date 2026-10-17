@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans"
         android:includeFontPadding="false"
-        android:text="Orbit Quick Actions"
+        android:text="GrokLink Quick Actions"
         android:textColor="#FFF4F4F8"
         android:textSize="12sp"
         android:textStyle="bold" />
@@ -37,7 +37,7 @@
             android:orientation="vertical"
             android:padding="4dp">
             <ImageView android:id="@+id/widget_quick_icon_1" android:layout_width="24dp" android:layout_height="24dp" android:contentDescription="@null" android:src="@drawable/ic_orbit_tile" />
-            <TextView android:id="@+id/widget_quick_label_1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:ellipsize="end" android:fontFamily="sans" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:text="Ask Orbit" android:textColor="#FFF4F4F8" android:textSize="11sp" />
+            <TextView android:id="@+id/widget_quick_label_1" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:ellipsize="end" android:fontFamily="sans" android:gravity="center" android:includeFontPadding="false" android:maxLines="1" android:text="Ask GrokLink" android:textColor="#FFF4F4F8" android:textSize="11sp" />
         </LinearLayout>
 
         <LinearLayout

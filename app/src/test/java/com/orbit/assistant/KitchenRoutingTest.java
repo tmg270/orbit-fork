@@ -21,7 +21,7 @@ import org.junit.Test;
 public final class KitchenRoutingTest {
 
     private static void answers(String prompt, String expected) {
-        assertEquals("Orbit should answer this itself: " + prompt,
+        assertEquals("GrokLink should answer this itself: " + prompt,
                 expected, KitchenMathRouter.answer(prompt));
         assertTrue("recognition and answering must agree: " + prompt,
                 KitchenMathRouter.canHandle(prompt));

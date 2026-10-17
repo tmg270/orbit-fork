@@ -54,7 +54,7 @@ public final class OrbitPaletteTest {
                     colours.add(entry.color & 0x00FFFFFF));
             assertEquals(255, Color.alpha(entry.color));
         }
-        assertTrue("Orbit ships a palette, not a colour chart",
+        assertTrue("GrokLink ships a palette, not a colour chart",
                 OrbitPalette.entries().size() >= 6 && OrbitPalette.entries().size() <= 12);
     }
 
@@ -159,7 +159,7 @@ public final class OrbitPaletteTest {
         for (OrbitTheme preset : OrbitTheme.builtIns()) {
             for (String token : new String[]{
                     preset.accent, preset.userBubble, preset.assistantBubble}) {
-                assertNull(preset.name + " writes a named Orbit colour as " + token,
+                assertNull(preset.name + " writes a named GrokLink colour as " + token,
                         OrbitPalette.keyForHexToken(token));
             }
         }

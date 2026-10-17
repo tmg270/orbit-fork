@@ -37,7 +37,7 @@ public class OverlayStyleTest {
             Prefs.OVERLAY_STYLE_CUTIE};
     /** Present as their own buttons in every style. */
     private static final String[] EVERY_CONTROL = {
-            "Close Orbit", "Attach to message", "Voice input", "Send message",
+            "Close GrokLink", "Attach to message", "Voice input", "Send message",
             "Attach current screen", "Select or mark part of the current screen"};
 
     private Context context;
@@ -483,7 +483,7 @@ public class OverlayStyleTest {
 
     /** The header's AI chip: the one clickable TextView beside the title. */
     private static View modeChip(View root) {
-        View voice = find(root, "Close Orbit");
+        View voice = find(root, "Close GrokLink");
         ViewGroup header = (ViewGroup) voice.getParent();
         for (int i = 0; i < header.getChildCount(); i++) {
             View child = header.getChildAt(i);

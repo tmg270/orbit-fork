@@ -89,7 +89,7 @@ public final class UiKit {
     public static int SURFACE_3 = CLASSIC_SURFACE_3;
     public static int TEXT = CLASSIC_TEXT;
     public static int MUTED = CLASSIC_MUTED;
-    public static final int DEFAULT_ACCENT = Color.rgb(139, 124, 255);
+    public static final int DEFAULT_ACCENT = Color.rgb(34, 211, 238); // GrokLink signal cyan #22D3EE
     public static final int BLURPLE = Color.rgb(88, 101, 242); // Discord-style blurple
     public static final int PASTEL_PINK = Color.rgb(255, 209, 220); // #FFD1DC
     public static final int PASTEL_BLUE = Color.rgb(203, 229, 242); // #CBE5F2
@@ -177,7 +177,7 @@ public final class UiKit {
 
     public static String appearanceSignature(Context c) {
         if (c == null) return "";
-        return Prefs.get(c).getString(Prefs.ACCENT, "dynamic") +
+        return Prefs.get(c).getString(Prefs.ACCENT, "groklink") +
                 "|resolved=" + Integer.toHexString(accent(c)) +
                 "|amoled=" + Prefs.amoledMode(c) +
                 "|font=" + Prefs.appFont(c) +
@@ -941,7 +941,7 @@ public final class UiKit {
     }
 
     /**
-     * The accent value that means "whatever Orbit is using right now, asked for at draw time".
+     * The accent value that means "whatever GrokLink is using right now, asked for at draw time".
      *
      * <p>Fully transparent, so it can never collide with a real accent: every colour Orbit resolves
      * an accent to is opaque.
@@ -1123,7 +1123,7 @@ public final class UiKit {
     }
 
     public static int accent(Context c) {
-        String chosen = Prefs.get(c).getString(Prefs.ACCENT, "dynamic");
+        String chosen = Prefs.get(c).getString(Prefs.ACCENT, "groklink");
         return accentForName(c, chosen);
     }
 
@@ -1912,7 +1912,7 @@ public final class UiKit {
     }
 
     /** What Orbit calls itself in the companion app when it is only being Orbit. */
-    public static final String APP_TITLE = "Orbit";
+    public static final String APP_TITLE = "GrokLink";
 
     /** What it calls itself for Lelo. */
     public static final String LELO_TITLE = "Lelo's Cutie";

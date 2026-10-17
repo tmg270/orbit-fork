@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config;
 public final class OrbitLocalTrustTest {
 
     private static final String COMPONENT_ASSET =
-            "Orbit-Local-v" + BuildConfig.VERSION_NAME + ".apk";
+            "GrokLink-Local-v" + BuildConfig.VERSION_NAME + ".apk";
     private static final String CERT = OrbitLocalComponent.CERTIFICATE_SHA256;
     private static final String SHA =
             "a1b2c3d4e5f6071829304152637485960718293a4b5c6d7e8f90112233445566";
@@ -82,13 +82,13 @@ public final class OrbitLocalTrustTest {
         java.lang.reflect.Field field = OrbitUpdater.class.getDeclaredField("CERTIFICATE_SHA256");
         field.setAccessible(true);
         String updaterPin = ((String) field.get(null)).replace(":", "");
-        assertTrue("the component must be pinned to the same permanent Orbit certificate",
+        assertTrue("the component must be pinned to the same permanent GrokLink certificate",
                 updaterPin.equalsIgnoreCase(OrbitLocalComponent.CERTIFICATE_SHA256));
     }
 
     @Test public void theComponentPackageIsNotOrbitsOwn() {
         assertEquals("com.orbit.assistant.local", OrbitLocalComponent.PACKAGE);
-        assertFalse("the component must never share Orbit's package identity",
+        assertFalse("the component must never share GrokLink's package identity",
                 "com.orbit.assistant".equals(OrbitLocalComponent.PACKAGE));
     }
 
@@ -120,10 +120,10 @@ public final class OrbitLocalTrustTest {
      */
     @Test public void aComponentFromAnotherReleaseIsRejected() throws Exception {
         rejects(manifest(component().put("versionName", "0.7.7.4")),
-                "a component built for a different Orbit version");
+                "a component built for a different GrokLink version");
         rejects(manifest(component().put("versionCode", 1L)),
                 "a component with a mismatched version code");
-        rejects(manifest(component().put("apkAssetName", "Orbit-Local-v0.7.7.4.apk")),
+        rejects(manifest(component().put("apkAssetName", "GrokLink-Local-v0.7.7.4.apk")),
                 "a component asset from a different release");
     }
 
@@ -133,9 +133,9 @@ public final class OrbitLocalTrustTest {
      */
     @Test public void anIncompatibleProtocolIsRejected() throws Exception {
         rejects(manifest(component().put("protocol", OrbitLocalComponent.PROTOCOL_VERSION + 1)),
-                "a component speaking an interface Orbit does not understand yet");
+                "a component speaking an interface GrokLink does not understand yet");
         rejects(manifest(component().put("protocol", OrbitLocalComponent.PROTOCOL_VERSION - 1)),
-                "a component speaking an interface Orbit has moved on from");
+                "a component speaking an interface GrokLink has moved on from");
         rejects(manifest(component().put("protocol", 0)),
                 "a component with no declared protocol");
     }
@@ -150,7 +150,7 @@ public final class OrbitLocalTrustTest {
     @Test public void aForeignCertificateIsRejected() throws Exception {
         rejects(manifest(component().put("certificateSha256",
                         "00112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF")),
-                "a component claiming a certificate that is not Orbit's");
+                "a component claiming a certificate that is not GrokLink's");
     }
 
     // ---- asset naming ------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ public final class OrbitLocalTrustTest {
     private static void rejects(JSONObject manifest, String why) {
         try {
             OrbitLocalInstaller.Expected.from(manifest);
-            fail("Orbit must reject " + why);
+            fail("GrokLink must reject " + why);
         } catch (Exception expected) {
             // Fail-closed: an invalid component block throws rather than yielding partial trust.
         }
@@ -193,7 +193,7 @@ public final class OrbitLocalTrustTest {
                 .put("packageName", "com.orbit.assistant")
                 .put("versionName", BuildConfig.VERSION_NAME)
                 .put("versionCode", BuildConfig.VERSION_CODE)
-                .put("apkAssetName", "Orbit-Assistant-v" + BuildConfig.VERSION_NAME + ".apk")
+                .put("apkAssetName", "GrokLink-Assistant-v" + BuildConfig.VERSION_NAME + ".apk")
                 .put("apkSha256", SHA)
                 .put("certificateSha256", CERT);
         if (component != null) manifest.put("component", component);

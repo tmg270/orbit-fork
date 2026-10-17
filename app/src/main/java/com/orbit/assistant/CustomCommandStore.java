@@ -115,7 +115,7 @@ public final class CustomCommandStore {
             if (!own.add(normalized))
                 return Validation.error("The primary phrase and additional phrases must be unique.");
             if (isReservedPhrase(phrase))
-                return Validation.error("\"" + phrase + "\" conflicts with an existing Orbit command. Choose a more specific phrase.");
+                return Validation.error("\"" + phrase + "\" conflicts with an existing GrokLink command. Choose a more specific phrase.");
         }
 
         if (command.enabled && c != null) {

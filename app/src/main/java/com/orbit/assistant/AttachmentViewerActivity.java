@@ -343,7 +343,7 @@ public final class AttachmentViewerActivity extends Activity {
         actions.addView(openSource, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(this, 40)));
 
-        saveToVault = textAction("Save to Vault", "Save this image to Orbit Vault");
+        saveToVault = textAction("Save to Vault", "Save this image to GrokLink Vault");
         saveToVault.setOnClickListener(v -> saveCurrentToVault());
         LinearLayout.LayoutParams saveLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(this, 40));
@@ -412,7 +412,7 @@ public final class AttachmentViewerActivity extends Activity {
         UiKit.haptic(saveToVault, HapticFeedbackConstants.CLOCK_TICK);
         OrbitVaultItem saved = OrbitVaultStore.saveRichAnswerImage(this, bitmap, image);
         android.widget.Toast.makeText(this,
-                saved == null ? OrbitVaultStore.saveFailureMessage(this, "Orbit could not save this image") : OrbitVaultStore.savedMessage(this),
+                saved == null ? OrbitVaultStore.saveFailureMessage(this, "GrokLink could not save this image") : OrbitVaultStore.savedMessage(this),
                 android.widget.Toast.LENGTH_SHORT).show();
     }
 

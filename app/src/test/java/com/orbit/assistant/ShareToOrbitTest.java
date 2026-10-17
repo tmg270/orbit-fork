@@ -305,7 +305,7 @@ public final class ShareToOrbitTest {
                 "which is sharper?", java.util.Collections.singletonList(uri("a")), "image/jpeg"));
         assertFalse("a PDF", ShareToOrbitActivity.vaultCanHold(
                 "", java.util.Collections.singletonList(uri("doc")), "application/pdf"));
-        assertFalse("a mixed set Orbit resolves per item", ShareToOrbitActivity.vaultCanHold(
+        assertFalse("a mixed set GrokLink resolves per item", ShareToOrbitActivity.vaultCanHold(
                 "", java.util.Collections.singletonList(uri("thing")), "*/*"));
         assertFalse("nothing at all", ShareToOrbitActivity.vaultCanHold(
                 "   ", new ArrayList<>(), "text/plain"));
@@ -313,7 +313,7 @@ public final class ShareToOrbitTest {
 
     @Test public void ashareOfSeveralPhotosOpensTheConversationWithNoQuestion() {
         runShare(sendMultiple(uri("a"), uri("b"), uri("c")), null);
-        assertFalse("Orbit must not ask about a share it could only answer one way", lastAsked);
+        assertFalse("GrokLink must not ask about a share it could only answer one way", lastAsked);
         assertEquals(2, allStarted().size());
         assertEquals(ChatActivity.class.getName(),
                 allStarted().get(1).getComponent().getClassName());
@@ -321,7 +321,7 @@ public final class ShareToOrbitTest {
 
     @Test public void ashareOfTextOffersBothDestinations() {
         runShare(sendText("worth keeping"), null);
-        assertTrue("Orbit asks rather than deciding for the user", lastAsked);
+        assertTrue("GrokLink asks rather than deciding for the user", lastAsked);
         assertTrue("and opens nothing until it is answered", allStarted().isEmpty());
     }
 
@@ -455,7 +455,7 @@ public final class ShareToOrbitTest {
         assertTrue(block.contains("android:mimeType=\"image/*\""));
         assertTrue(block.contains("android:mimeType=\"application/pdf\""));
         assertTrue(block.contains("android:mimeType=\"text/*\""));
-        assertFalse("Orbit must not claim it can read every file type",
+        assertFalse("GrokLink must not claim it can read every file type",
                 block.contains("android:mimeType=\"*/*\""));
         assertTrue("a consumed share must not become a Recents card",
                 block.contains("android:excludeFromRecents=\"true\""));

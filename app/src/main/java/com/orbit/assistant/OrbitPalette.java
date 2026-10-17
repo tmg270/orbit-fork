@@ -60,6 +60,7 @@ public final class OrbitPalette {
      */
     private static final List<Entry> ENTRIES = Collections.unmodifiableList(java.util.Arrays.asList(
             new Entry("blurple", "Blurple", Color.rgb(88, 101, 242)),
+            new Entry("groklink", "GrokLink Cyan", Color.rgb(34, 211, 238)),
             new Entry("violet", "Violet", Color.rgb(139, 124, 255)),
             new Entry("blue", "Blue", Color.rgb(80, 151, 255)),
             new Entry("mint", "Mint", Color.rgb(69, 204, 166)),
