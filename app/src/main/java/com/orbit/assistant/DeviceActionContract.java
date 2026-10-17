@@ -27,7 +27,7 @@ final class DeviceActionContract {
             "NAVIGATE", "DIAL", "DIAL_CONTACT", "SMS", "SMS_CONTACT", "WEB_SEARCH",
             "OPEN_URL", "SHARE", "COPY", "FLASHLIGHT", "SET_VOLUME",
             "SET_BRIGHTNESS", "SET_DND", "OPEN_INTERNET_PANEL", "OPEN_BLUETOOTH_SETTINGS",
-            "MEDIA_CONTROL", "SET_RINGER_MODE"
+            "MEDIA_CONTROL", "SET_RINGER_MODE", "PLAY_MUSIC"
     )));
 
     static final String SYSTEM =
@@ -62,6 +62,7 @@ final class DeviceActionContract {
             "WEB_SEARCH {query}; OPEN_URL {url}; SHARE {text}; COPY {text}; FLASHLIGHT {on}; " +
             "MEDIA_CONTROL {command} where command is PLAY, PAUSE, PLAY_PAUSE, NEXT or PREVIOUS and acts on whatever is currently playing, never a named app; " +
             "SET_RINGER_MODE {mode} where mode is normal, vibrate or silent, which is the phone's ringer profile and is not the same thing as SET_VOLUME. " +
+            "PLAY_MUSIC {query,artist,album,title,app} plays music by search, for example play Kasabian on Poweramp gives {query:\"Kasabian\",artist:\"Kasabian\",app:\"Poweramp\"}; omit app to use the default player. " +
             "If no phone action is needed, actions must be an empty array. Keep ordinary assistant answers concise unless the user asks for detail. Never use an em dash (—) in any response. Use commas, parentheses, colons, semicolons, or ordinary hyphens instead.";
 
     /**

@@ -279,6 +279,10 @@ public final class DeviceActionExecutor {
                     result = MediaControl.execute(c, command);
                     break;
                 }
+                case "PLAY_MUSIC":
+                    result = MusicPlayer.play(c, p.optString("query", ""), p.optString("artist", ""),
+                            p.optString("album", ""), p.optString("title", ""), p.optString("app", ""));
+                    break;
                 case "SET_RINGER_MODE": {
                     String before = DeviceStatusReader.ringerModeName(c);
                     result = setRingerMode(c, p.optString("mode", ""));
