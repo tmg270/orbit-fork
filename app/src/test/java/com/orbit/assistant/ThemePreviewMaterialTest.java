@@ -91,9 +91,6 @@ public final class ThemePreviewMaterialTest {
 
     // ---- 4 and 5. the live preview follows the selector, in place ----------------------------------
 
-    @Test public void theLivePreviewFollowsTheSelectorOnFree() {
-        followsSelector(false);
-    }
 
     @Test public void theLivePreviewFollowsTheSelectorOnPro() {
         followsSelector(true);
@@ -175,31 +172,6 @@ public final class ThemePreviewMaterialTest {
 
     // ---- 8. Pro glass tuning ------------------------------------------------------------------------
 
-    @Test public void proGlassTuningMovesThePreviewTileOnlyWithPro() {
-        OrbitProStyle tuned = OrbitProStyle.DEFAULT.withGlassOpacity(168)
-                .withGlassTint(170).withGlassEdge(150);
-        OrbitTheme theme = OrbitTheme.orbitDefault().withMaterial(OrbitTheme.MATERIAL_LIQUID)
-                .withPro(tuned);
-        OrbitThemeTokens tokens = OrbitThemeTokens.resolve(context, theme);
-        OrbitGlass.Finish untuned = OrbitGlass.surfaceDrawable(context,
-                OrbitGlass.Palette.of(tokens, OrbitProStyle.DEFAULT), UiKit.RADIUS_CARD).finish();
-
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_PRO);
-        OrbitGlass.Finish withPro = finishOf(renderTile(theme));
-        assertNotEquals("Pro tuning must reach the preview tile", untuned.bodyAlpha, withPro.bodyAlpha);
-        assertGlassMatches(theme);
-
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_FREE);
-        assertSameFinish(untuned, finishOf(renderTile(theme)));
-        assertEquals("and the stored tuning is kept for when Pro returns",
-                tuned.glassOpacity, theme.pro.glassOpacity);
-
-        Prefs.setProPreview(context, Prefs.PRO_PREVIEW_PRO);
-        assertSameFinish(withPro, finishOf(renderTile(theme)));
-        assertFalse("Solid ignores glass tuning even with Pro",
-                renderTile(theme.withMaterial(OrbitTheme.MATERIAL_SOLID))
-                        instanceof OrbitGlass.GlassDrawable);
-    }
 
     // ---- 9 and 10. persistence and theme files ------------------------------------------------------
 

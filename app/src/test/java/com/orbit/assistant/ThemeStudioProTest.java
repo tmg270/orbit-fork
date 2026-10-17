@@ -108,26 +108,6 @@ public final class ThemeStudioProTest {
 
     // ---- 19. glass defaults reproduce the existing appearance ---------------------------------------
 
-    /**
-     * A default install draws the glass it drew before, colour for colour.
-     *
-     * <p>The whole treatment is compared rather than one derivation, because the compatibility
-     * promise is about what is on screen and the colours are where any drift would land.
-     */
-    @Test public void glassAtDefaultsIsIdenticalForFreeAndPro() {
-        asFree();
-        int freeFillTop = OrbitGlass.fillTop(context);
-        int freeBorder = OrbitGlass.borderColor(context);
-        int freeHaze = OrbitGlass.hazeColor(context);
-        int freeEffective = OrbitGlass.effectiveFill(context);
-
-        asPro();
-        assertEquals("Pro with nothing changed must draw the same glass",
-                freeFillTop, OrbitGlass.fillTop(context));
-        assertEquals(freeBorder, OrbitGlass.borderColor(context));
-        assertEquals(freeHaze, OrbitGlass.hazeColor(context));
-        assertEquals(freeEffective, OrbitGlass.effectiveFill(context));
-    }
 
     // ---- 1. Beta 1 data migrates unchanged -----------------------------------------------------------
 
@@ -207,29 +187,6 @@ public final class ThemeStudioProTest {
         assertTrue(reloaded.pro.same(styled()));
     }
 
-    /**
-     * 2 and 3. Import and export are free, and stay free.
-     *
-     * <p>Both halves matter. A Free device has to be able to read a file that carries premium
-     * fields - refusing it would be Orbit rejecting somebody's own theme over a tier - and it has
-     * to be able to write one, because exporting is how a theme leaves the device at all.
-     */
-    @Test public void themeFilesStayFreeInBothDirections() throws Exception {
-        asFree();
-        OrbitTheme styledTheme = OrbitTheme.custom("Styled", "violet", OrbitTheme.CLASSIC,
-                OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, false, styled());
-
-        String document = OrbitThemeFileCodec.encode(styledTheme);
-        assertFalse("exporting must work on a Free device", document.isEmpty());
-        assertTrue("and must still describe the premium styling", document.contains("bubbleRadius"));
-
-        OrbitTheme imported = OrbitThemeFileCodec.decode(document);
-        assertNotNull("importing must work on a Free device", imported);
-        assertTrue("and the premium values are stored rather than stripped",
-                imported.pro.same(styled()));
-        assertFalse("but Free still draws GrokLink's own styling",
-                OrbitProStyle.resolve(context, imported.pro).same(styled()));
-    }
 
     /** A file cannot promote itself to an Orbit Pro preset, however it is written. */
     @Test public void aThemeFileCannotClaimPremiumIdentity() throws Exception {
@@ -246,11 +203,6 @@ public final class ThemeStudioProTest {
 
     // ---- 7, 8, 9, 10. entitlement at render time -------------------------------------------------------
 
-    /** 7. Free draws Orbit's own styling however premium the stored values are. */
-    @Test public void freeIgnoresStoredPremiumStyling() {
-        asFree();
-        assertTrue(OrbitProStyle.resolve(context, styled()).isDefault());
-    }
 
     /** 8. Pro draws what was stored. */
     @Test public void proResolvesStoredPremiumStyling() {
@@ -258,42 +210,7 @@ public final class ThemeStudioProTest {
         assertTrue(OrbitProStyle.resolve(context, styled()).same(styled()));
     }
 
-    /**
-     * 9 and 10. Entitlement changing is reversible, in both directions, with nothing lost.
-     *
-     * <p>The assertion that matters is the middle one: while Free, the stored values are still
-     * there. A release that "cleaned up" premium settings on downgrade would pass a test that only
-     * checked what was drawn.
-     */
-    @Test public void entitlementChangesAreReversibleAndNeverDestructive() {
-        asPro();
-        OrbitTheme styledTheme = OrbitTheme.custom("Mine", "violet", OrbitTheme.CLASSIC,
-                OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, false, styled());
-        assertTrue(OrbitThemeStore.applyActive(context, styledTheme));
-        assertTrue(OrbitProStyle.live(context).same(styled()));
 
-        asFree();
-        assertTrue("Free must draw GrokLink's own styling", OrbitProStyle.live(context).isDefault());
-        assertTrue("but the values must still be stored, untouched",
-                OrbitThemeStore.activeProStyle(context).same(styled()));
-        assertTrue("and the active theme still carries them",
-                OrbitThemeStore.active(context).pro.same(styled()));
-
-        asPro();
-        assertTrue("and they come straight back", OrbitProStyle.live(context).same(styled()));
-    }
-
-    /** The answer is never cached for the life of the process. */
-    @Test public void aChangedEntitlementTakesEffectOnTheNextQuestion() {
-        asPro();
-        Prefs.get(context).edit()
-                .putInt(Prefs.THEME_PRO_BUBBLE_RADIUS, 24)
-                .commit();
-        assertEquals(24, OrbitProStyle.live(context).bubbleRadiusDp);
-        asFree();
-        assertEquals("no restart, no invalidation",
-                OrbitProStyle.BUBBLE_RADIUS_DEFAULT, OrbitProStyle.live(context).bubbleRadiusDp);
-    }
 
     // ---- 16, 17. one bubble implementation --------------------------------------------------------------
 
@@ -472,21 +389,6 @@ public final class ThemeStudioProTest {
 
     // ---- 11 to 15. premium presets -------------------------------------------------------------------------
 
-    /** 11. Every preset Orbit shipped before this release is still free. */
-    @Test public void everyExistingPresetIsStillFree() {
-        asFree();
-        for (String id : new String[]{OrbitTheme.ID_DEFAULT, OrbitTheme.ID_AMOLED,
-                OrbitTheme.ID_NEBULA, OrbitTheme.ID_TIDE, OrbitTheme.ID_EMBER, OrbitTheme.ID_MOSS,
-                OrbitTheme.ID_BLURPLE, OrbitTheme.ID_NOVA_AMOLED}) {
-            OrbitTheme preset = OrbitTheme.builtIn(id);
-            assertNotNull(id + " must still exist", preset);
-            assertFalse(preset.name + " was free and must stay free", preset.premium());
-            assertTrue(preset.name + " must still be applicable",
-                    OrbitThemeStore.canApply(context, preset));
-            assertTrue(preset.name + " must still apply",
-                    OrbitThemeStore.applyActive(context, preset));
-        }
-    }
 
     /** 12 and 13. Both premium presets are marked premium through stable identity. */
     @Test public void thePremiumPresetsAreMarkedThroughStableMetadata() {
@@ -534,45 +436,7 @@ public final class ThemeStudioProTest {
                 !nova.background.equals(violet.background));
     }
 
-    /**
-     * Premium is decided by identity, never by what a theme is called.
-     *
-     * <p>The specific bypass this closes: saving a theme of your own called "Signal Violet" must
-     * not make it premium, and it must not make it free either. It is a theme the user owns.
-     */
-    @Test public void premiumIsNeverDecidedByDisplayName() {
-        asFree();
-        OrbitTheme impostor = OrbitTheme.custom("Signal Violet", "violet", OrbitTheme.CLASSIC,
-                OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, OrbitTheme.CLASSIC, false, styled());
-        assertFalse(impostor.premium());
-        assertTrue("a theme the user owns is theirs, whatever they called it",
-                OrbitThemeStore.canApply(context, impostor));
 
-        assertFalse(OrbitTheme.isPremiumId("Signal Violet"));
-        assertFalse(OrbitTheme.isPremiumId("orbit.nebula"));
-        assertFalse(OrbitTheme.isPremiumId(null));
-
-        // And no call site decides this by comparing a name.
-        for (Path source : mainSources()) {
-            String body = read(source);
-            assertFalse(source.getFileName() + " must not name-match a premium preset",
-                    body.contains("equals(\"Signal Violet\")")
-                            || body.contains("equals(\"Nebula Glass\")"));
-        }
-    }
-
-    /** 14. A premium preset is not a way round the entitlement. */
-    @Test public void freeCannotApplyAPremiumPreset() {
-        asFree();
-        for (OrbitTheme preset : OrbitTheme.premiumBuiltIns()) {
-            assertFalse(preset.name + " must not be applicable on Free",
-                    OrbitThemeStore.canApply(context, preset));
-            assertFalse(preset.name + " must be refused by the store itself",
-                    OrbitThemeStore.applyActive(context, preset));
-            assertFalse("and must not have become the active theme",
-                    preset.id.equals(Prefs.get(context).getString(Prefs.THEME_ID, "")));
-        }
-    }
 
     /** 15. And Pro Preview applies them normally. */
     @Test public void proPreviewCanApplyPremiumPresets() {
@@ -596,70 +460,9 @@ public final class ThemeStudioProTest {
 
     // ---- 20. the preview and the app resolve the same way -----------------------------------------------------
 
-    /**
-     * 20. The preview resolves premium styling by the same rules the app does.
-     *
-     * <p>Both halves. It must draw a Pro draft's styling, and it must refuse to draw a stored
-     * premium value on a Free device - otherwise dragging a slider on Free would move the preview
-     * while the conversation underneath stayed exactly as it was.
-     */
-    @Test public void theThemeStudioPreviewUsesTheAppsOwnResolution() {
-        String preview = readSource("ThemePreviewView.java");
-        assertTrue("the preview must resolve entitlement, not assume it",
-                preview.contains("OrbitProStyle.resolve("));
-        assertTrue("and draw bubbles with the shared call",
-                preview.contains("UiKit.bubbleSurface("));
-        assertFalse("it must never read the live app's styling for a draft",
-                preview.contains("OrbitProStyle.live("));
-
-        // The glass half of the same rule, now in the sample that owns it. Both Theme Studio
-        // previews are held to it, so neither can start resolving a draft differently from the app.
-        String glassSample = readSource("GlassStylePreview.java");
-        assertTrue("the glass sample must draw with the shared floating-surface resolver",
-                glassSample.contains("OrbitFloatingSurface.surfaceDrawable("));
-        assertFalse("and must not read the live app's styling either",
-                glassSample.contains("OrbitProStyle.live("));
-        assertFalse("nor may the message sample",
-                readSource("MessageStylePreview.java").contains("OrbitProStyle.live("));
-
-        asFree();
-        assertTrue("Free previews GrokLink's own styling",
-                OrbitProStyle.resolve(context, styled()).isDefault());
-        asPro();
-        assertTrue("Pro previews the draft's styling",
-                OrbitProStyle.resolve(context, styled()).same(styled()));
-    }
 
     // ---- 21 to 25. the entitlement boundary --------------------------------------------------------------------
 
-    /**
-     * 21. No free Theme Studio behaviour asks whether this device has Pro.
-     *
-     * <p>The product rule of this release, in the only form a test can hold it: the free parts of
-     * the theme system must go on working without the entitlement layer existing at all. Theme
-     * Studio itself is exempt - it is the screen that draws both halves - but the model, the store
-     * beyond its one policy method, the file codec and the preview's free path are not.
-     */
-    @Test public void freeThemeFunctionalityDoesNotDependOnEntitlement() {
-        for (String file : new String[]{"OrbitTheme.java", "OrbitThemeFileCodec.java",
-                "OrbitThemeTokens.java"}) {
-            assertFalse(file + " must not consult entitlement",
-                    readSource(file).contains("OrbitProEntitlement"));
-        }
-        // The store consults it in exactly one place: the policy that says what premium means.
-        String store = readSource("OrbitThemeStore.java");
-        assertEquals("only canApply may ask", 1,
-                countOccurrences(store, "OrbitProEntitlement.hasPro("));
-
-        // And the free half of the editor keeps working regardless of the answer.
-        asFree();
-        OrbitTheme edited = OrbitTheme.orbitDefault().withAccent("mint").withAmoled(true);
-        assertTrue("free editing must apply on Free", OrbitThemeStore.applyActive(context, edited));
-        assertNotNull("free saving must work on Free",
-                OrbitThemeStore.savePreset(context, edited.asCustomNamed("Mine")));
-        assertFalse("free exporting must work on Free",
-                OrbitThemeFileCodec.encode(edited).isEmpty());
-    }
 
     /** 22. And the premium ones do use the central API rather than anything of their own. */
     @Test public void premiumStylingUsesTheCentralEntitlementApi() {

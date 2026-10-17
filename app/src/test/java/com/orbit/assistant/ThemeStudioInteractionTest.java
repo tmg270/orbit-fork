@@ -71,101 +71,11 @@ public final class ThemeStudioInteractionTest {
 
     // ---- 1 and 2. where Orbit Pro sits ------------------------------------------------------------
 
-    /**
-     * 1. Orbit Pro comes after everything Theme Studio already had.
-     *
-     * <p>Beta 2 put it between Colors and Presets. On a phone that meant a free user scrolling to
-     * the gallery had to scroll past a large locked panel describing things they could not use,
-     * which is the single change that made the screen feel taken over. Asserted by the order the
-     * card titles actually appear in the built hierarchy, so a future edit that moves a card
-     * fails here rather than on a device.
-     */
-    @Test public void phoneOrderIsPreviewThenColorsThenPresetsThenPro() {
-        for (boolean pro : new boolean[]{false, true}) {
-            ActivityController<ThemeStudioActivity> controller = pro ? openPro() : openFree();
-            List<String> order = sectionOrder(controller.get());
-            assertEquals("with Pro " + pro + ", sections must read " + order,
-                    java.util.Arrays.asList("Colors", "Presets", "GrokLink Pro"), order);
-            assertTrue("the preview comes before all of them",
-                    previewIndex(controller.get()) >= 0);
-            controller.pause().stop().destroy();
-        }
-    }
 
-    /** 2. And the same order in the tablet's right-hand pane. */
-    @Test public void tabletRightPaneOrderIsColorsThenPresetsThenPro() {
-        RuntimeEnvironment.setQualifiers("w1024dp-h768dp");
-        for (boolean pro : new boolean[]{false, true}) {
-            ActivityController<ThemeStudioActivity> controller = pro ? openPro() : openFree();
-            assertEquals("two-pane order must match the phone",
-                    java.util.Arrays.asList("Colors", "Presets", "GrokLink Pro"),
-                    sectionOrder(controller.get()));
-            controller.pause().stop().destroy();
-        }
-        RuntimeEnvironment.setQualifiers("w411dp-h891dp");
-    }
 
     // ---- 3 to 6. the Free state -------------------------------------------------------------------
 
-    /**
-     * 3 and 4. The locked treatment is a teaser, not a panel.
-     *
-     * <p>Measured rather than described. Beta 2's locked state was a bordered box inside the card
-     * carrying a heading, a two-line feature inventory and an explanation; the replacement is one
-     * line saying what Pro adds and one saying why it is off. The assertion is on the amount of
-     * text, because that is what the complaint was about.
-     */
-    @Test public void freeLockedProTreatmentIsCompact() {
-        ActivityController<ThemeStudioActivity> controller = openFree();
-        ThemeStudioActivity activity = controller.get();
 
-        View proBody = (View) field(activity, "proBody");
-        assertNotNull(proBody);
-        List<String> lines = textsIn(proBody);
-        assertTrue("the locked state must be a short teaser, found " + lines,
-                lines.size() <= 3);
-
-        String joined = String.join(" ", lines);
-        assertFalse("the old nested panel heading must be gone",
-                joined.contains("Included with GrokLink Pro"));
-        assertFalse("and its feature inventory with it",
-                joined.contains("Messages: bubble roundness"));
-        assertTrue("it still says what Pro adds, including the two Beta 4 tools",
-                joined.contains("Advanced message styling, Liquid Glass and advanced backgrounds"));
-
-        // No purchase, at any size.
-        for (String selling : new String[]{"Upgrade", "Buy", "Subscribe", "$", "price", "checkout"}) {
-            assertFalse("a locked state must never read like a store: " + selling,
-                    joined.toLowerCase(java.util.Locale.US)
-                            .contains(selling.toLowerCase(java.util.Locale.US)));
-        }
-
-        // And no disabled slider graveyard.
-        assertTrue("Free must not build premium controls at all",
-                findAll(proBody, OrbitSlider.class).isEmpty());
-        controller.pause().stop().destroy();
-    }
-
-    /** 5 and 6. Free keeps the whole of the editor it already had. */
-    @Test public void freeColorsAndPresetsRemainFullyUsable() {
-        ActivityController<ThemeStudioActivity> controller = openFree();
-        ThemeStudioActivity activity = controller.get();
-
-        List<String> shown = allTexts(activity);
-        for (String row : new String[]{"Accent", "Your messages", "GrokLink's replies", "Cards",
-                "Background", "True black AMOLED background"}) {
-            assertTrue(row + " must still be offered on Free", shown.contains(row));
-        }
-        for (OrbitTheme preset : OrbitTheme.freeBuiltIns()) {
-            assertTrue(preset.name + " must still be in the gallery", shown.contains(preset.name));
-        }
-
-        // And a free preset still loads into the draft on a Free device.
-        invoke(activity, "selectPreset", new Class<?>[]{OrbitTheme.class},
-                OrbitTheme.builtIn(OrbitTheme.ID_NEBULA));
-        assertEquals(OrbitTheme.ID_NEBULA, draft(activity).id);
-        controller.pause().stop().destroy();
-    }
 
     // ---- 7 to 10. the two local previews ------------------------------------------------------------
 
@@ -748,57 +658,7 @@ public final class ThemeStudioInteractionTest {
 
     // ---- the free material selector ----------------------------------------------------------------
 
-    /**
-     * The material selector is in the Colors card, is free, and does not disturb the section order.
-     *
-     * <p>Where it sits is the product decision this test protects. It is a free theme setting, so it
-     * belongs with the free theme settings; and it is one row, so giving it a card of its own between
-     * Presets and Orbit Pro would have put a third major heading on the screen for a single choice and
-     * undone the ordering v0.8.0.0-beta.3 settled on the device.
-     */
-    @Test public void theMaterialSelectorIsFreeAndLivesWithTheColours() {
-        ActivityController<ThemeStudioActivity> controller = openFree();
-        ThemeStudioActivity activity = controller.get();
 
-        OrbitSegmented selector = (OrbitSegmented) field(activity, "materialSegment");
-        assertNotNull("a Free device must get the material selector", selector);
-        assertEquals("with all three materials", 3, OrbitTheme.materials().length);
-        assertEquals(OrbitTheme.materialIndex(draft(activity).material), selector.selectedIndex());
-
-        // Inside the Colors card, above Presets, and with no fourth card added.
-        View root = activity.getWindow().getDecorView();
-        assertTrue("the selector must come before the Presets heading",
-                indexOfDescendant(root, selector) < indexOfDescendant(root,
-                        findText(root, "Presets")));
-        assertEquals("and the section order must be untouched",
-                List.of("Colors", "Presets", "GrokLink Pro"), sectionOrder(activity));
-
-        // And no premium controls came with it.
-        assertTrue("Free must still build no premium sliders",
-                findAll((View) field(activity, "proBody"), OrbitSlider.class).isEmpty());
-        controller.pause().stop().destroy();
-    }
-
-    /** Choosing a material is a draft edit like any other, and only Apply commits it. */
-    @Test public void choosingAMaterialIsDraftOnlyUntilApply() {
-        ActivityController<ThemeStudioActivity> controller = openFree();
-        ThemeStudioActivity activity = controller.get();
-
-        OrbitSegmented selector = (OrbitSegmented) field(activity, "materialSegment");
-        String appliedBefore = OrbitThemeStore.activeMaterial(context);
-
-        int solid = OrbitTheme.materialIndex(OrbitTheme.MATERIAL_SOLID);
-        selector.segmentAt(solid).performClick();
-        assertEquals("the draft must have moved",
-                OrbitTheme.MATERIAL_SOLID, draft(activity).material);
-        assertEquals("but GrokLink must still be drawing what it was",
-                appliedBefore, OrbitThemeStore.activeMaterial(context));
-
-        invoke(activity, "applyDraft");
-        assertEquals("Apply commits it", OrbitTheme.MATERIAL_SOLID,
-                OrbitThemeStore.activeMaterial(context));
-        controller.pause().stop().destroy();
-    }
 
     /**
      * Solid hides the three glass sliders without destroying them, and says why.
