@@ -58,6 +58,18 @@ android {
     }
 
     signingConfigs {
+        // Stable debug signing for the tmg270 fork, so every CI build installs as an update.
+        // CI decodes ci/orbit-debug.keystore.b64 (a DEBUG-ONLY key, public, non-secret password)
+        // to app/orbit-debug.keystore. Env vars override; without the file, default debug key.
+        def orbitDebugStore = file(System.getenv('ORBIT_DEBUG_STORE_FILE') ?: 'orbit-debug.keystore')
+        if (orbitDebugStore.exists()) {
+            debug {
+                storeFile orbitDebugStore
+                storePassword System.getenv('ORBIT_DEBUG_STORE_PASSWORD') ?: 'orbitdebug'
+                keyAlias System.getenv('ORBIT_DEBUG_KEY_ALIAS') ?: 'orbitdebug'
+                keyPassword System.getenv('ORBIT_DEBUG_KEY_PASSWORD') ?: 'orbitdebug'
+            }
+        }
         release {
             if (orbitReleaseSigningReady) {
                 storeFile file(orbitReleaseStoreFile)
