@@ -82,6 +82,8 @@ public final class AiProvidersActivity extends Activity {
         UiPresence.enter(this);
         ProviderCatalogRepository.loadCached(this);
         OpenRouterAuth.attach(openRouterListener);
+        // Back from the browser after approving the code: poll at once so the dot turns green.
+        SuperGrokAuth.pollNow();
         for (String provider : new String[]{Prefs.PROVIDER_ANTHROPIC, Prefs.PROVIDER_XAI,
                 Prefs.PROVIDER_OPENROUTER}) {
             ProviderCatalogRepository.refreshIfStale(this, provider, (changed, error) -> {

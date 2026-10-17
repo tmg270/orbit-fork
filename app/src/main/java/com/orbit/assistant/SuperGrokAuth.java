@@ -7,6 +7,7 @@ package com.orbit.assistant;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,6 +47,8 @@ final class SuperGrokAuth {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Object REFRESH_LOCK = new Object();
     private static volatile long activeAttempt;
+    private static final Object POLL_WAKE = new Object();
+    private static final String TAG = "OrbitSuperGrok";
 
     private SuperGrokAuth() {}
 
@@ -103,21 +106,39 @@ final class SuperGrokAuth {
         Context app = context.getApplicationContext();
         EXEC.execute(() -> {
             int interval = code.intervalSeconds;
+            int transientFailures = 0;
             try {
                 while (System.currentTimeMillis() < code.expiresAtMs && activeAttempt == code.attempt) {
-                    Thread.sleep(interval * 1000L);
+                    // Sleeps the poll interval, but wakes early when the user returns to Orbit.
+                    synchronized (POLL_WAKE) { POLL_WAKE.wait(interval * 1000L); }
                     if (activeAttempt != code.attempt) return;
-                    Response r = post(TOKEN_URL, "grant_type=" + enc(DEVICE_GRANT) + "&client_id="
-                            + enc(CLIENT_ID) + "&device_code=" + enc(code.deviceCode));
+                    Response r;
+                    try {
+                        r = post(TOKEN_URL, "grant_type=" + enc(DEVICE_GRANT) + "&client_id="
+                                + enc(CLIENT_ID) + "&device_code=" + enc(code.deviceCode));
+                    } catch (IOException e) {
+                        // The phone is in the browser: Doze, a network switch or background
+                        // restrictions can fail one poll. Keep waiting instead of giving up.
+                        transientFailures++;
+                        Log.w(TAG, "device poll network error #" + transientFailures + ": " + e.getClass().getSimpleName());
+                        continue;
+                    }
                     String error = r.json.optString("error", "");
+                    Log.i(TAG, "device poll http_" + r.code + (error.isEmpty() ? "" : " " + error));
                     if (r.ok() && error.isEmpty()) {
                         store(app, r.json, "");
                         Prefs.get(app).edit().putString(Prefs.PROVIDER, Prefs.PROVIDER_XAI).apply();
+                        activeAttempt = 0;
                         MAIN.post(cb::onSignedIn);
                         return;
                     }
                     if ("authorization_pending".equals(error)) continue;
                     if ("slow_down".equals(error)) { interval += 5; continue; }
+                    // Server hiccup or a non-JSON gateway page (5xx, 429, HTML): retry, do not abort.
+                    if (error.isEmpty() && (r.code >= 500 || r.code == 429 || r.code == 408)) {
+                        transientFailures++;
+                        continue;
+                    }
                     throw fail(r, "SuperGrok sign-in failed");
                 }
                 if (activeAttempt == code.attempt) {
@@ -126,10 +147,16 @@ final class SuperGrokAuth {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
+                Log.w(TAG, "device poll stopped: " + e.getClass().getSimpleName());
                 String m = message(e);
                 MAIN.post(() -> cb.onError(m));
             }
         });
+    }
+
+    /** Called when Orbit returns to the foreground: check the token endpoint now, not after the interval. */
+    static void pollNow() {
+        synchronized (POLL_WAKE) { POLL_WAKE.notifyAll(); }
     }
 
     static void cancel() { activeAttempt = 0; }
