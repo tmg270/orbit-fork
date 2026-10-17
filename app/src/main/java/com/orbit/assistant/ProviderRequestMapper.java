@@ -91,6 +91,9 @@ final class ProviderRequestMapper {
                 ? openRouter(null, request, false) : xai(null, request, false);
         if (Prefs.PROVIDER_ANTHROPIC.equals(provider)) root.put("system", system);
         else root.getJSONArray("messages").getJSONObject(0).put("content", system);
+        // Plain-text completions (e.g. Android Auto voice replies) must not use JSON mode; only
+        // callers that explicitly ask for JSON keep response_format json_object.
+        if (system == null || !system.contains("JSON")) root.remove("response_format");
         return root;
     }
 
@@ -190,3 +193,4 @@ final class ProviderRequestMapper {
 
     private static String safe(String value) { return value == null ? "" : value; }
 }
+
