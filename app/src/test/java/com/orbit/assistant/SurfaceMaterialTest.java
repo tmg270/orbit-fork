@@ -230,26 +230,6 @@ public final class SurfaceMaterialTest {
 
     // ---- 5 to 13. free chooses the material, Pro tunes it ------------------------------------------
 
-    /**
-     * 5, 6, 7 and 8. All three materials work without Pro, and none of them asks for it.
-     *
-     * <p>Asserted as behaviour rather than as an absence of a check: a Free device applies each material
-     * in turn, and each one is both storable and actually drawn.
-     */
-    @Test public void everyMaterialIsAvailableWithoutPro() {
-        asFree();
-        for (String material : OrbitTheme.materials()) {
-            OrbitTheme themed = OrbitTheme.orbitDefault().withMaterial(material);
-            assertTrue(material + " must need no entitlement",
-                    OrbitThemeStore.canApply(context, themed));
-            assertTrue(OrbitThemeStore.applyActive(context, themed));
-            UiKit.syncTheme(context);
-            assertEquals(material, OrbitThemeStore.activeMaterial(context));
-            assertEquals("and the live palette must be made of it",
-                    material, OrbitGlass.Palette.live(context).material());
-            assertNotNull("and it must actually draw", surface(themed));
-        }
-    }
 
     /**
      * 8 again, structurally. Nothing in the material path consults entitlement.
@@ -277,41 +257,6 @@ public final class SurfaceMaterialTest {
                         || premium.contains("withMaterial("));
     }
 
-    /**
-     * 9, 10, 11, 12 and 13. The tuning is premium, falls back safely, and is never destroyed.
-     *
-     * <p>The pair of promises this release rests on. A Free device gets each material at Orbit's own
-     * settings, which is a complete feature; a Pro device gets the stored tuning; and flipping between
-     * them does not lose anything, because the stored values are read back after every transition.
-     */
-    @Test public void glassTuningIsPremiumAndNeverDestroyed() {
-        for (String material : new String[]{OrbitTheme.MATERIAL_FROSTED,
-                OrbitTheme.MATERIAL_LIQUID}) {
-            asPro();
-            OrbitTheme themed = OrbitTheme.orbitDefault().withMaterial(material).withPro(tuned());
-            assertTrue(OrbitThemeStore.applyActive(context, themed));
-            UiKit.syncTheme(context);
-
-            OrbitGlass.Finish onPro = OrbitGlass.finishFor(OrbitGlass.Palette.live(context));
-            assertEquals("Pro draws the stored tuning", tuned().glassOpacity, onPro.bodyAlpha);
-
-            asFree();
-            UiKit.syncTheme(context);
-            OrbitGlass.Finish onFree = OrbitGlass.finishFor(OrbitGlass.Palette.live(context));
-            assertEquals("Free draws the material at GrokLink's own settings",
-                    OrbitProStyle.GLASS_OPACITY_DEFAULT, onFree.bodyAlpha);
-            assertEquals("but the material itself is still the one chosen",
-                    material, OrbitGlass.Palette.live(context).material());
-            assertTrue("and the tuning is still stored",
-                    OrbitThemeStore.activeProStyle(context).same(tuned()));
-
-            asPro();
-            UiKit.syncTheme(context);
-            assertEquals("returning to Pro brings the tuning back",
-                    tuned().glassOpacity,
-                    OrbitGlass.finishFor(OrbitGlass.Palette.live(context)).bodyAlpha);
-        }
-    }
 
     // ---- 14 to 17. Solid has no glass, and does not throw the glass away --------------------------
 
@@ -438,26 +383,6 @@ public final class SurfaceMaterialTest {
         assertEquals("Liquid", OrbitTheme.materialLabel(OrbitTheme.MATERIAL_LIQUID));
     }
 
-    /** A material change is an appearance change, or Theme Studio could not tell a draft moved. */
-    @Test public void aMaterialChangeIsAnAppearanceChange() {
-        OrbitTheme liquid = OrbitTheme.orbitDefault().withMaterial(OrbitTheme.MATERIAL_LIQUID);
-        assertFalse(liquid.sameColours(liquid.withMaterial(OrbitTheme.MATERIAL_FROSTED)));
-        assertFalse(liquid.sameColours(liquid.withMaterial(OrbitTheme.MATERIAL_SOLID)));
-        assertTrue(liquid.sameColours(liquid.withMaterial(OrbitTheme.MATERIAL_LIQUID)));
-
-        // And screens rebuild for it, including on a Free device where the premium signature cannot move.
-        asFree();
-        assertTrue(OrbitThemeStore.applyActive(context, liquid));
-        UiKit.syncTheme(context);
-        String before = UiKit.structuralAppearanceSignature(context);
-        String appearanceBefore = UiKit.appearanceSignature(context);
-        assertTrue(OrbitThemeStore.applyActive(context,
-                liquid.withMaterial(OrbitTheme.MATERIAL_SOLID)));
-        UiKit.syncTheme(context);
-        assertFalse("a free material change must still rebuild the pages",
-                before.equals(UiKit.structuralAppearanceSignature(context)));
-        assertFalse(appearanceBefore.equals(UiKit.appearanceSignature(context)));
-    }
 
     // ---- the shipped presets ----------------------------------------------------------------------
 

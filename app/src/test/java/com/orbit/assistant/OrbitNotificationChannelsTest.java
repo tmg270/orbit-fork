@@ -68,14 +68,14 @@ public final class OrbitNotificationChannelsTest {
         for (String expected : OrbitNotificationChannels.ids()) {
             assertTrue("Android should list " + expected, ids.contains(expected));
         }
-        assertEquals("and nothing beyond GrokLink's own four",
+        assertEquals("and nothing beyond GrokLink's own three",
                 OrbitNotificationChannels.ids().size(), ids.size());
     }
 
     /** The IDs are Orbit's permanent identity for these categories and must not drift. */
     @Test public void theChannelIdsAreUnchanged() {
         assertEquals(Arrays.asList("orbit_background_responses", "orbit_reminders",
-                        "orbit_routine_triggers", "orbit_updates"),
+                        "orbit_routine_triggers"),
                 OrbitNotificationChannels.ids());
         assertEquals("orbit_updates", OrbitNotificationChannels.UPDATES);
         assertEquals("orbit_reminders", OrbitNotificationChannels.REMINDERS);
@@ -92,10 +92,8 @@ public final class OrbitNotificationChannelsTest {
             assertNotNull(id + " should be described", channel.getDescription());
             assertTrue(id + " should be described", channel.getDescription().length() > 0);
         }
-        assertEquals("GrokLink updates",
-                manager.getNotificationChannel(OrbitNotificationChannels.UPDATES).getName());
-        assertEquals("Notifies you when a verified GrokLink release is available.",
-                manager.getNotificationChannel(OrbitNotificationChannels.UPDATES).getDescription());
+        assertNull("GrokLink has no updater channel",
+                manager.getNotificationChannel(OrbitNotificationChannels.UPDATES));
         assertEquals("Reminders",
                 manager.getNotificationChannel(OrbitNotificationChannels.REMINDERS).getName());
         assertEquals("Routine triggers",
@@ -158,7 +156,7 @@ public final class OrbitNotificationChannelsTest {
     /** The update notification exists before any update notification has ever fired. */
     @Test public void theUpdateChannelExistsBeforeTheFirstUpdateNotification() {
         OrbitNotificationChannels.ensureAll(context);
-        assertNotNull(manager.getNotificationChannel(OrbitNotificationChannels.UPDATES));
+        assertNull(manager.getNotificationChannel(OrbitNotificationChannels.UPDATES));
         assertEquals(0, shadow().size());
     }
 

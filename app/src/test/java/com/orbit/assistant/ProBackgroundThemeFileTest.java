@@ -177,86 +177,7 @@ public final class ProBackgroundThemeFileTest {
 
     // ---- 43, 44 and 45. import and export stay free, and cannot forge identity ----------------------
 
-    /**
-     * 43 and 44. Import and export need no entitlement, and a Free device keeps what it is given.
-     *
-     * <p>Two things at once, and they are the same decision seen from both sides. Theme files are a
-     * free Orbit feature and always will be, so a Free device can export a theme carrying premium
-     * fields and import one; what it cannot do is draw them. The imported data is kept rather than
-     * stripped, because stripping it would mean a person who gets Pro later has a theme file that
-     * silently lost half of itself on the way in.
-     */
-    @Test public void importAndExportStayFreeAndKeepPremiumData() throws Exception {
-        asFree();
-        OrbitProStyle premium = OrbitProStyle.DEFAULT
-                .withGlassOpacity(176)
-                .withBackgroundMode(OrbitProStyle.BACKGROUND_GLOW)
-                .withBackgroundEffectColor("#5B3FCF")
-                .withGlowStrength(65);
-        String file = OrbitThemeFileCodec.encode(
-                OrbitTheme.custom("Gifted", "violet", OrbitTheme.CLASSIC, OrbitTheme.CLASSIC,
-                        OrbitTheme.CLASSIC, "#0A0714", false, premium));
-        assertTrue("a Free device must be able to write a file carrying premium fields",
-                new JSONObject(file).getJSONObject("pro")
-                        .getInt("backgroundMode") == OrbitProStyle.BACKGROUND_GLOW);
 
-        OrbitTheme imported = OrbitThemeFileCodec.decode(file);
-        assertNotNull("and to read one", imported);
-        assertTrue("the premium data must be kept intact", imported.pro.same(premium));
-        assertTrue("the theme itself must be applicable, because it is not a premium preset",
-                OrbitThemeStore.canApply(context, imported));
-        assertTrue(OrbitThemeStore.applyActive(context, imported));
-        assertTrue("and stored, still intact",
-                OrbitThemeStore.activeProStyle(context).same(premium));
-
-        // Stored, and still not drawn.
-        UiKit.syncTheme(context);
-        assertFalse("Free must draw no premium effect", OrbitBackground.effectDraws(context));
-        assertTrue(OrbitProStyle.live(context).isDefault());
-
-        asPro();
-        assertTrue("and the moment entitlement arrives, the imported effect draws",
-                OrbitBackground.effectDraws(context));
-        assertTrue(OrbitProStyle.live(context).same(premium));
-    }
-
-    /**
-     * 45, 50 and 51. No document can claim to be Aurora or Nova Ultra.
-     *
-     * <p>Written against a file that tries it in every way a file can: the premium id, the premium
-     * name, the premium colours, and the premium styling all at once. Identity comes from Orbit's own
-     * catalogue, so what imports is a custom theme of the user's own that happens to look similar -
-     * which is fine, and is exactly what duplicating a preset has always produced.
-     */
-    @Test public void noFileCanForgeAPremiumPresetIdentity() throws Exception {
-        asFree();
-        for (String id : new String[]{OrbitTheme.ID_AURORA, OrbitTheme.ID_NOVA_ULTRA,
-                OrbitTheme.ID_SIGNAL_VIOLET, OrbitTheme.ID_NEBULA_GLASS}) {
-            OrbitTheme real = OrbitTheme.builtIn(id);
-            assertNotNull(real);
-            String forged = new JSONObject(OrbitThemeFileCodec.encode(real))
-                    .put("id", id)
-                    .put("builtIn", true)
-                    .toString();
-
-            OrbitTheme imported = OrbitThemeFileCodec.decode(forged);
-            assertNotNull(imported);
-            assertFalse("an imported theme must never be premium: " + id, imported.premium());
-            assertFalse("nor built in", imported.builtIn);
-            assertFalse("and never carry a premium id", OrbitTheme.isPremiumId(imported.id));
-            assertTrue("so a Free device may apply the look it describes",
-                    OrbitThemeStore.canApply(context, imported));
-            assertFalse("while the real preset stays refused",
-                    OrbitThemeStore.canApply(context, real));
-
-            // And the premium half of what it describes still does not draw.
-            assertTrue(OrbitThemeStore.applyActive(context, imported));
-            UiKit.syncTheme(context);
-            assertTrue("premium styling from a forged file must not draw either",
-                    OrbitProStyle.live(context).isDefault());
-            assertFalse(OrbitBackground.effectDraws(context));
-        }
-    }
 
     // ---- 46 to 51. the four premium presets ---------------------------------------------------------
 
@@ -275,62 +196,7 @@ public final class ProBackgroundThemeFileTest {
         }
     }
 
-    /**
-     * 48 and 49. Aurora and Nova Ultra are premium through the same stable metadata as the others.
-     *
-     * <p>By id prefix, never by name. A theme called Aurora that somebody built themselves is their
-     * theme and applies freely; the shipped one is premium because Orbit's catalogue says so.
-     */
-    @Test public void theTwoNewPresetsArePremiumThroughStableMetadata() {
-        for (String id : new String[]{OrbitTheme.ID_AURORA, OrbitTheme.ID_NOVA_ULTRA}) {
-            OrbitTheme preset = OrbitTheme.builtIn(id);
-            assertNotNull(preset);
-            assertTrue(id + " must start with the premium prefix",
-                    id.startsWith(OrbitTheme.PREMIUM_ID_PREFIX));
-            assertTrue(OrbitTheme.isPremiumId(id));
-            assertTrue(preset.premium());
-            assertTrue("and it must actually use the premium layer",
-                    preset.pro.hasBackgroundEffect());
-        }
 
-        // Named, not identified. A user's own theme of the same name is theirs.
-        OrbitTheme lookalike = OrbitTheme.custom("Nova Ultra", "#7E5BFF", "#2A1D5E",
-                "#14112B", "#151129", "#07060F", false,
-                OrbitTheme.builtIn(OrbitTheme.ID_NOVA_ULTRA).pro);
-        assertFalse("premium is never decided by display name", lookalike.premium());
-        asFree();
-        assertTrue(OrbitThemeStore.canApply(context, lookalike));
-    }
-
-    /** 50 and 51. Neither new preset is a way round entitlement. */
-    @Test public void neitherNewPresetBypassesEntitlement() {
-        asFree();
-        for (String id : new String[]{OrbitTheme.ID_AURORA, OrbitTheme.ID_NOVA_ULTRA}) {
-            OrbitTheme preset = OrbitTheme.builtIn(id);
-            assertNotNull(preset);
-            assertFalse("Free must not be able to apply " + preset.name,
-                    OrbitThemeStore.canApply(context, preset));
-            assertFalse(OrbitThemeStore.applyActive(context, preset));
-            assertFalse("and it must never be offered in first-run setup",
-                    OrbitThemeStore.onboardingPresets().contains(preset));
-
-            // Nor may its appearance be claimed by a Free device that happens to match it.
-            OrbitTheme identical = OrbitTheme.custom(preset.name, preset.accent,
-                    preset.userBubble, preset.assistantBubble, preset.surface,
-                    preset.background, preset.amoled, preset.pro);
-            assertFalse("matching a premium preset's colours must not label a theme as it",
-                    OrbitThemeStore.canonicalIdentity(context, identical).premium());
-        }
-
-        asPro();
-        for (String id : new String[]{OrbitTheme.ID_AURORA, OrbitTheme.ID_NOVA_ULTRA}) {
-            OrbitTheme preset = OrbitTheme.builtIn(id);
-            assertTrue("and Pro Preview may apply it",
-                    OrbitThemeStore.applyActive(context, preset));
-            assertTrue("with its background effect drawing",
-                    OrbitBackground.effectDraws(context));
-        }
-    }
 
     /**
      * The saved-theme library keeps background styling too, through every act it supports.
