@@ -48,8 +48,11 @@ android {
         applicationId 'com.tmg270.orbit'
         minSdk 29
         targetSdk 36
-        versionCode 818
-        versionName "0.8.4.1"
+        // GrokLink versioning: CI builds get a rising versionCode (1000 + GitHub run number)
+        // so every build installs as an update; local builds fall back to 818.
+        def runNumber = System.getenv('GITHUB_RUN_NUMBER')
+        versionCode runNumber ? 1000 + runNumber.toInteger() : 818
+        versionName runNumber ? "1.0.${runNumber}-groklink" : "1.0.0-groklink-local"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // No ABI filter is needed here any more: with the inference runtime moved into the
@@ -115,6 +118,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             matchingFallbacks = ['release']
+        }
+    }
+
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == 'debug') {
+            variant.outputs.all { outputFileName = "GrokLink-${variant.versionName}-debug.apk" }
         }
     }
 

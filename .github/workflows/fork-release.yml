@@ -1,7 +1,7 @@
-# Place at .github/workflows/fork-release.yml in tmg270/Orbit-Assistant (fork).
+# GrokLink signed release (tmg270/orbit-fork).
 # Secrets: ORBIT_RELEASE_KEYSTORE_B64, ORBIT_RELEASE_STORE_PASSWORD,
 #          ORBIT_RELEASE_KEY_PASSWORD, ORBIT_RELEASE_KEY_ALIAS
-name: Fork signed APK
+name: GrokLink signed APK
 on:
   workflow_dispatch:
   push:
@@ -48,14 +48,14 @@ jobs:
           BT=$ANDROID_HOME/build-tools/35.0.0
           $BT/aapt2 dump badging "$APK" | grep "package: name='com.tmg270.orbit'"
           $BT/apksigner verify --print-certs "$APK"
-          VER=$(sed -nE 's/^[[:space:]]*versionName[[:space:]]+"([^"]+)".*/\1/p' app/build.gradle | head -n1)
-          cp "$APK" "Orbit-Fork-v${VER}-${GITHUB_SHA::7}.apk"
-          sha256sum Orbit-Fork-*.apk
+          VER="1.0.${GITHUB_RUN_NUMBER}-groklink"
+          cp "$APK" "GrokLink-v${VER}-${GITHUB_SHA::7}.apk"
+          sha256sum GrokLink-*.apk
       - name: Remove keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks"
       - uses: actions/upload-artifact@v4
-        with: { name: orbit-fork-release, path: 'Orbit-Fork-*.apk', if-no-files-found: error }
+        with: { name: groklink-release, path: 'GrokLink-*.apk', if-no-files-found: error }
       - if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
-        with: { files: 'Orbit-Fork-*.apk' }
+        with: { files: 'GrokLink-*.apk' }

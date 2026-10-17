@@ -1,4 +1,4 @@
-name: Build Orbit APK
+name: Build GrokLink APK
 
 on:
   workflow_dispatch:
@@ -32,16 +32,12 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Read app version
+      - name: Compute GrokLink version
         id: app_version
         shell: bash
         run: |
-          version="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]+"([^"]+)".*/\1/p' app/build.gradle | head -n 1)"
-          if [[ -z "$version" ]]; then
-            echo "::error::Could not read versionName from app/build.gradle"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Must match app/build.gradle: versionName 1.0.<run>-groklink, versionCode 1000 + run.
+          echo "version=1.0.${GITHUB_RUN_NUMBER}-groklink" >> "$GITHUB_OUTPUT"
 
       - name: Decode stable debug keystore
         shell: bash
@@ -55,9 +51,22 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon clean assembleDebug
 
+      - name: Verify version and signer
+        shell: bash
+        run: |
+          APK=app/build/outputs/apk/debug/GrokLink-${{ steps.app_version.outputs.version }}-debug.apk
+          BT=$ANDROID_HOME/build-tools/35.0.0
+          $BT/aapt2 dump badging "$APK" | head -n 1
+          $BT/apksigner verify --print-certs "$APK" | grep -i "SHA-256"
+          sha256sum "$APK"
+
+      - name: Unit tests (report only)
+        continue-on-error: true
+        run: ./gradlew --no-daemon testDebugUnitTest
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: Orbit-Assistant-v${{ steps.app_version.outputs.version }}-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: GrokLink-v${{ steps.app_version.outputs.version }}-debug
+          path: app/build/outputs/apk/debug/GrokLink-*-debug.apk
           if-no-files-found: error
