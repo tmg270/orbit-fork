@@ -194,6 +194,11 @@ public class OrbitSession extends VoiceInteractionSession {
     private boolean screenSelectionOpening = false;
     private int screenContextGeneration = 0;
     private SpeechRecognizer recognizer;
+    private RecognitionListener speechListener;
+    /** True while {@link #recognizer} is the on-device engine. */
+    private boolean speechOnDevice;
+    /** Ignores errors from the recogniser we are in the middle of replacing. */
+    private boolean speechFallbackScheduled;
     private TextToSpeech tts;
     private boolean listening = false;
     /** Owns the current voice turn so an abandoned one cannot act through late callbacks. */
@@ -4019,9 +4024,11 @@ public class OrbitSession extends VoiceInteractionSession {
             if (SpeechRecognizer.isRecognitionAvailable(getContext())
                     || (Build.VERSION.SDK_INT >= 31
                     && SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext()))) {
-                recognizer = OfflineSpeech.create(getContext());
-                if (recognizer == null) return;
-                recognizer.setRecognitionListener(new RecognitionListener() {
+                OfflineSpeech.Engine engine = OfflineSpeech.open(getContext());
+                if (engine == null || engine.recognizer == null) return;
+                recognizer = engine.recognizer;
+                speechOnDevice = engine.onDevice;
+                speechListener = new RecognitionListener() {
                     public void onReadyForSpeech(Bundle params) {
                         if (!voiceTurn.hasLiveTurn()) return;
                         voiceComposerStatusSafe(listeningHint());
@@ -4046,9 +4053,11 @@ public class OrbitSession extends VoiceInteractionSession {
                     public void onError(int error) {
                         // The user has already moved on; this turn no longer owns the composer.
                         if (!voiceTurn.hasLiveTurn()) return;
+                        if (speechFallbackScheduled) return;
                         listening = false;
                         updateMic();
                         if (voiceFinishing) return;
+                        if (switchSpeechToPlatform(error)) return;
                         if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
                             if (voiceManualFinishRequested) {
                                 finishPauseFriendlyVoice();
@@ -4061,7 +4070,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         if (error != SpeechRecognizer.ERROR_NO_MATCH &&
                                 error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT &&
                                 error != SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
-                            voiceComposerStatusSafe("Voice input unavailable");
+                            voiceComposerStatusSafe(OfflineSpeech.unavailableStatus(error));
                             main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
                         } else {
                             restoreComposerHintSafe();
@@ -4116,9 +4125,57 @@ public class OrbitSession extends VoiceInteractionSession {
                         }
                     }
                     public void onEvent(int eventType, Bundle params) {}
-                });
+                };
+                recognizer.setRecognitionListener(speechListener);
             }
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * On-device recognition failed, usually because the offline language pack is not installed.
+     * Drops that recogniser, remembers the platform one for this process, and listens again.
+     *
+     * @return true when the turn is still open and the caller must not report failure yet
+     */
+    private boolean switchSpeechToPlatform(int error) {
+        if (!speechOnDevice || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        speechFallbackScheduled = true;
+        speechOnDevice = false;
+        OfflineSpeech.rememberNetworkFallback();
+        final SpeechRecognizer dying = recognizer;
+        final int reported = error;
+        recognizer = null;
+        main.post(() -> {
+            OfflineSpeech.requestLanguagePack(getContext(), dying, Locale.getDefault().toLanguageTag());
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            if (!voiceTurn.hasLiveTurn() || voiceFinishing) {
+                installPlatformRecognizer();
+                speechFallbackScheduled = false;
+                return;
+            }
+            if (!installPlatformRecognizer()) {
+                speechFallbackScheduled = false;
+                voiceComposerStatusSafe(OfflineSpeech.unavailableStatus(reported));
+                main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                return;
+            }
+            speechFallbackScheduled = false;
+            startRecognizerSegment(false);
+        });
+        return true;
+    }
+
+    private boolean installPlatformRecognizer() {
+        Context c = getContext();
+        if (c == null) return false;
+        OfflineSpeech.Engine engine = OfflineSpeech.openPlatform(c);
+        if (engine == null || engine.recognizer == null) return false;
+        recognizer = engine.recognizer;
+        speechOnDevice = false;
+        if (speechListener != null) recognizer.setRecognitionListener(speechListener);
+        return true;
     }
 
     private void toggleListening() {
@@ -4185,7 +4242,7 @@ public class OrbitSession extends VoiceInteractionSession {
     private void startRecognizerSegment(boolean initialSegment) {
         if (busy) return;
         if (recognizer == null) {
-            voiceComposerStatusSafe("Speech recognition unavailable");
+            voiceComposerStatusSafe(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
             main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
             return;
         }
@@ -4220,11 +4277,12 @@ public class OrbitSession extends VoiceInteractionSession {
         } catch (Exception e) {
             listening = false;
             updateMic();
+            if (switchSpeechToPlatform(SpeechRecognizer.ERROR_CLIENT)) return;
             if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
                 voiceComposerStatusSafe(listeningHint());
                 scheduleVoiceFinalize();
             } else {
-                voiceComposerStatusSafe("Could not start microphone");
+                voiceComposerStatusSafe(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
                 main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
             }
         }

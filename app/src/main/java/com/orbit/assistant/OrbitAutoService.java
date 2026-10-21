@@ -66,6 +66,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private final Handler main = new Handler(Looper.getMainLooper());
     private MediaSessionCompat session;
     private SpeechRecognizer recognizer;
+    /** True while {@link #recognizer} was created with the on-device recogniser. */
+    private boolean recognizerOnDevice;
+    /** This car session has already given up on the on-device recogniser. */
+    private boolean triedPlatformSpeech;
     private TextToSpeech tts;
     private boolean ttsReady;
     private boolean ttsFailed;
@@ -240,15 +244,18 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 .setUsage(AudioAttributes.USAGE_ASSISTANT)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(), "recogniser");
         releaseRecognizer();
-        recognizer = OfflineSpeech.create(this);
+        OfflineSpeech.Engine engine = OfflineSpeech.open(this);
+        recognizer = engine == null ? null : engine.recognizer;
+        recognizerOnDevice = engine != null && engine.onDevice;
         if (recognizer == null) {
             Log.w(TAG, "SpeechRecognizer not available");
             abandon(recogFocus);
             recogFocus = null;
-            status("Speech recognition unavailable. Install offline speech recognition in Android settings.",
+            status(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT),
                     PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
             return;
         }
+        final SpeechRecognizer bound = recognizer;
         recognizer.setRecognitionListener(new RecognitionListener() {
             @Override public void onReadyForSpeech(Bundle params) { Log.i(TAG, "onReadyForSpeech"); }
             @Override public void onBeginningOfSpeech() { Log.i(TAG, "onBeginningOfSpeech"); }
@@ -256,8 +263,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             @Override public void onBufferReceived(byte[] buffer) {}
             @Override public void onEndOfSpeech() { Log.i(TAG, "onEndOfSpeech"); }
             @Override public void onError(int error) {
+                if (recognizer != bound) return;
                 String msg = "Error " + error + ": " + errorName(error);
                 Log.e(TAG, "onError " + msg);
+                if (offerPlatformFallback(error)) return;
                 abandon(recogFocus);
                 recogFocus = null;
                 releaseRecognizer();
@@ -274,11 +283,15 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     pendingConfirm = null;
                     status("Didn't hear yes or no, so I did nothing. Tap Ask Grok to try again",
                             PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                } else if (triedPlatformSpeech && isHardSpeechFailure(error)) {
+                    status(OfflineSpeech.unavailableStatus(error),
+                            PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 } else {
                     status(friendlyError(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 }
             }
             @Override public void onResults(Bundle results) {
+                if (recognizer != bound) return;
                 ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 String text = list == null || list.isEmpty() ? "" : list.get(0);
                 Log.i(TAG, "onResults: " + text);
@@ -307,7 +320,46 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         status(escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
                 PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
-        recognizer.startListening(intent);
+        try {
+            recognizer.startListening(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "startListening failed", e);
+            if (offerPlatformFallback(SpeechRecognizer.ERROR_CLIENT)) return;
+            abandon(recogFocus);
+            recogFocus = null;
+            releaseRecognizer();
+            status(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT),
+                    PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
+        }
+    }
+
+    /**
+     * The on-device recogniser cannot take this turn. Download the language pack if we are
+     * online, destroy that recogniser, and listen again with the ordinary one.
+     *
+     * @return true when a retry has been scheduled
+     */
+    private boolean offerPlatformFallback(int error) {
+        if (!recognizerOnDevice || triedPlatformSpeech || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        triedPlatformSpeech = true;
+        recognizerOnDevice = false;
+        OfflineSpeech.rememberNetworkFallback();
+        SpeechRecognizer dying = recognizer;
+        recognizer = null;
+        OfflineSpeech.requestLanguagePack(this, dying, "en-GB");
+        try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+        try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+        abandon(recogFocus);
+        recogFocus = null;
+        Log.i(TAG, "on-device speech failed (" + error + "), retrying with the platform recogniser");
+        ask(attempt);
+        return true;
+    }
+
+    private static boolean isHardSpeechFailure(int error) {
+        return OfflineSpeech.isOnDeviceFailure(error);
     }
 
     /** A finished utterance that is not a yes/no for a call Grok already queued. */

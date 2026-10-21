@@ -7,7 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.content.Intent;
+import android.speech.SpeechRecognizer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +29,7 @@ public final class OfflineCommandsTest {
         context = RuntimeEnvironment.getApplication();
         RecentActionContext.clear();
         SpokenConfirm.clear();
+        OfflineSpeech.resetForTests();
         Prefs.get(context).edit().clear().commit();
     }
 
@@ -99,6 +100,25 @@ public final class OfflineCommandsTest {
         assertFalse(OfflineSpeech.prefersOffline(intent));
         OfflineSpeech.apply(intent);
         assertTrue(OfflineSpeech.prefersOffline(intent));
+    }
+
+    @Test public void aMissingLanguagePackFallsBackAndNamesTheError() {
+        assertTrue(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED));
+        assertTrue(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE));
+        assertTrue(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_SERVER));
+        assertTrue(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_CLIENT));
+        assertFalse(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_NO_MATCH));
+        assertFalse(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_SPEECH_TIMEOUT));
+        assertFalse(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_RECOGNIZER_BUSY));
+        assertFalse(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS));
+        assertEquals("Voice input unavailable (" + SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED + ")",
+                OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED));
+        Intent intent = new Intent();
+        OfflineSpeech.rememberNetworkFallback();
+        OfflineSpeech.apply(intent);
+        assertFalse("the platform recogniser must not insist on the missing pack",
+                OfflineSpeech.prefersOffline(intent));
+        OfflineSpeech.resetForTests();
     }
 
     @Test public void modelJsonIsAllowlisted() {

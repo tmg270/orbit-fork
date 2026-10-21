@@ -40,6 +40,11 @@ public final class VoiceInputController {
     private final Callback callback;
     private final Handler main = new Handler(Looper.getMainLooper());
     private SpeechRecognizer recognizer;
+    private RecognitionListener recognitionListener;
+    /** True while {@link #recognizer} is the on-device engine, not the platform one. */
+    private boolean onDeviceRecognizer;
+    /** A swap to the platform recogniser is already queued for this process. */
+    private boolean speechFallbackScheduled;
     private TextToSpeech tts;
     private boolean ttsReady;
     private boolean listening;
@@ -238,9 +243,11 @@ public final class VoiceInputController {
             if (!SpeechRecognizer.isRecognitionAvailable(context)
                     && (Build.VERSION.SDK_INT < 31
                     || !SpeechRecognizer.isOnDeviceRecognitionAvailable(context))) return;
-            recognizer = OfflineSpeech.create(context);
-            if (recognizer == null) return;
-            recognizer.setRecognitionListener(new RecognitionListener() {
+            OfflineSpeech.Engine engine = OfflineSpeech.open(context);
+            if (engine == null || engine.recognizer == null) return;
+            recognizer = engine.recognizer;
+            onDeviceRecognizer = engine.onDevice;
+            recognitionListener = new RecognitionListener() {
                 @Override public void onReadyForSpeech(Bundle params) {
                     if (!voiceTurn.hasLiveTurn()) return;
                     statusListening();
@@ -263,9 +270,11 @@ public final class VoiceInputController {
                 @Override public void onError(int error) {
                     // Belongs to a turn the user has left; the composer is theirs now.
                     if (!voiceTurn.hasLiveTurn()) return;
+                    if (speechFallbackScheduled) return;
                     listening = false;
                     notifyState();
                     if (!active || finalizing) return;
+                    if (switchToPlatformRecognizer(error)) return;
                     if (Prefs.voicePauseFriendly(context) && hasDraft()) {
                         if (manualFinish) finishVoice();
                         else {
@@ -276,7 +285,7 @@ public final class VoiceInputController {
                             error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT &&
                             error != SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
                         active = false;
-                        callback.onStatus("Voice input unavailable");
+                        callback.onStatus(OfflineSpeech.unavailableStatus(error));
                         notifyState();
                     } else {
                         active = false;
@@ -319,15 +328,62 @@ public final class VoiceInputController {
                     statusListening();
                 }
                 @Override public void onEvent(int eventType, Bundle params) {}
-            });
+            };
+            recognizer.setRecognitionListener(recognitionListener);
         } catch (Exception ignored) { recognizer = null; }
+    }
+
+    /**
+     * The on-device recogniser failed (usually a missing language pack). Destroy it, remember
+     * the platform recogniser for the rest of this process, and listen again on that.
+     *
+     * @return true when the failure is being retried and the caller must not end the turn
+     */
+    private boolean switchToPlatformRecognizer(int error) {
+        if (!onDeviceRecognizer || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        speechFallbackScheduled = true;
+        onDeviceRecognizer = false;
+        OfflineSpeech.rememberNetworkFallback();
+        final SpeechRecognizer dying = recognizer;
+        final int reported = error;
+        recognizer = null;
+        main.post(() -> {
+            OfflineSpeech.requestLanguagePack(context, dying, Locale.getDefault().toLanguageTag());
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            if (!active || finalizing || !voiceTurn.hasLiveTurn()) {
+                installPlatformRecognizer();
+                speechFallbackScheduled = false;
+                return;
+            }
+            if (!installPlatformRecognizer()) {
+                speechFallbackScheduled = false;
+                active = false;
+                callback.onStatus(OfflineSpeech.unavailableStatus(reported));
+                notifyState();
+                return;
+            }
+            speechFallbackScheduled = false;
+            startSegment(false);
+        });
+        return true;
+    }
+
+    private boolean installPlatformRecognizer() {
+        OfflineSpeech.Engine engine = OfflineSpeech.openPlatform(context);
+        if (engine == null || engine.recognizer == null) return false;
+        recognizer = engine.recognizer;
+        onDeviceRecognizer = false;
+        if (recognitionListener != null) recognizer.setRecognitionListener(recognitionListener);
+        return true;
     }
 
     private void startSegment(boolean initial) {
         if (!active) return;
         if (recognizer == null) {
             active = false;
-            callback.onStatus("Speech recognition unavailable");
+            callback.onStatus(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
             notifyState();
             return;
         }
@@ -350,8 +406,12 @@ public final class VoiceInputController {
             notifyState();
         } catch (Exception ignored) {
             listening = false;
+            if (switchToPlatformRecognizer(SpeechRecognizer.ERROR_CLIENT)) return;
             if (hasDraft()) scheduleFinalize();
-            else active = false;
+            else {
+                active = false;
+                callback.onStatus(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
+            }
             notifyState();
         }
     }
