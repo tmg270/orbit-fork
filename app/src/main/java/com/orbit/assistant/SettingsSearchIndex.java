@@ -93,6 +93,7 @@ public final class SettingsSearchIndex {
     public static final String KEY_DEFAULT_AI = "default_ai";
     public static final String KEY_THINKING_UPDATES = "thinking_updates";
     public static final String KEY_RICH_ANSWERS = "rich_answers";
+    public static final String KEY_OFFLINE_MODEL = "offline_model";
     public static final String KEY_SCREEN_TEXT = "screen_text";
     public static final String KEY_SCREENSHOTS = "screenshots";
     public static final String KEY_ATTACH_SCREEN = "attach_screen";
@@ -286,6 +287,11 @@ public final class SettingsSearchIndex {
                 "Show a useful sourced picture inside an answer when it helps.",
                 S_AI, "ai", KEY_RICH_ANSWERS,
                 "images", "pictures", "photos", "rich answers", "visual", "web images"));
+        out.add(new Entry("Offline commands",
+                "On-device commands, and an optional model download. Grok stays the only cloud AI.",
+                S_AI, "ai", KEY_OFFLINE_MODEL,
+                "offline", "local model", "on device", "wifi", "wi-fi", "download", "qwen",
+                "no connection", "ask before grok"));
 
         out.add(new Entry("Allow GrokLink to read current-screen text",
                 "Screen awareness for the Side-button assistant.",

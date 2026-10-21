@@ -187,6 +187,9 @@ dependencies {
     implementation "androidx.work:work-runtime:2.11.2"
     implementation "androidx.media:media:1.7.0"
     implementation "com.tom-roush:pdfbox-android:2.0.27.0"
+    // On-device commands (Qwen 2.5 1.5B Instruct, downloaded separately, about 1.60 GB).
+    // The runtime matches upstream Orbit Local: MediaPipe LLM Inference on a LiteRT .task file.
+    implementation "com.google.mediapipe:tasks-genai:0.10.27"
     // Smart Vault text recognition (v0.8.1.0-beta.1). The Google Play services form of ML Kit:
     // the recognition model is delivered by Play services on first use instead of being bundled
     // into every APK. Only called when the user turns on "Read text in pictures".

@@ -30,5 +30,10 @@ public final class OrbitApplication extends Application {
         } catch (Exception ignored) {
             // Preferences unavailable this early: the flag stays unset and the next start decides.
         }
+        try {
+            LocalModel.maybeAutostart(this);
+        } catch (Exception ignored) {
+            // A download can wait until Settings. Startup must not fail because of it.
+        }
     }
 }

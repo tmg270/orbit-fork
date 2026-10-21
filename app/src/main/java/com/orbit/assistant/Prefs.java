@@ -420,6 +420,20 @@ public final class Prefs {
     public static boolean swipeToGoBack(Context c) { return get(c).getBoolean(ENHANCED_CHAT_BACK, true); }
     public static boolean chatSwipeActions(Context c) { return get(c).getBoolean(CHAT_SWIPE_ACTIONS, true); }
     public static boolean localDeviceActions(Context c) { return get(c).getBoolean(LOCAL_DEVICE_ACTIONS, true); }
+
+    /** On-device Qwen model for simple commands. On until the user turns it off. */
+    public static final String OFFLINE_MODEL = "offline_model_enabled";
+    /** Download and resume the model only on Wi-Fi. */
+    public static final String OFFLINE_MODEL_WIFI = "offline_model_wifi_only";
+    /** Start the download on first run when the network allows it. */
+    public static final String OFFLINE_MODEL_AUTO = "offline_model_autodownload";
+    /** Voice, and typed commands the phone could not run, wait two seconds before asking Grok. */
+    public static final String ASK_BEFORE_GROK = "ask_before_grok";
+
+    public static boolean offlineModelEnabled(Context c) { return get(c).getBoolean(OFFLINE_MODEL, true); }
+    public static boolean offlineModelWifiOnly(Context c) { return get(c).getBoolean(OFFLINE_MODEL_WIFI, true); }
+    public static boolean offlineModelAutodownload(Context c) { return get(c).getBoolean(OFFLINE_MODEL_AUTO, true); }
+    public static boolean askBeforeGrok(Context c) { return get(c).getBoolean(ASK_BEFORE_GROK, true); }
     public static boolean deckShortcut(Context c) { return get(c).getBoolean(DECK_SHORTCUT, true); }
     public static boolean deckSuggestions(Context c) { return get(c).getBoolean(DECK_SUGGESTIONS, true); }
 

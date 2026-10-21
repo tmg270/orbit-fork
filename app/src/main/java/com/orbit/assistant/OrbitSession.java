@@ -2594,8 +2594,6 @@ public class OrbitSession extends VoiceInteractionSession {
         busy = true;
         uiRequestConversationId = requestConversationId;
         streamingBubble = null;
-        stateTextSafe("Thinking");
-        showThinkingIndicator();
         updateComposerAction();
         if (Prefs.haptics(getContext())) vibrate(12);
 
@@ -2710,9 +2708,32 @@ public class OrbitSession extends VoiceInteractionSession {
         // Send with: this one message goes to the AI chosen by holding Send, and the choice is spent.
         AiSelection requestSelection = oneTurnSelection == null ? currentSelection : oneTurnSelection;
         oneTurnSelection = null;
-        OrbitRequestManager.enqueue(getContext(), requestConversationId, submitted, submittedScreenText,
-                submittedImages, voiceRequest, draftedReply, requestSelection,
-                hasManual || submittedSelection, listener);
+        Runnable send = () -> {
+            stateTextSafe("Thinking");
+            showThinkingIndicator();
+            updateComposerAction();
+            OrbitRequestManager.enqueue(getContext(), requestConversationId, submitted, submittedScreenText,
+                    submittedImages, voiceRequest, draftedReply, requestSelection,
+                    hasManual || submittedSelection, listener);
+        };
+        if (submittedWithAttachment) {
+            send.run();
+        } else {
+            boolean held = GrokEscalation.route(getContext(), messages, submitted, voiceRequest,
+                    new GrokEscalation.Callback() {
+                        @Override public void ask() { send.run(); }
+                        @Override public void say(String said) {
+                            busy = false;
+                            uiRequestConversationId = null;
+                            history.add(new AssistantClient.History("assistant", said));
+                            ConversationStore.save(getContext(), requestConversationId, history);
+                            if (sessionVisible) addBubble(said, false, false);
+                            stateTextSafe(readyState());
+                            updateComposerAction();
+                        }
+                    });
+            if (!held) send.run();
+        }
     }
 
     /**
@@ -2950,6 +2971,7 @@ public class OrbitSession extends VoiceInteractionSession {
      * already has, so stopping cannot produce a second one. There is no confirmation to accept.
      */
     private void stopGenerating() {
+        GrokEscalation.cancel();
         // The manager owns cancellation; this only asks for it and reacts to the answer.
         if (OrbitRequestManager.cancelActiveForConversation(getContext(), conversationId)) return;
         // Nothing was still running, so the control had gone stale. Put it back.
@@ -3994,8 +4016,11 @@ public class OrbitSession extends VoiceInteractionSession {
 
     private void initSpeech() {
         try {
-            if (SpeechRecognizer.isRecognitionAvailable(getContext())) {
-                recognizer = SpeechRecognizer.createSpeechRecognizer(getContext());
+            if (SpeechRecognizer.isRecognitionAvailable(getContext())
+                    || (Build.VERSION.SDK_INT >= 31
+                    && SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext()))) {
+                recognizer = OfflineSpeech.create(getContext());
+                if (recognizer == null) return;
                 recognizer.setRecognitionListener(new RecognitionListener() {
                     public void onReadyForSpeech(Bundle params) {
                         if (!voiceTurn.hasLiveTurn()) return;
@@ -4176,6 +4201,7 @@ public class OrbitSession extends VoiceInteractionSession {
             i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag());
             i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+            OfflineSpeech.apply(i);
             if (Prefs.voicePauseFriendly(getContext())) {
                 // These hints help where supported. Orbit also stitches recognition
                 // segments locally, so an engine ending early no longer means the

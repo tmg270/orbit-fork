@@ -46,6 +46,17 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     /** Call/text actions waiting for a spoken yes; non-null only between the question and the answer. */
     private List<AssistantReply.Action> pendingConfirm;
     private boolean confirmListening;
+    /** Question waiting out the two-second "Asking Grok" countdown. */
+    private String pendingEscalation;
+    private boolean escalationListening;
+    private final Runnable escalationFire = () -> {
+        if (pendingEscalation == null) return;
+        String question = pendingEscalation;
+        pendingEscalation = null;
+        escalationListening = false;
+        releaseRecognizer();
+        sendToGrok(question);
+    };
     /** Music actions to run once "Playing X on Y" has been spoken, then GrokLink steps aside. */
     private List<AssistantReply.Action> pendingMusic;
     private static final java.util.concurrent.ExecutorService ACTIONS =
@@ -79,7 +90,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 if (NEW_ID.equals(mediaId)) { newConversation(); ask(); } else ask();
             }
             @Override public void onPlayFromSearch(String query, Bundle extras) {
-                if (query != null && !query.trim().isEmpty()) sendToGrok(query.trim()); else ask();
+                if (query != null && !query.trim().isEmpty()) {
+                    String heard = query.trim();
+                    main.post(() -> onHeard(heard));
+                } else ask();
             }
             @Override public void onSkipToNext() { ask(); }
             @Override public void onSkipToPrevious() { ask(); }
@@ -162,8 +176,19 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private int attempt;
 
     private void ask() {
-        main.post(() -> { pendingConfirm = null; confirmListening = false; });
+        main.post(() -> {
+            pendingConfirm = null;
+            confirmListening = false;
+            SpokenConfirm.clear();
+            cancelEscalation();
+        });
         ask(0);
+    }
+
+    private void cancelEscalation() {
+        pendingEscalation = null;
+        escalationListening = false;
+        main.removeCallbacks(escalationFire);
     }
 
     private void listenForConfirmation() {
@@ -204,83 +229,152 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private void startListeningNow() {
-        {
-            if (!SecureStore.hasXaiCredential(this)) {
-                status("Not signed in to xAI/SuperGrok", PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
-                return;
-            }
-            boolean granted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                    == PackageManager.PERMISSION_GRANTED;
-            Log.i(TAG, "RECORD_AUDIO granted=" + granted);
-            if (!granted) {
-                status("Mic permission missing - open GrokLink on phone", PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
-                return;
-            }
-            if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-                Log.w(TAG, "SpeechRecognizer not available");
-                status("Speech recognition unavailable", PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
-                return;
-            }
-            recogFocus = focus(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT, new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANT)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(), "recogniser");
-            releaseRecognizer();
-            recognizer = SpeechRecognizer.createSpeechRecognizer(this);
-            recognizer.setRecognitionListener(new RecognitionListener() {
-                @Override public void onReadyForSpeech(Bundle params) { Log.i(TAG, "onReadyForSpeech"); }
-                @Override public void onBeginningOfSpeech() { Log.i(TAG, "onBeginningOfSpeech"); }
-                @Override public void onRmsChanged(float rmsdB) {}
-                @Override public void onBufferReceived(byte[] buffer) {}
-                @Override public void onEndOfSpeech() { Log.i(TAG, "onEndOfSpeech"); }
-                @Override public void onError(int error) {
-                    String msg = "Error " + error + ": " + errorName(error);
-                    Log.e(TAG, "onError " + msg);
-                    abandon(recogFocus);
-                    recogFocus = null;
-                    releaseRecognizer();
-                    if (isRetryable(error) && attempt == 0) {
-                        Log.i(TAG, "retrying once after " + msg);
-                        ask(1);
-                    } else {
-                        if (confirmListening) {
-                            confirmListening = false;
-                            pendingConfirm = null;
-                            status("Didn't hear yes or no, so I did nothing. Tap Ask Grok to try again",
-                                    PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
-                        } else {
-                            status(friendlyError(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
-                        }
-                    }
-                }
-                @Override public void onResults(Bundle results) {
-                    ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    String text = list == null || list.isEmpty() ? "" : list.get(0);
-                    Log.i(TAG, "onResults: " + text);
-                    abandon(recogFocus);
-                    recogFocus = null;
-                    main.post(() -> releaseRecognizer());
-                    if (text.trim().isEmpty()) {
-                        status("Didn't catch that, tap Ask Grok to try again", PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
-                    } else if (confirmListening) {
-                        confirmListening = false;
-                        onConfirmation(text.trim());
-                    } else sendToGrok(text.trim());
-                }
-                @Override public void onPartialResults(Bundle partialResults) {}
-                @Override public void onEvent(int eventType, Bundle params) {}
-            });
-            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
-            intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-GB");
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-GB");
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L);
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1200L);
-            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-            status("Listening…", PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
-            recognizer.startListening(intent);
+        boolean granted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+        Log.i(TAG, "RECORD_AUDIO granted=" + granted);
+        if (!granted) {
+            status("Mic permission missing - open GrokLink on phone", PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
+            return;
         }
+        recogFocus = focus(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT, new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANT)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(), "recogniser");
+        releaseRecognizer();
+        recognizer = OfflineSpeech.create(this);
+        if (recognizer == null) {
+            Log.w(TAG, "SpeechRecognizer not available");
+            abandon(recogFocus);
+            recogFocus = null;
+            status("Speech recognition unavailable. Install offline speech recognition in Android settings.",
+                    PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
+            return;
+        }
+        recognizer.setRecognitionListener(new RecognitionListener() {
+            @Override public void onReadyForSpeech(Bundle params) { Log.i(TAG, "onReadyForSpeech"); }
+            @Override public void onBeginningOfSpeech() { Log.i(TAG, "onBeginningOfSpeech"); }
+            @Override public void onRmsChanged(float rmsdB) {}
+            @Override public void onBufferReceived(byte[] buffer) {}
+            @Override public void onEndOfSpeech() { Log.i(TAG, "onEndOfSpeech"); }
+            @Override public void onError(int error) {
+                String msg = "Error " + error + ": " + errorName(error);
+                Log.e(TAG, "onError " + msg);
+                abandon(recogFocus);
+                recogFocus = null;
+                releaseRecognizer();
+                if (escalationListening) {
+                    // The two-second timer still asks Grok. A missed word must not cancel that.
+                    status("Didn't catch that", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", null, 0, 0);
+                    return;
+                }
+                if (isRetryable(error) && attempt == 0) {
+                    Log.i(TAG, "retrying once after " + msg);
+                    ask(1);
+                } else if (confirmListening) {
+                    confirmListening = false;
+                    pendingConfirm = null;
+                    status("Didn't hear yes or no, so I did nothing. Tap Ask Grok to try again",
+                            PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                } else {
+                    status(friendlyError(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                }
+            }
+            @Override public void onResults(Bundle results) {
+                ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                String text = list == null || list.isEmpty() ? "" : list.get(0);
+                Log.i(TAG, "onResults: " + text);
+                abandon(recogFocus);
+                recogFocus = null;
+                main.post(() -> releaseRecognizer());
+                if (text.trim().isEmpty()) {
+                    if (escalationListening) return;
+                    status("Didn't catch that, tap Ask Grok to try again", PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                } else if (confirmListening) {
+                    confirmListening = false;
+                    onConfirmation(text.trim());
+                } else onHeard(text.trim());
+            }
+            @Override public void onPartialResults(Bundle partialResults) {}
+            @Override public void onEvent(int eventType, Bundle params) {}
+        });
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+        OfflineSpeech.apply(intent);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-GB");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-GB");
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L);
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1200L);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        status(escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
+                PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
+        recognizer.startListening(intent);
+    }
+
+    /** A finished utterance that is not a yes/no for a call Grok already queued. */
+    private void onHeard(String text) {
+        if (escalationListening || pendingEscalation != null) {
+            escalationListening = false;
+            main.removeCallbacks(escalationFire);
+            String pending = pendingEscalation;
+            pendingEscalation = null;
+            if (GrokEscalation.forgets(text)) {
+                speak(GrokEscalation.FORGOTTEN);
+                return;
+            }
+            if (GrokEscalation.asks(text)) {
+                if (pending != null) sendToGrok(pending);
+                return;
+            }
+            onHeardFresh(text);
+            return;
+        }
+        onHeardFresh(text);
+    }
+
+    private void onHeardFresh(String text) {
+        AssistantReply offline = null;
+        try {
+            offline = AssistantClient.tryOfflineReply(this, text);
+        } catch (Throwable t) {
+            Log.e(TAG, "offline reply failed", t);
+        }
+        if (offline != null) {
+            handleReply(offline.text == null ? "" : offline.text,
+                    offline.actions == null ? new ArrayList<>() : offline.actions);
+            return;
+        }
+        if (LocalModel.ready(this)) {
+            status("Working it out on this phone…", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", null, 0, 0);
+            String heard = text;
+            ACTIONS.execute(() -> {
+                AssistantReply local = null;
+                try { local = LocalIntentModel.tryHandle(getApplicationContext(), heard); }
+                catch (Throwable t) { Log.e(TAG, "local model failed", t); }
+                AssistantReply found = local;
+                main.post(() -> {
+                    if (found != null) {
+                        handleReply(found.text == null ? "" : found.text,
+                                found.actions == null ? new ArrayList<>() : found.actions);
+                    } else escalate(heard);
+                });
+            });
+            return;
+        }
+        escalate(text);
+    }
+
+    private void escalate(String question) {
+        if (!NetStatus.online(this)) {
+            speak(GrokEscalation.NEEDS_CONNECTION);
+            return;
+        }
+        if (!SecureStore.hasXaiCredential(this)) {
+            speak("Sign in to Grok on the phone first.");
+            return;
+        }
+        pendingEscalation = question;
+        escalationListening = false;
+        speak("Asking Grok.");
     }
 
     static String friendlyError(int error) {
@@ -378,6 +472,14 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private void sendToGrok(String question) {
+        if (!NetStatus.online(this)) {
+            speak(GrokEscalation.NEEDS_CONNECTION);
+            return;
+        }
+        if (!SecureStore.hasXaiCredential(this)) {
+            speak("Sign in to Grok on the phone first.");
+            return;
+        }
         long now = SystemClock.elapsedRealtime();
         if (lastTurnMs != 0 && now - lastTurnMs > IDLE_RESET_MS) history.clear();
         String prompt = withHistory(new ArrayList<>(history), question);
@@ -522,11 +624,35 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             handOverToMusic(m);
             return;
         }
+        if (pendingEscalation != null) {
+            if (error != null) {
+                String question = pendingEscalation;
+                cancelEscalation();
+                sendToGrok(question);
+                return;
+            }
+            abandon(speechFocus);
+            speechFocus = null;
+            status("Say Ask Grok or Forget it", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+            main.removeCallbacks(escalationFire);
+            main.postDelayed(escalationFire, 2000);
+            escalationListening = true;
+            ask(0);
+            return;
+        }
         if (error == null && pendingConfirm != null) {
             abandon(speechFocus);
             speechFocus = null;
             status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "Grok", lastReply, 0, 0);
             listenForConfirmation();
+            return;
+        }
+        if (error == null && SpokenConfirm.isArmed()) {
+            abandon(speechFocus);
+            speechFocus = null;
+            confirmListening = false;
+            status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+            ask(0);
             return;
         }
         Log.i(TAG, "speech finished" + (error == null ? "" : " with " + error));
@@ -541,6 +667,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private void stopAll(String why) {
         main.post(() -> {
             pendingSpeech = null;
+            pendingConfirm = null;
+            confirmListening = false;
+            SpokenConfirm.clear();
+            cancelEscalation();
             releaseRecognizer();
             if (tts != null) tts.stop();
             abandon(recogFocus);
@@ -619,6 +749,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     @Override public void onDestroy() {
+        cancelEscalation();
         releaseRecognizer();
         if (tts != null) tts.shutdown();
         abandon(recogFocus);

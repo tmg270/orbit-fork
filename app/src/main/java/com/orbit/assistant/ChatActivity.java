@@ -1301,13 +1301,36 @@ public class ChatActivity extends Activity {
         render();
 
         OrbitRequestManager.Listener listener = createRequestListener(voiceRequest);
-        String requestId = OrbitRequestManager.enqueue(this, conversationId, q,
-                requestContext, requestImages, voiceRequest, false, selection,
-                hasAttachment, listener);
-        listeners.put(requestId, listener);
-        addThinkingRow();
-        updateComposerAction();
-        scrollBottom();
+        enqueueOrAsk(q, voiceRequest, hasAttachment, () -> {
+            String requestId = OrbitRequestManager.enqueue(this, conversationId, q,
+                    requestContext, requestImages, voiceRequest, false, selection,
+                    hasAttachment, listener);
+            listeners.put(requestId, listener);
+            addThinkingRow();
+            updateComposerAction();
+            scrollBottom();
+        });
+    }
+
+    /**
+     * Voice, and typed text that already sounds like a device command, wait two seconds with
+     * Forget it and Ask Grok when the phone did not handle them. Ordinary typed chat does not.
+     */
+    private void enqueueOrAsk(String q, boolean voiceRequest, boolean attached, Runnable send) {
+        if (attached) {
+            send.run();
+            return;
+        }
+        boolean held = GrokEscalation.route(this, messages, q, voiceRequest, new GrokEscalation.Callback() {
+            @Override public void ask() { send.run(); }
+            @Override public void say(String said) {
+                history.add(new AssistantClient.History("assistant", said));
+                ConversationStore.save(ChatActivity.this, conversationId, history);
+                render();
+                updateComposerAction();
+            }
+        });
+        if (!held) send.run();
     }
 
     /**
@@ -1351,13 +1374,15 @@ public class ChatActivity extends Activity {
                 ? AttachmentStore.loadAll(edited.attachmentPaths) : new ArrayList<>();
         boolean explicit = edited.screenAttached && !"screen".equals(edited.attachmentKind);
         OrbitRequestManager.Listener listener = createRequestListener(voiceRequest);
-        String requestId = OrbitRequestManager.enqueue(this, conversationId, q,
-                edited.attachmentText, images, voiceRequest, false, selection, explicit, listener);
-        listeners.put(requestId, listener);
-        addThinkingRow();
-        updateComposerAction();
-        scrollBottom();
-        scheduleContextEstimate();
+        enqueueOrAsk(q, voiceRequest, edited.screenAttached, () -> {
+            String requestId = OrbitRequestManager.enqueue(this, conversationId, q,
+                    edited.attachmentText, images, voiceRequest, false, selection, explicit, listener);
+            listeners.put(requestId, listener);
+            addThinkingRow();
+            updateComposerAction();
+            scrollBottom();
+            scheduleContextEstimate();
+        });
     }
 
     // ---- Send with -----------------------------------------------------------------------------------
@@ -4112,6 +4137,7 @@ public class ChatActivity extends Activity {
      * already has, so stopping cannot produce a second one. There is no confirmation to accept.
      */
     private void stopGenerating() {
+        GrokEscalation.cancel();
         // The manager owns cancellation; this only asks for it and reacts to the answer.
         if (!OrbitRequestManager.cancelActiveForConversation(this, conversationId)) {
             // Nothing was still running, so the control had gone stale. Put it back.

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
@@ -234,8 +235,11 @@ public final class VoiceInputController {
 
     private void initRecognition() {
         try {
-            if (!SpeechRecognizer.isRecognitionAvailable(context)) return;
-            recognizer = SpeechRecognizer.createSpeechRecognizer(context);
+            if (!SpeechRecognizer.isRecognitionAvailable(context)
+                    && (Build.VERSION.SDK_INT < 31
+                    || !SpeechRecognizer.isOnDeviceRecognitionAvailable(context))) return;
+            recognizer = OfflineSpeech.create(context);
+            if (recognizer == null) return;
             recognizer.setRecognitionListener(new RecognitionListener() {
                 @Override public void onReadyForSpeech(Bundle params) {
                     if (!voiceTurn.hasLiveTurn()) return;
@@ -334,6 +338,7 @@ public final class VoiceInputController {
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag());
             intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+            OfflineSpeech.apply(intent);
             if (Prefs.voicePauseFriendly(context)) {
                 intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 4000L);
                 intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 6500L);

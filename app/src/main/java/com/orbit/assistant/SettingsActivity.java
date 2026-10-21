@@ -100,6 +100,14 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private final java.util.Map<String, View> searchTargets = new java.util.HashMap<>();
     /** The control this page was opened to show, consumed once it has been shown. */
     private String pendingFocusKey = "";
+    private TextView offlineModelStatus;
+    private final Runnable offlineStatusTick = new Runnable() {
+        @Override public void run() {
+            if (offlineModelStatus == null || !offlineModelStatus.isAttachedToWindow()) return;
+            offlineModelStatus.setText(LocalModel.statusLine(SettingsActivity.this));
+            offlineModelStatus.postDelayed(this, 1000);
+        }
+    };
     /** The hub's search field and its results, or null on a detail page. */
     private EditText searchField;
     private LinearLayout searchResults;
@@ -152,10 +160,12 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         updateAssistantStatus();
         refreshQuickRoutineSelection();
         refreshProviderSection();
+        startOfflineStatus();
     }
 
     @Override
     protected void onPause() {
+        if (offlineModelStatus != null) offlineModelStatus.removeCallbacks(offlineStatusTick);
         UiPresence.leave(this);
         super.onPause();
     }
@@ -164,6 +174,8 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         // Rebuilt with the page, so an in-place appearance rebuild can never leave the search map
         // pointing at views that are no longer on screen.
         searchTargets.clear();
+        if (offlineModelStatus != null) offlineModelStatus.removeCallbacks(offlineStatusTick);
+        offlineModelStatus = null;
         searchField = null;
         searchResults = null;
         searchClear = null;
@@ -968,6 +980,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         TextView cost = UiKit.text(this, "GrokLink talks only to xAI: your SuperGrok sign-in, or an xAI API key if you save one.", 12, UiKit.MUTED, false);
         cost.setPadding(0, UiKit.dp(this, 8), 0, 0);
         aiCard.addView(cost);
+        aiCard.addView(target(SettingsSearchIndex.KEY_OFFLINE_MODEL, offlineModelCard()));
         // Sits with Intelligence because it is about how a request behaves while it runs, and it
         // takes effect on the next request with no restart and no extra setup step.
         // On unless the user says otherwise, and the switch stays so they always can. The default
@@ -1713,6 +1726,68 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 .create();
         UiKit.styleOrbitDialog(dialog, this, true);
         dialog.show();
+    }
+
+    private View offlineModelCard() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(0, UiKit.dp(this, 8), 0, 0);
+        offlineModelStatus = UiKit.text(this, LocalModel.statusLine(this), 13, UiKit.TEXT, false);
+        offlineModelStatus.setPadding(0, 0, 0, UiKit.dp(this, 8));
+        box.addView(offlineModelStatus);
+        box.addView(toggle("Offline commands",
+                "Use on-device speech and the phrase matchers with no connection. Grok is still the only cloud AI.",
+                Prefs.OFFLINE_MODEL, true));
+        box.addView(toggle("Download the command model on Wi-Fi",
+                "About 1.60 GB. Leave this on unless you want to use mobile data.",
+                Prefs.OFFLINE_MODEL_WIFI, true));
+        box.addView(toggle("Download the command model automatically",
+                "Starts the download the first time GrokLink opens, when Wi-Fi allows it.",
+                Prefs.OFFLINE_MODEL_AUTO, true));
+        box.addView(toggle("Ask before sending unknown commands to Grok",
+                "Voice, and typed commands the phone did not handle, wait two seconds. Forget it, or Ask Grok.",
+                Prefs.ASK_BEFORE_GROK, true));
+        Button download = secondaryButton("Download offline model");
+        box.addView(download, offlineButtonLp());
+        download.setOnClickListener(v -> {
+            if (!Prefs.offlineModelEnabled(this)) {
+                Toast.makeText(this, "Turn on offline commands first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!LocalModel.downloadAllowed(this)) {
+                Toast.makeText(this, Prefs.offlineModelWifiOnly(this)
+                        ? "Waiting for Wi-Fi"
+                        : "No connection", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            LocalModel.startDownload(this);
+            refreshOfflineStatus();
+        });
+        Button remove = secondaryButton("Remove offline model");
+        box.addView(remove, offlineButtonLp());
+        remove.setOnClickListener(v -> {
+            LocalModel.delete(this);
+            refreshOfflineStatus();
+            Toast.makeText(this, "Offline model removed", Toast.LENGTH_SHORT).show();
+        });
+        return box;
+    }
+
+    private LinearLayout.LayoutParams offlineButtonLp() {
+        LinearLayout.LayoutParams buttonLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48));
+        buttonLp.topMargin = UiKit.dp(this, 8);
+        return buttonLp;
+    }
+
+    private void refreshOfflineStatus() {
+        if (offlineModelStatus != null) offlineModelStatus.setText(LocalModel.statusLine(this));
+    }
+
+    private void startOfflineStatus() {
+        if (offlineModelStatus == null) return;
+        offlineModelStatus.removeCallbacks(offlineStatusTick);
+        offlineModelStatus.post(offlineStatusTick);
     }
 
     private View toggle(String label, String key, boolean def) {

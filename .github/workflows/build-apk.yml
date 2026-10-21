@@ -2,8 +2,10 @@ name: Build GrokLink APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ groklink, main ]
   push:
-    branches: [ main ]
+    branches: [ main, groklink, offline-local ]
 
 permissions:
   contents: read
