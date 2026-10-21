@@ -91,41 +91,145 @@ final class MusicPlayer {
         catch (PackageManager.NameNotFoundException e) { return false; }
     }
 
-    /** Returns a short past-tense-free description, e.g. "Playing Kasabian on Poweramp". */
+    static final String PREFS = "groklink_music";
+    static final String KEY_PREFERRED = "preferred_app";
+    static final String MTAG = "OrbitAuto/Music";
+    private static final long CONNECT_MS = 3000, VERIFY_MS = 4000;
+
+    /** Preferred player package: the saved setting, else Poweramp when installed, else null. */
+    static String preferredPackage(Context c) {
+        String saved = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_PREFERRED, null);
+        if (saved != null && !saved.isEmpty() && installed(c, saved)) return saved;
+        return installed(c, POWERAMP) ? POWERAMP : null;
+    }
+
+    static void setPreferredPackage(Context c, String pkg) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_PREFERRED, pkg).apply();
+    }
+
+    /**
+     * Blocking: call off the main thread. Only reports success once playback is confirmed (the
+     * player's session reports PLAYING, or the music stream becomes active) within ~4s.
+     */
     static DeviceActionExecutor.Result play(Context c, String query, String artist, String album,
                                             String title, String app) {
         String q = query == null || query.trim().isEmpty()
                 ? String.join(" ", nz(title), nz(artist), nz(album)).trim() : query.trim();
         if (q.isEmpty()) return DeviceActionExecutor.Result.failed("Tell me what to play");
         String pkg = packageFor(app);
+        if (pkg == null) pkg = preferredPackage(c);
         Bundle extras = searchExtras(q, artist, album, title);
         String name = displayName(pkg, app);
+        Log.i(MTAG, "play q='" + q + "' artist='" + nz(artist) + "' app='" + nz(app) + "' -> pkg=" + pkg);
         if (pkg != null && !installed(c, pkg)) {
             return DeviceActionExecutor.Result.unavailable(name + " is not installed on this phone");
         }
-        if (POWERAMP.equals(pkg)) {
-            Intent i = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
-                    .setComponent(new ComponentName(POWERAMP, POWERAMP_RECEIVER)).putExtras(extras);
-            c.sendBroadcast(i);
-            Log.i(TAG, "music: Poweramp broadcast PLAY_FROM_SEARCH '" + q + "'");
-            return DeviceActionExecutor.Result.success("Playing " + q + " on Poweramp");
-        }
+        String reason = "no music app found";
+        MediaControllerCompat mc = null;
+        MediaBrowserCompat browser = null;
         if (pkg != null) {
             ComponentName svc = browserService(c, pkg);
+            Log.i(MTAG, "browser service for " + pkg + ": " + (svc == null ? "none" : svc.flattenToShortString()));
             if (svc != null) {
-                playViaBrowser(c, svc, q, extras);
-                return DeviceActionExecutor.Result.success("Playing " + q + " on " + name);
+                MediaBrowserCompat[] holder = new MediaBrowserCompat[1];
+                Boolean ok = connect(c, svc, holder);
+                browser = holder[0];
+                if (Boolean.TRUE.equals(ok)) {
+                    try {
+                        mc = new MediaControllerCompat(c.getApplicationContext(), browser.getSessionToken());
+                        Log.i(MTAG, "connected, state=" + stateOf(mc) + "; playFromSearch");
+                        mc.getTransportControls().playFromSearch(q, extras);
+                        if (waitPlaying(c, mc)) {
+                            disconnectLater(browser);
+                            Log.i(MTAG, "CONFIRMED playing via MediaBrowser");
+                            return DeviceActionExecutor.Result.success("Playing " + q + " on " + name);
+                        }
+                        reason = "it didn't start playing (state " + stateOf(mc) + ")";
+                    } catch (Exception e) {
+                        Log.e(MTAG, "playFromSearch failed", e);
+                        reason = "media controls failed";
+                    }
+                } else {
+                    reason = ok == null ? "it didn't answer in time" : "it refused the media connection";
+                    Log.w(MTAG, "browser connect " + (ok == null ? "timed out" : "refused"));
+                }
             }
         }
+        if (POWERAMP.equals(pkg)) {
+            try {
+                c.sendBroadcast(new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
+                        .setComponent(new ComponentName(POWERAMP, POWERAMP_RECEIVER)).putExtras(extras));
+                Log.i(MTAG, "fallback: Poweramp API receiver broadcast PLAY_FROM_SEARCH");
+                if (waitPlaying(c, mc)) {
+                    disconnectLater(browser);
+                    Log.i(MTAG, "CONFIRMED playing via Poweramp API broadcast");
+                    return DeviceActionExecutor.Result.success("Playing " + q + " on Poweramp");
+                }
+                reason = "it didn't start playing, check Poweramp has " + q + " in its library";
+            } catch (Exception e) {
+                Log.e(MTAG, "broadcast failed", e);
+            }
+        }
+        disconnectLater(browser);
         Intent i = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH).putExtras(extras)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (pkg != null) i.setPackage(pkg);
-        if (i.resolveActivity(c.getPackageManager()) == null) {
-            return DeviceActionExecutor.Result.unavailable("No music app here can play from a search");
+        if (i.resolveActivity(c.getPackageManager()) != null) {
+            try {
+                c.startActivity(i);
+                Log.i(MTAG, "fallback: startActivity PLAY_FROM_SEARCH pkg=" + pkg);
+                if (waitPlaying(c, null)) {
+                    Log.i(MTAG, "CONFIRMED playing via activity");
+                    return DeviceActionExecutor.Result.success("Playing " + q + (pkg == null ? "" : " on " + name));
+                }
+            } catch (Exception e) {
+                Log.w(MTAG, "startActivity blocked: " + e);
+                reason = "Android blocked opening it from the car";
+            }
         }
-        c.startActivity(i);
-        Log.i(TAG, "music: startActivity PLAY_FROM_SEARCH '" + q + "' pkg=" + pkg);
-        return DeviceActionExecutor.Result.success("Playing " + q + (pkg == null ? "" : " on " + name));
+        Log.w(MTAG, "FAILED: " + reason);
+        return DeviceActionExecutor.Result.failed("Couldn't start " + name + ": " + reason);
+    }
+
+    /** TRUE connected, FALSE refused, null timed out. */
+    private static Boolean connect(Context c, ComponentName svc, MediaBrowserCompat[] holder) {
+        Context app = c.getApplicationContext();
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        Boolean[] result = new Boolean[1];
+        new Handler(Looper.getMainLooper()).post(() -> {
+            holder[0] = new MediaBrowserCompat(app, svc, new MediaBrowserCompat.ConnectionCallback() {
+                @Override public void onConnected() { result[0] = true; latch.countDown(); }
+                @Override public void onConnectionFailed() { result[0] = false; latch.countDown(); }
+                @Override public void onConnectionSuspended() { Log.w(MTAG, "connection suspended"); }
+            }, null);
+            holder[0].connect();
+        });
+        try { latch.await(CONNECT_MS, java.util.concurrent.TimeUnit.MILLISECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        return result[0];
+    }
+
+    private static int stateOf(MediaControllerCompat mc) {
+        android.support.v4.media.session.PlaybackStateCompat st = mc == null ? null : mc.getPlaybackState();
+        return st == null ? -1 : st.getState();
+    }
+
+    private static boolean waitPlaying(Context c, MediaControllerCompat mc) {
+        android.media.AudioManager am = (android.media.AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+        long end = android.os.SystemClock.elapsedRealtime() + VERIFY_MS;
+        while (android.os.SystemClock.elapsedRealtime() < end) {
+            if (stateOf(mc) == android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING) return true;
+            if (mc == null && am != null && am.isMusicActive()) return true;
+            try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return false; }
+        }
+        Log.i(MTAG, "not playing after " + VERIFY_MS + "ms, state=" + stateOf(mc));
+        return false;
+    }
+
+    private static void disconnectLater(MediaBrowserCompat b) {
+        if (b != null) new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try { b.disconnect(); } catch (Exception ignored) {}
+        }, 1000);
     }
 
     private static String nz(String s) { return s == null ? "" : s; }
@@ -137,28 +241,4 @@ final class MusicPlayer {
         return new ComponentName(pkg, list.get(0).serviceInfo.name);
     }
 
-    /** MediaBrowser connections must be made on a Looper thread, so this hops to main. */
-    private static void playViaBrowser(Context c, ComponentName svc, String q, Bundle extras) {
-        Context app = c.getApplicationContext();
-        new Handler(Looper.getMainLooper()).post(() -> {
-            final MediaBrowserCompat[] holder = new MediaBrowserCompat[1];
-            holder[0] = new MediaBrowserCompat(app, svc, new MediaBrowserCompat.ConnectionCallback() {
-                @Override public void onConnected() {
-                    try {
-                        MediaControllerCompat mc = new MediaControllerCompat(app, holder[0].getSessionToken());
-                        mc.getTransportControls().playFromSearch(q, extras);
-                        Log.i(TAG, "music: playFromSearch via " + svc.flattenToShortString());
-                    } catch (Exception e) {
-                        Log.e(TAG, "music: playFromSearch failed", e);
-                    } finally {
-                        new Handler(Looper.getMainLooper()).postDelayed(holder[0]::disconnect, 5000);
-                    }
-                }
-                @Override public void onConnectionFailed() {
-                    Log.w(TAG, "music: browser connection refused by " + svc.flattenToShortString());
-                }
-            }, null);
-            holder[0].connect();
-        });
-    }
 }

@@ -320,12 +320,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             else now.add(a);
         }
         if (!music.isEmpty() && confirm.isEmpty()) {
-            // Speak first, then hand over to the music app (see finishSpeech).
-            runActions(now, done -> {
-                pendingMusic = music;
-                String said = join(reply, done);
-                speak(said.isEmpty() ? "Playing it now." : said);
-            });
+            // Don't speak Grok's "playing" text: release Auto first, start the music, then report what really happened.
+            runActions(now, done -> handOverToMusic(music, done));
             return;
         }
         now.addAll(music);
@@ -496,15 +492,26 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     /** Lets the music app own Android Auto: no active session, no audio focus, state STOPPED. */
-    private void handOverToMusic(List<AssistantReply.Action> music) {
+    private void handOverToMusic(List<AssistantReply.Action> music) { handOverToMusic(music, ""); }
+
+    /** Releases GrokLink's focus and session first so the music app can own Android Auto, then plays and verifies. */
+    private void handOverToMusic(List<AssistantReply.Action> music, String before) {
+        Log.i("OrbitAuto/Music", "handover: releasing GrokLink focus and session");
+        if (tts != null) tts.stop();
+        abandon(speechFocus); speechFocus = null;
+        abandon(recogFocus); recogFocus = null;
+        releaseRecognizer();
+        status("Starting music…", PlaybackStateCompat.STATE_STOPPED, "GrokLink", null, 0, 0);
+        session.setActive(false);
         runActions(music, done -> {
-            Log.i(TAG, "music handover: " + done);
-            abandon(speechFocus); speechFocus = null;
-            abandon(recogFocus); recogFocus = null;
-            releaseRecognizer();
-            status(done.isEmpty() ? "Tap Ask Grok any time" : done, PlaybackStateCompat.STATE_STOPPED,
-                    "GrokLink", null, 0, 0);
-            main.postDelayed(() -> session.setActive(false), 200);
+            boolean ok = done.startsWith("Playing");
+            Log.i("OrbitAuto/Music", "handover result ok=" + ok + ": " + done);
+            if (ok) {
+                status(done, PlaybackStateCompat.STATE_STOPPED, "GrokLink", null, 0, 0);
+            } else {
+                if (!session.isActive()) session.setActive(true);
+                speak(join(before, done));
+            }
         });
     }
 
