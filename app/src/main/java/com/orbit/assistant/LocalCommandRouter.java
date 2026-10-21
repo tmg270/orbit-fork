@@ -359,6 +359,9 @@ public final class LocalCommandRouter {
             title = tidy(by.group(1));
             artist = tidy(by.group(2));
             query = (title + " " + artist).trim();
+        } else if (looksLikeSentence(rest)) {
+            // "play devil's advocate for a second" is a sentence, not a track.
+            return null;
         }
         if (query.isEmpty()) return null;
         JSONObject params = new JSONObject().put("query", query);
