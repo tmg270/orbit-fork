@@ -39,6 +39,7 @@ final class MusicPlayer {
 
     static final String TAG = "OrbitAuto";
     static final String POWERAMP = "com.maxmpz.audioplayer";
+    static final String POWERAMP_RECEIVER = "com.maxmpz.audioplayer.player.PowerampAPIReceiver";
     static volatile String lastVia = "";
 
     /** "Poweramp MediaBrowser", "broadcast", or "" when the last play did not confirm. */
