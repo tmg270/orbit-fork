@@ -4409,7 +4409,7 @@ public class OrbitSession extends VoiceInteractionSession {
         return base + " · offline speech is not on this phone";
     }
 
-    /** System recogniser (prefer-offline, en-GB) failed. Vosk takes the turn when its model is ready. */
+    /** System recogniser (prefer-offline, en-GB) failed. Vosk takes this same turn. */
     private boolean offerVosk(int error) {
         if (usingVosk || voskTried || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
             return false;
@@ -4418,8 +4418,35 @@ public class OrbitSession extends VoiceInteractionSession {
         if (c == null) return false;
         voskTried = true;
         if (!VoskModel.ready(c)) {
-            if (LocalModel.online(c)) VoskModel.startDownload(c);
-            return false;
+            usingVosk = true;
+            speechOnDevice = false;
+            final SpeechRecognizer dying = recognizer;
+            recognizer = null;
+            final Context speechContext = c;
+            final int reported = error;
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            voiceComposerStatusSafe(listeningHint());
+            new Thread(() -> {
+                boolean ok = VoskModel.ensureInstalled(speechContext);
+                main.post(() -> {
+                    if (!usingVosk) return;
+                    usingVosk = false;
+                    if (!voiceTurn.hasLiveTurn() || voiceFinishing) return;
+                    if (!ok || !VoskModel.ready(speechContext)) {
+                        if (LocalModel.online(speechContext)) VoskModel.startDownload(speechContext);
+                        voiceComposerStatusSafe(speechUnavailable(reported));
+                        main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                        return;
+                    }
+                    voskTried = false;
+                    if (!offerVosk(reported)) {
+                        voiceComposerStatusSafe(speechUnavailable(reported));
+                        main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                    }
+                });
+            }, "groklink-speech-unpack").start();
+            return true;
         }
         usingVosk = true;
         speechEngine = ProcessTrace.VOSK;

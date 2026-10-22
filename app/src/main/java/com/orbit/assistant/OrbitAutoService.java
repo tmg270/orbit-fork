@@ -396,16 +396,50 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     /**
-     * Prefer-offline en-GB already failed. Vosk listens next when the small model is on the phone.
+     * Prefer-offline en-GB already failed. Vosk takes this same turn. The bundled model is
+     * unpacked first if this is a fresh install. The error is shown only when Vosk cannot run.
      *
-     * @return true when Vosk has the turn
+     * @return true when Vosk has the turn, or is about to
      */
     private boolean offerVosk(int error) {
         if (usingVosk || voskTried || !isHardSpeechFailure(error)) return false;
         voskTried = true;
         if (!VoskModel.ready(this)) {
-            if (LocalModel.online(this)) VoskModel.startDownload(this);
-            return false;
+            // Hold the turn. A missing model used to bail straight into friendlyError.
+            usingVosk = true;
+            recognizerOnDevice = false;
+            SpeechRecognizer dying = recognizer;
+            recognizer = null;
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            status(escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
+                    PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
+            final int reported = error;
+            new Thread(() -> {
+                boolean ok = VoskModel.ensureInstalled(OrbitAutoService.this);
+                main.post(() -> {
+                    if (!usingVosk) return;
+                    usingVosk = false;
+                    if (!ok || !VoskModel.ready(OrbitAutoService.this)) {
+                        if (LocalModel.online(OrbitAutoService.this)) {
+                            VoskModel.startDownload(OrbitAutoService.this);
+                        }
+                        abandon(recogFocus);
+                        recogFocus = null;
+                        status(speechUnavailable(reported),
+                                PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                        return;
+                    }
+                    voskTried = false;
+                    if (!offerVosk(reported)) {
+                        abandon(recogFocus);
+                        recogFocus = null;
+                        status(speechUnavailable(reported),
+                                PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                    }
+                });
+            }, "groklink-speech-unpack").start();
+            return true;
         }
         usingVosk = true;
         speechEngine = ProcessTrace.VOSK;
@@ -449,7 +483,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 VoskSpeech.cancel();
                 abandon(recogFocus);
                 recogFocus = null;
-                status(OfflineSpeech.unavailableStatus(reported),
+                status(friendlyError(reported),
                         PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
             }
         });

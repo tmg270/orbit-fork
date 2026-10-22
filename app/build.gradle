@@ -153,6 +153,12 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    androidResources {
+        // The Vosk zip is already compressed. Leaving it uncompressed in the APK lets
+        // AssetManager stream it; a second compression breaks open() past a couple of MB.
+        noCompress += "zip"
+    }
+
     packaging {
         jniLibs {
             // MediaPipe and Vosk both ship this library.
@@ -202,7 +208,7 @@ dependencies {
     // the recognition model is delivered by Play services on first use instead of being bundled
     // into every APK. Only called when the user turns on "Read text in pictures".
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:19.0.1"
-    // Offline speech that does not use Google. The ~39 MB English model is downloaded, not bundled.
+    // Offline speech that does not use Google. The ~41 MB en-GB model is in assets/speech.
     implementation "com.alphacephei:vosk-android:0.3.75"
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.16"

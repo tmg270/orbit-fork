@@ -38,7 +38,7 @@ public final class VoskSpeech {
     public static void listen(Context context, Listener listener) {
         if (context == null || listener == null) return;
         if (!VoskModel.ready(context)) {
-            listener.onError("offline speech model is not downloaded");
+            listener.onError("offline speech model is not installed");
             return;
         }
         final Context app = context.getApplicationContext();

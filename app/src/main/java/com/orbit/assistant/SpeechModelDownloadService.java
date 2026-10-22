@@ -9,15 +9,11 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import androidx.core.app.NotificationCompat;
 
@@ -124,7 +120,7 @@ public class SpeechModelDownloadService extends Service {
                 return;
             }
             note("Unpacking offline speech…", 99);
-            unzip(zip, VoskModel.root(this));
+            VoskModel.unpack(zip, VoskModel.root(this));
             if (!VoskModel.ready(this)) {
                 note("Offline speech unpacked but the model was not in the archive.", -1);
                 return;
@@ -150,39 +146,6 @@ public class SpeechModelDownloadService extends Service {
         if (have > 0) conn.setRequestProperty("Range", "bytes=" + have + "-");
         conn.connect();
         return conn;
-    }
-
-    private static void unzip(File zip, File dest) throws Exception {
-        if (!dest.isDirectory() && !dest.mkdirs()) {
-            throw new IllegalStateException("could not create " + dest);
-        }
-        String root = dest.getCanonicalPath();
-        try (ZipInputStream in = new ZipInputStream(new BufferedInputStream(new FileInputStream(zip)))) {
-            ZipEntry entry;
-            byte[] buf = new byte[65536];
-            while ((entry = in.getNextEntry()) != null) {
-                File out = new File(dest, entry.getName());
-                String path = out.getCanonicalPath();
-                if (!path.equals(root) && !path.startsWith(root + File.separator)) {
-                    throw new IllegalStateException("zip entry escapes the speech folder");
-                }
-                if (entry.isDirectory()) {
-                    if (!out.isDirectory() && !out.mkdirs()) {
-                        throw new IllegalStateException("could not create " + out);
-                    }
-                } else {
-                    File parent = out.getParentFile();
-                    if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
-                        throw new IllegalStateException("could not create " + parent);
-                    }
-                    try (FileOutputStream fos = new FileOutputStream(out)) {
-                        int n;
-                        while ((n = in.read(buf)) > 0) fos.write(buf, 0, n);
-                    }
-                }
-                in.closeEntry();
-            }
-        }
     }
 
     private static int pct(long have) {

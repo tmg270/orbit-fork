@@ -539,7 +539,8 @@ public final class VoiceInputController {
 
     /**
      * The system recogniser, already asked to prefer the en-GB offline pack, could not take the
-     * turn. Listen with Vosk if its model is on the phone.
+     * turn. Listen with Vosk for this same turn. Unpack the bundled model first if needed.
+     * The error is shown only when Vosk cannot run.
      *
      * @return true when Vosk is starting and the caller must not end the turn
      */
@@ -549,8 +550,37 @@ public final class VoiceInputController {
         }
         voskTried = true;
         if (!VoskModel.ready(context)) {
-            if (LocalModel.online(context)) VoskModel.startDownload(context);
-            return false;
+            usingVosk = true;
+            onDeviceRecognizer = false;
+            final SpeechRecognizer dying = recognizer;
+            recognizer = null;
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            statusListening();
+            notifyState();
+            final int reported = error;
+            new Thread(() -> {
+                boolean ok = VoskModel.ensureInstalled(context);
+                main.post(() -> {
+                    if (!usingVosk) return;
+                    usingVosk = false;
+                    if (!active || finalizing || !voiceTurn.hasLiveTurn()) return;
+                    if (!ok || !VoskModel.ready(context)) {
+                        if (LocalModel.online(context)) VoskModel.startDownload(context);
+                        active = false;
+                        callback.onStatus(speechUnavailable(reported));
+                        notifyState();
+                        return;
+                    }
+                    voskTried = false;
+                    if (!offerVosk(reported)) {
+                        active = false;
+                        callback.onStatus(speechUnavailable(reported));
+                        notifyState();
+                    }
+                });
+            }, "groklink-speech-unpack").start();
+            return true;
         }
         usingVosk = true;
         speechEngine = ProcessTrace.VOSK;
