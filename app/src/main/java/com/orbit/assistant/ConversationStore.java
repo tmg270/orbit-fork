@@ -1119,7 +1119,7 @@ public final class ConversationStore {
         String content = m.optString("content", "");
         if (content.isEmpty()) return null;
         boolean attached = m.optBoolean("screenAttached", false);
-        return new AssistantClient.History(
+        AssistantClient.History message = new AssistantClient.History(
                 "assistant".equals(m.optString("role")) ? "assistant" : "user",
                 content,
                 attached,
@@ -1142,6 +1142,8 @@ public final class ConversationStore {
                 // Both absent before 0.8.3.0, and absent means none.
                 QuotedMessage.fromJson(m.optJSONObject("quote")),
                 ResponseDetails.fromJson(m.optJSONObject("details")));
+        message.processTrace = m.optString("processTrace", "");
+        return message;
     }
 
     /**
@@ -1280,6 +1282,9 @@ public final class ConversationStore {
             if (!h.sourceUrls.isEmpty()) message.put("sourceUrls", new JSONArray(h.sourceUrls));
             if (h.quote != null) message.put("quote", h.quote.toJson());
             if (h.details != null) message.put("details", h.details.toJson());
+            if (h.processTrace != null && !h.processTrace.isEmpty()) {
+                message.put("processTrace", h.processTrace);
+            }
             msgs.put(message
                     .put("role", h.role)
                     .put("content", h.content)

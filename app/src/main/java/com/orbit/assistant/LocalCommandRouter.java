@@ -16,6 +16,7 @@ public final class LocalCommandRouter {
     /** Side-effect-free recognition used to keep Custom Commands from shadowing core device commands. */
     public static boolean canHandle(String raw) {
         if (raw == null || raw.trim().isEmpty()) return false;
+        if (SpokenConfirm.answers(raw.trim())) return true;
         List<String> parts = splitIntoCommandParts(raw.trim());
         if (parts.size() > 1) {
             for (String part : parts) if (parseSingleCommand(part) == null) return false;
@@ -28,6 +29,15 @@ public final class LocalCommandRouter {
         if (raw == null) return null;
         String normalized = raw.trim();
         if (normalized.isEmpty()) return null;
+        int generation = SpokenConfirm.generation();
+        if (SpokenConfirm.answers(normalized)) return SpokenConfirm.consume(normalized);
+        AssistantReply reply = handleNormalized(context, normalized);
+        // A call or text arms a spoken yes inside the parse. Anything else drops a stale one.
+        if (SpokenConfirm.generation() == generation) SpokenConfirm.clear();
+        return reply;
+    }
+
+    private static AssistantReply handleNormalized(Context context, String normalized) {
 
         AssistantReply clarify = clarifyAmbiguousFollowUp(normalized);
         if (clarify != null) return clarify;
@@ -38,7 +48,7 @@ public final class LocalCommandRouter {
             List<String> spoken = new ArrayList<>();
             for (String part : parts) {
                 ParsedCommand parsed = parseSingleCommand(part);
-                if (parsed == null) return null;
+                if (parsed == null || isReach(parsed.action.type)) return null;
                 actions.add(parsed.action);
                 spoken.add(parsed.spokenLabel);
             }
@@ -49,6 +59,8 @@ public final class LocalCommandRouter {
 
         ParsedCommand single = parseSingleCommand(normalized);
         if (single == null) return null;
+        AssistantReply reach = confirmReach(single);
+        if (reach != null) return reach;
         List<AssistantReply.Action> a = new ArrayList<>();
         a.add(single.action);
         return new AssistantReply(single.responseText, a);
@@ -135,6 +147,10 @@ public final class LocalCommandRouter {
             if (media != null) return media;
             ParsedCommand ringer = parseRinger(q);
             if (ringer != null) return ringer;
+            ParsedCommand play = parsePlayMusic(q);
+            if (play != null) return play;
+            ParsedCommand reach = parseReach(q);
+            if (reach != null) return reach;
 
             // Everyday ways of saying "launch this app". Anchored at the start so a sentence that
             // merely mentions opening something is not treated as an instruction.
@@ -284,6 +300,130 @@ public final class LocalCommandRouter {
         if (MEDIA_NEXT.matcher(q).matches()) return media("NEXT", "Skipping to the next track.", "skip to the next track");
         if (MEDIA_PREVIOUS.matcher(q).matches()) return media("PREVIOUS", "Going back a track.", "go back a track");
         return null;
+    }
+
+    private static boolean isReach(String type) {
+        return "DIAL".equals(type) || "DIAL_CONTACT".equals(type)
+                || "SMS".equals(type) || "SMS_CONTACT".equals(type);
+    }
+
+    /** Calls and texts are recognised here but not run until the user says yes. */
+    private static AssistantReply confirmReach(ParsedCommand single) {
+        if (single == null || !isReach(single.action.type)) return null;
+        java.util.List<AssistantReply.Action> one = new ArrayList<>();
+        one.add(single.action);
+        return SpokenConfirm.ask(single.action, CarActions.confirmQuestion(one));
+    }
+
+    private static ParsedCommand parsePlayMusic(String q) throws org.json.JSONException {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(?:play|put on) (.+)$").matcher(q);
+        if (!m.matches()) return null;
+        String rest = m.group(1).trim();
+        String app = null;
+        java.util.regex.Matcher on = java.util.regex.Pattern.compile(
+                "\\s+on\\s+(poweramp|power amp|spotify|youtube music|youtube|deezer|tidal|"
+                        + "amazon music|apple music|samsung music)\\s*$").matcher(rest);
+        if (on.find()) {
+            app = on.group(1);
+            rest = rest.substring(0, on.start()).trim();
+        }
+        if (rest.isEmpty() || rest.length() > 80) return null;
+        if (rest.matches(".*\\b(game|games|movie|film|chess)\\b.*")) return null;
+        String artist = "";
+        String album = "";
+        String title = "";
+        String query = rest;
+        java.util.regex.Matcher albumBy = java.util.regex.Pattern
+                .compile("^(?:the\\s+)?album\\s+(.+?)\\s+by\\s+(.+)$").matcher(rest);
+        java.util.regex.Matcher songBy = java.util.regex.Pattern
+                .compile("^(?:the\\s+)?(?:song|track)\\s+(.+?)\\s+by\\s+(.+)$").matcher(rest);
+        java.util.regex.Matcher by = java.util.regex.Pattern.compile("^(.+?)\\s+by\\s+(.+)$").matcher(rest);
+        if (albumBy.matches()) {
+            album = tidy(albumBy.group(1));
+            artist = tidy(albumBy.group(2));
+            query = (album + " " + artist).trim();
+        } else if (songBy.matches()) {
+            title = tidy(songBy.group(1));
+            artist = tidy(songBy.group(2));
+            query = (title + " " + artist).trim();
+        } else if (rest.matches("^(?:the\\s+)?(?:artist|band)\\s+.+")) {
+            artist = tidy(rest.replaceFirst("^(?:the\\s+)?(?:artist|band)\\s+", ""));
+            query = artist;
+        } else if (rest.matches("^(?:the\\s+)?album\\s+.+")) {
+            album = tidy(rest.replaceFirst("^(?:the\\s+)?album\\s+", ""));
+            query = album;
+        } else if (rest.matches("^(?:the\\s+)?(?:song|track)\\s+.+")) {
+            title = tidy(rest.replaceFirst("^(?:the\\s+)?(?:song|track)\\s+", ""));
+            query = title;
+        } else if (by.matches()) {
+            title = tidy(by.group(1));
+            artist = tidy(by.group(2));
+            query = (title + " " + artist).trim();
+        } else if (looksLikeSentence(rest)) {
+            // "play devil's advocate for a second" is a sentence, not a track.
+            return null;
+        }
+        if (query.isEmpty()) return null;
+        JSONObject params = new JSONObject().put("query", query);
+        if (!artist.isEmpty()) params.put("artist", artist);
+        if (!album.isEmpty()) params.put("album", album);
+        if (!title.isEmpty()) params.put("title", title);
+        if (app != null) params.put("app", app);
+        String where = app == null ? "" : " on " + app;
+        return new ParsedCommand(action("PLAY_MUSIC", params),
+                "Playing " + query + where + ".", "play " + query);
+    }
+
+    private static String tidy(String value) {
+        return value == null ? "" : value.replaceAll("\\s+", " ").trim();
+    }
+
+    private static ParsedCommand parseReach(String q) throws org.json.JSONException {
+        java.util.regex.Matcher call = java.util.regex.Pattern
+                .compile("^(?:call|phone|ring|dial)\\s+(.+)$").matcher(q);
+        if (call.matches()) {
+            String who = tidy(call.group(1));
+            if (badWho(who)) return null;
+            if (isNumber(who)) {
+                return new ParsedCommand(action("DIAL", new JSONObject().put("number", who)),
+                        "Calling " + who + ".", "call " + who);
+            }
+            return new ParsedCommand(action("DIAL_CONTACT", new JSONObject().put("name", who)),
+                    "Calling " + who + ".", "call " + who);
+        }
+        java.util.regex.Matcher text = java.util.regex.Pattern
+                .compile("^(?:text|sms|message)\\s+(.+)$").matcher(q);
+        if (!text.matches()) return null;
+        String rest = tidy(text.group(1));
+        String body = "";
+        java.util.regex.Matcher saying = java.util.regex.Pattern
+                .compile("^(.+?)\\s+(?:saying|that)\\s+(.+)$").matcher(rest);
+        if (saying.matches()) {
+            rest = tidy(saying.group(1));
+            body = tidy(saying.group(2));
+        }
+        if (badWho(rest)) return null;
+        JSONObject params = new JSONObject();
+        if (!body.isEmpty()) params.put("body", body);
+        if (isNumber(rest)) {
+            params.put("number", rest);
+            return new ParsedCommand(action("SMS", params), "Texting " + rest + ".", "text " + rest);
+        }
+        params.put("name", rest);
+        return new ParsedCommand(action("SMS_CONTACT", params), "Texting " + rest + ".", "text " + rest);
+    }
+
+    private static boolean badWho(String who) {
+        if (who == null || who.isEmpty() || who.length() > 60) return true;
+        String n = who.toLowerCase(Locale.US);
+        if (n.equals("me") || n.startsWith("me ") || n.equals("it") || n.contains("back")) return true;
+        return who.split("\\s+").length > 5;
+    }
+
+    private static boolean isNumber(String who) {
+        int digits = 0;
+        for (int i = 0; i < who.length(); i++) if (Character.isDigit(who.charAt(i))) digits++;
+        return digits >= 5 && digits <= 16 && who.matches("[+0-9() \\-]{5,24}");
     }
 
     private static ParsedCommand media(String command, String spoken, String label)

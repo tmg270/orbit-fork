@@ -211,10 +211,10 @@ public final class OrbitRequestWorker extends Worker {
     static void completeProviderReply(Context c, PendingRequestStore.Item item,
                                       AssistantReply reply, WorkerAttempt attempt) {
         String text = reply.text.trim().isEmpty() ? "Done." : reply.text.trim().replace("—", "-");
-        commit(c, item, item.id,
-                new AssistantClient.History("assistant", text, false, "", "", "", "",
-                        reply.memoryUsage, reply.suggestedMemoryText, reply.suggestedMemoryCategory).withDetails(reply.details),
-                reply.withText(text), SourceLinkUtil.displayText(text), attempt);
+        AssistantClient.History stored = new AssistantClient.History("assistant", text, false, "", "", "", "",
+                reply.memoryUsage, reply.suggestedMemoryText, reply.suggestedMemoryCategory).withDetails(reply.details);
+        stored.processTrace = ProcessTrace.line();
+        commit(c, item, item.id, stored, reply.withText(text), SourceLinkUtil.displayText(text), attempt);
     }
 
     private static void commit(Context c, PendingRequestStore.Item item, String id,
@@ -387,6 +387,11 @@ public final class OrbitRequestWorker extends Worker {
                         // routing to describe.
                         if (item.route != null && !details.answeredByOrbit()) {
                             details = details.withRoute(item.route);
+                        }
+                        if (reply != null && reply.details != null && !reply.details.answeredByOrbit()) {
+                            ProcessTrace.handler(ProcessTrace.grokLabel(selection));
+                        } else {
+                            ProcessTrace.handlerIfEmpty(ProcessTrace.RULES);
                         }
                         replyRef.set(reply == null ? null : reply.withDetails(details));
                         latch.countDown();

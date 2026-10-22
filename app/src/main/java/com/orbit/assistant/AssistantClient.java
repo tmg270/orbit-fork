@@ -96,6 +96,8 @@ public final class AssistantClient {
         public final QuotedMessage quote;
         /** What answered this assistant turn and how long it took, when Orbit knows. Or null. */
         public final ResponseDetails details;
+        /** Compact processing line. Not sent to a model. Empty on older stored messages. */
+        public String processTrace = "";
 
         public History(String role, String content) {
             this(role, content, false, "", "", "", "", "", "", "");
@@ -238,9 +240,11 @@ public final class AssistantClient {
 
         /** A copy of this message carrying the stopped request id, everything else untouched. */
         public History withStoppedRequestId(String requestId) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, requestId, documents, richImages, replyRequestId, sourceUrls, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /**
@@ -252,31 +256,39 @@ public final class AssistantClient {
          * seconds after the answer did.
          */
         public History withRichImages(List<RichAnswerImage> images) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, images, replyRequestId, sourceUrls, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         public History withReplyProvenance(String requestId, List<String> sources) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, requestId, sources, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** A copy of this user turn pointing at an earlier message, everything else untouched. */
         public History withQuote(QuotedMessage value) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, replyRequestId,
                     sourceUrls, value, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** A copy of this assistant turn carrying what answered it, everything else untouched. */
         public History withDetails(ResponseDetails value) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, replyRequestId,
                     sourceUrls, quote, value);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** Whether this message has a picture to draw. */
@@ -386,47 +398,89 @@ public final class AssistantClient {
         final Bitmap screenshot = images == null || images.isEmpty() ? null : images.get(0);
         final List<Bitmap> requestImages = images == null
                 ? java.util.Collections.emptyList() : images;
-        // Explicit Orbit Memory commands stay local, inspectable, and instant.
-        AssistantReply memory = MemoryCommandRouter.tryHandle(context, prompt, history);
-        if (memory != null) {
-            cb.onSuccess(memory);
+        // A reply the on-device model already produced is delivered as-is. It is taken before the
+        // routers so the spoken yes that model armed is not cleared by parsing the same words again.
+        AssistantReply cached = LocalIntentCache.take(prompt);
+        if (cached != null) {
+            DiagnosticStore.recordUtilityRoute(context, "offline-model");
+            ProcessTrace.handlerIfEmpty(ProcessTrace.QWEN);
+            cb.onSuccess(cached);
             return;
         }
+
+        OfflineAttempt offline = tryOffline(context, prompt, history);
+        if (offline.reply != null) {
+            ProcessTrace.handlerIfEmpty(ProcessTrace.RULES);
+            cb.onSuccess(offline.reply);
+            return;
+        }
+
+        // No phrase matched. Do not sit on "Thinking…" until a socket times out.
+        if (!NetStatus.online(context)) {
+            cb.onSuccess(new AssistantReply(GrokEscalation.NEEDS_CONNECTION));
+            return;
+        }
+
+        final String resolvedNotificationContext = offline.notificationContext;
+        final Runnable continueToProvider = () -> sendToProvider(context, prompt, screenText,
+                requestImages, history, selection, explicitAttachment, trustedTaskContext,
+                kept,
+                cancelled, resolvedNotificationContext, routing, cb);
+
+        // Anything still here needs Grok. The phone UI and Android Auto decide whether to ask
+        // immediately or to offer Forget it / Ask Grok first; this method does not guess.
+        continueToProvider.run();
+    }
+
+    /** Deterministic offline answer, or null when Grok would be needed. Safe to call from the car. */
+    public static AssistantReply tryOfflineReply(Context context, String prompt) {
+        OfflineAttempt attempt = tryOffline(context, prompt, null);
+        return attempt == null ? null : attempt.reply;
+    }
+
+    private static final class OfflineAttempt {
+        final AssistantReply reply;
+        final String notificationContext;
+
+        OfflineAttempt(AssistantReply reply, String notificationContext) {
+            this.reply = reply;
+            this.notificationContext = notificationContext == null ? "" : notificationContext;
+        }
+    }
+
+    private static OfflineAttempt tryOffline(Context context, String prompt, List<History> history) {
+        // Explicit Memory commands stay local, inspectable, and instant.
+        AssistantReply memory = MemoryCommandRouter.tryHandle(context, prompt, history);
+        if (memory != null) return new OfflineAttempt(memory, "");
 
         // Saved routines are local, deterministic Action Engine plans. Resolve them
         // before generic device commands or the network-backed assistant.
         AssistantReply routine = RoutineCommandRouter.tryHandle(context, prompt);
-        if (routine != null) {
-            cb.onSuccess(routine);
-            return;
-        }
+        if (routine != null) return new OfflineAttempt(routine, "");
 
         // A question about a device state has to be resolved before the command parser sees it.
         // "Is Do Not Disturb on?" contains the words LocalCommandRouter treats as an instruction,
         // and answering it by switching DND on and reporting that would be exactly wrong. The
-        // recognizer is deliberately the narrowest in the pipeline - question shape, a state Orbit
-        // can actually read, and no verb that would change anything - so every phrasing that is an
-        // instruction still falls straight through to the router below.
+        // recognizer is deliberately the narrowest in the pipeline - question shape, a state the
+        // phone can actually read, and no verb that would change anything - so every phrasing that
+        // is an instruction still falls straight through to the router below.
         AssistantReply status = DeviceStatusRouter.tryHandle(context, prompt);
         if (status != null) {
             DiagnosticStore.recordUtilityRoute(context, "device-status");
-            cb.onSuccess(status);
-            return;
+            return new OfflineAttempt(status, "");
         }
 
-        // Obvious phone commands stay instant and offline regardless of AI provider.
+        // Obvious phone commands stay instant and offline regardless of the network.
         AssistantReply local = LocalCommandRouter.tryHandle(context, prompt);
         if (local != null) {
             DiagnosticStore.recordUtilityRoute(context, "device-command");
-            cb.onSuccess(local);
-            return;
+            return new OfflineAttempt(local, "");
         }
 
         NotificationQueryHelper.Prepared notification =
                 NotificationQueryHelper.prepare(context, prompt);
         if (notification.recognized && notification.localReply != null) {
-            cb.onSuccess(notification.localReply);
-            return;
+            return new OfflineAttempt(notification.localReply, "");
         }
         String notificationContext = notification.context;
 
@@ -434,60 +488,35 @@ public final class AssistantClient {
         // memory, explicit Routine syntax, device commands, and local notification
         // queries intentionally retain priority.
         AssistantReply customCommand = CustomCommandRouter.tryHandle(context, prompt);
-        if (customCommand != null) {
-            cb.onSuccess(customCommand);
-            return;
-        }
+        if (customCommand != null) return new OfflineAttempt(customCommand, "");
 
         // Kitchen arithmetic is arithmetic: a conversion or a scaled quantity has one right
-        // answer, so Orbit gives it itself rather than paying a round trip to whichever provider
-        // is active. The router is deliberately narrow and hands anything needing judgement -
-        // substitutions, technique, food safety - straight through to the provider below.
+        // answer, so it is given here rather than paying a round trip to Grok.
         AssistantReply kitchen = KitchenMathRouter.tryHandle(context, prompt);
         if (kitchen != null) {
             DiagnosticStore.recordUtilityRoute(context, "kitchen");
-            cb.onSuccess(kitchen);
-            return;
+            return new OfflineAttempt(kitchen, "");
         }
 
-        // Ordinary arithmetic and everyday unit conversion, on the same principle as the kitchen
-        // router above and after it, so cooking keeps its own presentation rules. Both are pure
-        // functions of the text, both are exact, and both work with no provider and no network.
         AssistantReply calculated = CalculatorRouter.tryHandle(context, prompt);
         if (calculated != null) {
             DiagnosticStore.recordUtilityRoute(context, "calculator");
-            cb.onSuccess(calculated);
-            return;
+            return new OfflineAttempt(calculated, "");
         }
 
         AssistantReply converted = UnitConversionRouter.tryHandle(context, prompt);
         if (converted != null) {
             DiagnosticStore.recordUtilityRoute(context, "conversion");
-            cb.onSuccess(converted);
-            return;
+            return new OfflineAttempt(converted, "");
         }
-
-        final String resolvedNotificationContext = notificationContext;
-        final Runnable continueToProvider = () -> sendToProvider(context, prompt, screenText,
-                requestImages, history, selection, explicitAttachment, trustedTaskContext,
-                kept,
-                cancelled, resolvedNotificationContext, routing, cb);
-
-        // The last stop before the network. When Orbit Local's action model is installed and
-        // enabled, and the message already reads as an instruction about something Orbit can
-        // control, the phone gets one attempt at it: the model proposes a normalized action, Orbit
-        // validates it, and the shared executor runs it. Every other outcome - a refusal, malformed
-        // output, a model failure, a timeout - continues to the provider exactly as before, so this
-        // can add an answer and can never take one away.
-        continueToProvider.run();
+        return new OfflineAttempt(null, notificationContext);
     }
 
     /**
      * Everything from memory selection to the active provider.
      *
-     * <p>Split out of {@link #send} so the Orbit Local action attempt above has something to hand
-     * the request on to. Nothing about it changed when it moved: this is the same provider path,
-     * reached either directly or after the on-device action model declined.
+     * <p>Split out of {@link #send} so a local reply can be returned before anything is sent to xAI.
+     * Nothing about the provider path changed when it moved.
      */
     private static void sendToProvider(Context context, String prompt, String screenText,
                                        List<Bitmap> images, List<History> history,

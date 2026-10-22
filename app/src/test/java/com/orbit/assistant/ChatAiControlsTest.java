@@ -49,10 +49,13 @@ public final class ChatAiControlsTest {
         TestWorkManager.ensureInitialized(context);
         MessageActions.resetSaveGuardForTest();
         OrbitVaultStore.prefs(context).edit().clear().commit();
+        SubmissionGate.resetForTest();
+        NetStatus.setOnlineForTests(null);
     }
 
     @After public void tearDown() {
         OrbitRequestManager.resetForTest();
+        NetStatus.setOnlineForTests(null);
     }
 
     private void seed(String id, String... turns) {
@@ -223,6 +226,19 @@ public final class ChatAiControlsTest {
         assertEquals("Saturn has 146 moons.", sent.quote.text);
         assertNull("the composer lets go after sending", chat.pendingQuoteForTest());
         assertEquals(View.GONE, chat.quoteCardForTest().getVisibility());
+    }
+
+    @Test public void anOfflineSendSaysGrokNeedsAConnectionAndDoesNotEnqueue() {
+        NetStatus.setOnlineForTests(false);
+        seed("offline-send", "question", "Saturn has 146 moons.");
+        ChatActivity chat = open("offline-send").get();
+        chat.setDraftForTest("What about the rings?");
+        chat.submitForTest();
+        List<AssistantClient.History> stored = ConversationStore.load(context, "offline-send").messages;
+        assertEquals("the typed question is kept", "What about the rings?",
+                stored.get(stored.size() - 2).content);
+        assertEquals(GrokEscalation.NEEDS_CONNECTION, stored.get(stored.size() - 1).content);
+        assertTrue(PendingRequestStore.activeForConversation(context, "offline-send").isEmpty());
     }
 
     @Test public void aQuoteSurvivesRecreationWhileUnsent() {

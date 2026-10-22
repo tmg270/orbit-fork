@@ -2,8 +2,10 @@ name: Build GrokLink APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ groklink, main ]
   push:
-    branches: [ main ]
+    branches: [ main, groklink, offline-local ]
 
 permissions:
   contents: read
@@ -15,11 +17,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4

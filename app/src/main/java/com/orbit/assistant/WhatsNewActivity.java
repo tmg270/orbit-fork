@@ -126,7 +126,7 @@ public final class WhatsNewActivity extends Activity {
 
     static final String NOTES =
             "## GrokLink 1.0\n"
-            + "- **Grok only.** ChatGPT, OpenRouter, Anthropic, the API relay and the on-device model are gone. xAI is the only provider.\n"
+            + "- **Grok only for the cloud.** ChatGPT, OpenRouter, Anthropic and the API relay are gone. Simple commands work offline, and an optional downloaded model covers the ones a phrase matcher misses. Anything else still goes only to xAI.\n"
             + "- **SuperGrok sign-in.** Sign in with your SuperGrok account using a short code in your browser, or paste an xAI API key.\n"
             + "- **Guided setup.** Grok sign-in, microphone, default assistant, permissions, and the Android Auto steps.\n"
             + "- **Android Auto (experimental).** Open GrokLink from Auto's media apps and tap Ask Grok. Needs Android Auto developer mode and Unknown sources.\n"

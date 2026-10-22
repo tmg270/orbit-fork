@@ -12,8 +12,10 @@ screen, have it set timers, alarms and calendar events, and keep full conversati
 
 ## What it does
 
-- **Grok only.** No ChatGPT, OpenRouter, Anthropic, relay server or on-device model. Every answer
-  comes from xAI.
+- **Grok only for the cloud.** No ChatGPT, OpenRouter, Anthropic or relay server. Simple commands
+  (timers, alarms, playback, calls and texts) run on the phone with no connection. An optional
+  1.60 GB on-device model can be downloaded for the ones the phrase matchers miss. Anything else
+  still goes only to xAI.
 - **SuperGrok sign-in, no API key needed.** Sign in with your SuperGrok account using a short code in
   your browser, or paste an xAI developer API key from [console.x.ai](https://console.x.ai) instead.
 - **Side-button assistant** over any app, with optional screen text and screenshots.
