@@ -152,6 +152,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
+
+    packaging {
+        jniLibs {
+            // MediaPipe and Vosk both ship this library.
+            pickFirsts += ['**/libc++_shared.so']
+        }
+    }
 }
 
 afterEvaluate {
@@ -195,6 +202,8 @@ dependencies {
     // the recognition model is delivered by Play services on first use instead of being bundled
     // into every APK. Only called when the user turns on "Read text in pictures".
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:19.0.1"
+    // Offline speech that does not use Google. The ~39 MB English model is downloaded, not bundled.
+    implementation "com.alphacephei:vosk-android:0.3.75"
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.16"
     androidTestImplementation "androidx.test:core:1.6.1"

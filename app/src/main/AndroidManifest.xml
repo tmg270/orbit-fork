@@ -389,6 +389,11 @@
             android:foregroundServiceType="dataSync" />
 
         <service
+            android:name=".SpeechModelDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <service
             android:name=".OrbitAutoService"
             android:exported="true"
             android:label="GrokLink">

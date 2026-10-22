@@ -31,6 +31,7 @@ public final class OfflineCommandsTest {
         RecentActionContext.clear();
         SpokenConfirm.clear();
         OfflineSpeech.resetForTests();
+        ProcessTrace.resetForTests();
         Prefs.get(context).edit().clear().commit();
     }
 
@@ -115,11 +116,21 @@ public final class OfflineCommandsTest {
         assertEquals("Voice input unavailable (" + SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED + ")",
                 OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED));
         Intent intent = new Intent();
+        intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         OfflineSpeech.rememberNetworkFallback();
         OfflineSpeech.apply(intent);
-        assertFalse("the platform recogniser must not insist on the missing pack",
+        assertTrue("every recogniser intent stays offline-first, including after a pack failure",
                 OfflineSpeech.prefersOffline(intent));
+        assertEquals(OfflineSpeech.LANGUAGE,
+                intent.getStringExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE));
+        assertEquals(OfflineSpeech.LANGUAGE,
+                intent.getStringExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE));
+        assertTrue(OfflineSpeech.isOnDeviceFailure(SpeechRecognizer.ERROR_NETWORK));
+        assertEquals(ProcessTrace.GOOGLE_OFFLINE, ProcessTrace.engineLabel(false, false));
+        assertEquals(ProcessTrace.ON_DEVICE, ProcessTrace.engineLabel(true, true));
+        assertEquals(ProcessTrace.GOOGLE_ONLINE, ProcessTrace.engineLabel(false, true));
         OfflineSpeech.resetForTests();
+        ProcessTrace.resetForTests();
     }
 
     @Test public void modelJsonIsAllowlisted() {

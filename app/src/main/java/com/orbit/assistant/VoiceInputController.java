@@ -43,8 +43,13 @@ public final class VoiceInputController {
     private RecognitionListener recognitionListener;
     /** True while {@link #recognizer} is the on-device engine, not the platform one. */
     private boolean onDeviceRecognizer;
-    /** A swap to the platform recogniser is already queued for this process. */
+    /** A swap to the platform recogniser, or to Vosk, is already queued. */
     private boolean speechFallbackScheduled;
+    /** This turn already left the system recogniser for Vosk. */
+    private boolean voskTried;
+    private boolean usingVosk;
+    /** Engine name recorded when this utterance is accepted. */
+    private String speechEngine = "";
     private TextToSpeech tts;
     private boolean ttsReady;
     private boolean listening;
@@ -115,7 +120,12 @@ public final class VoiceInputController {
         active = true;
         composerClaimedForTyping = false;
         cancelFinalize();
+        usingVosk = false;
+        voskTried = false;
+        VoskSpeech.cancel();
+        if (recognizer == null) installPlatformRecognizer();
         voiceTurn.begin();
+        ProcessTrace.beginSpeech();
         if (Prefs.haptics(context)) {
             try {
                 Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
@@ -135,6 +145,8 @@ public final class VoiceInputController {
         if (recognizer != null) {
             try { recognizer.cancel(); } catch (Exception ignored) {}
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
         if (!keepDraft && !currentVoiceText().isEmpty()) callback.onDraft(combinedDraft());
         callback.onStatus("");
@@ -164,6 +176,8 @@ public final class VoiceInputController {
         if (recognizer != null) {
             try { recognizer.cancel(); } catch (Exception ignored) {}
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
         accumulated = "";
         partial = "";
@@ -233,6 +247,8 @@ public final class VoiceInputController {
         stop(true);
         stopSpeaking();
         if (recognizer != null) try { recognizer.destroy(); } catch (Exception ignored) {}
+        usingVosk = false;
+        VoskSpeech.cancel();
         if (tts != null) try { tts.shutdown(); } catch (Exception ignored) {}
         recognizer = null;
         tts = null;
@@ -247,6 +263,7 @@ public final class VoiceInputController {
             if (engine == null || engine.recognizer == null) return;
             recognizer = engine.recognizer;
             onDeviceRecognizer = engine.onDevice;
+            speechEngine = ProcessTrace.engineLabel(engine.onDevice, LocalModel.online(context));
             recognitionListener = new RecognitionListener() {
                 @Override public void onReadyForSpeech(Bundle params) {
                     if (!voiceTurn.hasLiveTurn()) return;
@@ -270,11 +287,12 @@ public final class VoiceInputController {
                 @Override public void onError(int error) {
                     // Belongs to a turn the user has left; the composer is theirs now.
                     if (!voiceTurn.hasLiveTurn()) return;
-                    if (speechFallbackScheduled) return;
+                    if (usingVosk || speechFallbackScheduled) return;
                     listening = false;
                     notifyState();
                     if (!active || finalizing) return;
                     if (switchToPlatformRecognizer(error)) return;
+                    if (offerVosk(error)) return;
                     if (Prefs.voicePauseFriendly(context) && hasDraft()) {
                         if (manualFinish) finishVoice();
                         else {
@@ -285,7 +303,7 @@ public final class VoiceInputController {
                             error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT &&
                             error != SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
                         active = false;
-                        callback.onStatus(OfflineSpeech.unavailableStatus(error));
+                        callback.onStatus(speechUnavailable(error));
                         notifyState();
                     } else {
                         active = false;
@@ -313,6 +331,7 @@ public final class VoiceInputController {
                         }
                     } else if (!segment.isEmpty()) {
                         active = false;
+                        noteSpeechEngine();
                         callback.onStatus("");
                         callback.onSubmit(withOriginal(segment));
                     }
@@ -350,7 +369,7 @@ public final class VoiceInputController {
         final int reported = error;
         recognizer = null;
         main.post(() -> {
-            OfflineSpeech.requestLanguagePack(context, dying, Locale.getDefault().toLanguageTag());
+            OfflineSpeech.requestLanguagePack(context, dying, OfflineSpeech.LANGUAGE);
             try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
             if (!active || finalizing || !voiceTurn.hasLiveTurn()) {
                 installPlatformRecognizer();
@@ -359,8 +378,9 @@ public final class VoiceInputController {
             }
             if (!installPlatformRecognizer()) {
                 speechFallbackScheduled = false;
+                if (offerVosk(reported)) return;
                 active = false;
-                callback.onStatus(OfflineSpeech.unavailableStatus(reported));
+                callback.onStatus(speechUnavailable(reported));
                 notifyState();
                 return;
             }
@@ -375,15 +395,17 @@ public final class VoiceInputController {
         if (engine == null || engine.recognizer == null) return false;
         recognizer = engine.recognizer;
         onDeviceRecognizer = false;
+        speechEngine = ProcessTrace.engineLabel(false, LocalModel.online(context));
         if (recognitionListener != null) recognizer.setRecognitionListener(recognitionListener);
         return true;
     }
 
     private void startSegment(boolean initial) {
-        if (!active) return;
+        if (!active || usingVosk) return;
         if (recognizer == null) {
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             active = false;
-            callback.onStatus(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
+            callback.onStatus(speechUnavailable(SpeechRecognizer.ERROR_CLIENT));
             notifyState();
             return;
         }
@@ -400,6 +422,7 @@ public final class VoiceInputController {
                 intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 6500L);
                 intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1500L);
             }
+            speechEngine = ProcessTrace.engineLabel(onDeviceRecognizer, LocalModel.online(context));
             recognizer.startListening(intent);
             listening = true;
             statusListening();
@@ -407,17 +430,18 @@ public final class VoiceInputController {
         } catch (Exception ignored) {
             listening = false;
             if (switchToPlatformRecognizer(SpeechRecognizer.ERROR_CLIENT)) return;
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             if (hasDraft()) scheduleFinalize();
             else {
                 active = false;
-                callback.onStatus(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT));
+                callback.onStatus(speechUnavailable(SpeechRecognizer.ERROR_CLIENT));
             }
             notifyState();
         }
     }
 
     private void restartSegment() {
-        if (!active || manualFinish || finalizing) return;
+        if (!active || manualFinish || finalizing || usingVosk) return;
         // Rechecked on arrival so a queued restart cannot reopen the microphone after the user
         // has taken the composer for typing.
         final int turn = voiceTurn.liveTurn();
@@ -476,7 +500,10 @@ public final class VoiceInputController {
         // The turn has produced its message; anything still in flight belongs to no one.
         voiceTurn.abandon();
         if (recognizer != null) try { recognizer.cancel(); } catch (Exception ignored) {}
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
+        noteSpeechEngine();
         callback.onStatus("");
         notifyState();
         callback.onSubmit(finalText);
@@ -493,6 +520,103 @@ public final class VoiceInputController {
     }
 
     private void statusListening() { callback.onStatus("Listening · pause when you need"); }
+
+    /** Records the recogniser that produced this utterance. Offline platform is "Google offline". */
+    private void noteSpeechEngine() {
+        String engine = speechEngine == null || speechEngine.isEmpty()
+                ? ProcessTrace.engineLabel(onDeviceRecognizer, LocalModel.online(context))
+                : speechEngine;
+        ProcessTrace.speech(engine);
+    }
+
+    /** Keeps the error code, and says why there is no second recogniser when Vosk is absent. */
+    private String speechUnavailable(int error) {
+        String base = OfflineSpeech.unavailableStatus(error);
+        if (VoskModel.ready(context)) return base;
+        if (LocalModel.online(context)) return base + " · downloading offline speech";
+        return base + " · offline speech is not on this phone";
+    }
+
+    /**
+     * The system recogniser, already asked to prefer the en-GB offline pack, could not take the
+     * turn. Listen with Vosk if its model is on the phone.
+     *
+     * @return true when Vosk is starting and the caller must not end the turn
+     */
+    private boolean offerVosk(int error) {
+        if (usingVosk || voskTried || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        voskTried = true;
+        if (!VoskModel.ready(context)) {
+            if (LocalModel.online(context)) VoskModel.startDownload(context);
+            return false;
+        }
+        usingVosk = true;
+        speechEngine = ProcessTrace.VOSK;
+        speechFallbackScheduled = true;
+        final SpeechRecognizer dying = recognizer;
+        recognizer = null;
+        onDeviceRecognizer = false;
+        main.post(() -> {
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            speechFallbackScheduled = false;
+            if (!active || finalizing || !voiceTurn.hasLiveTurn()) {
+                usingVosk = false;
+                VoskSpeech.cancel();
+                return;
+            }
+            listening = true;
+            statusListening();
+            notifyState();
+            VoskSpeech.listen(context, new VoskSpeech.Listener() {
+                @Override public void onPartial(String text) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn()) return;
+                    partial = text == null ? "" : text.trim();
+                    callback.onDraft(combinedDraft());
+                    if (Prefs.voicePauseFriendly(context)) scheduleFinalize();
+                    statusListening();
+                }
+
+                @Override public void onFinal(String text) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn() || !active || finalizing) return;
+                    String segment = text == null ? "" : text.trim();
+                    if (Prefs.voicePauseFriendly(context)) {
+                        appendSegment(segment);
+                        partial = "";
+                        callback.onDraft(combinedDraft());
+                        if (manualFinish) finishVoice();
+                        else if (hasDraft()) scheduleFinalize();
+                    } else if (!segment.isEmpty()) {
+                        usingVosk = false;
+                        active = false;
+                        VoskSpeech.cancel();
+                        noteSpeechEngine();
+                        callback.onStatus("");
+                        callback.onSubmit(withOriginal(segment));
+                        notifyState();
+                    }
+                }
+
+                @Override public void onError(String message) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn()) return;
+                    usingVosk = false;
+                    listening = false;
+                    VoskSpeech.cancel();
+                    if (Prefs.voicePauseFriendly(context) && hasDraft()) {
+                        scheduleFinalize();
+                        notifyState();
+                        return;
+                    }
+                    active = false;
+                    callback.onStatus(OfflineSpeech.unavailableStatus(error));
+                    notifyState();
+                }
+            });
+        });
+        return true;
+    }
 
     private void notifyState() { callback.onStateChanged(listening, finalizing, speaking); }
 

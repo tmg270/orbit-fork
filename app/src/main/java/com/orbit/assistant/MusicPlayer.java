@@ -39,7 +39,10 @@ final class MusicPlayer {
 
     static final String TAG = "OrbitAuto";
     static final String POWERAMP = "com.maxmpz.audioplayer";
-    static final String POWERAMP_RECEIVER = "com.maxmpz.audioplayer.player.PowerampAPIReceiver";
+    static volatile String lastVia = "";
+
+    /** "Poweramp MediaBrowser", "broadcast", or "" when the last play did not confirm. */
+    public static String lastVia() { return lastVia == null ? "" : lastVia; }
     private static final String BROWSER_SERVICE = "android.media.browse.MediaBrowserService";
 
     /** Spoken app name to package. Unknown names return null (use the default player). */
@@ -141,6 +144,7 @@ final class MusicPlayer {
                         mc.getTransportControls().playFromSearch(q, extras);
                         if (waitPlaying(c, mc)) {
                             disconnectLater(browser);
+                            lastVia = (POWERAMP.equals(pkg) ? "Poweramp" : name) + " MediaBrowser";
                             Log.i(MTAG, "CONFIRMED playing via MediaBrowser");
                             return DeviceActionExecutor.Result.success("Playing " + q + " on " + name);
                         }
@@ -162,6 +166,7 @@ final class MusicPlayer {
                 Log.i(MTAG, "fallback: Poweramp API receiver broadcast PLAY_FROM_SEARCH");
                 if (waitPlaying(c, mc)) {
                     disconnectLater(browser);
+                    lastVia = "broadcast";
                     Log.i(MTAG, "CONFIRMED playing via Poweramp API broadcast");
                     return DeviceActionExecutor.Result.success("Playing " + q + " on Poweramp");
                 }

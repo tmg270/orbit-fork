@@ -104,7 +104,8 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     private final Runnable offlineStatusTick = new Runnable() {
         @Override public void run() {
             if (offlineModelStatus == null || !offlineModelStatus.isAttachedToWindow()) return;
-            offlineModelStatus.setText(LocalModel.statusLine(SettingsActivity.this));
+            offlineModelStatus.setText(LocalModel.statusLine(SettingsActivity.this)
+                    + "\n" + VoskModel.statusLine(SettingsActivity.this));
             offlineModelStatus.postDelayed(this, 1000);
         }
     };
@@ -1732,7 +1733,8 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setPadding(0, UiKit.dp(this, 8), 0, 0);
-        offlineModelStatus = UiKit.text(this, LocalModel.statusLine(this), 13, UiKit.TEXT, false);
+        offlineModelStatus = UiKit.text(this,
+                LocalModel.statusLine(this) + "\n" + VoskModel.statusLine(this), 13, UiKit.TEXT, false);
         offlineModelStatus.setPadding(0, 0, 0, UiKit.dp(this, 8));
         box.addView(offlineModelStatus);
         box.addView(toggle("Offline commands",
@@ -1747,6 +1749,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         box.addView(toggle("Ask before sending unknown commands to Grok",
                 "Voice, and typed commands the phone did not handle, wait two seconds. Forget it, or Ask Grok.",
                 Prefs.ASK_BEFORE_GROK, true));
+        box.addView(toggle("Show processing details",
+                "Under each reply: speech engine, what handled the request, and what ran it, with times.",
+                Prefs.SHOW_PROCESSING, true));
         Button download = secondaryButton("Download offline model");
         box.addView(download, offlineButtonLp());
         download.setOnClickListener(v -> {
@@ -1761,6 +1766,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 return;
             }
             LocalModel.startDownload(this);
+            VoskModel.startDownload(this);
             refreshOfflineStatus();
         });
         Button remove = secondaryButton("Remove offline model");
@@ -1781,7 +1787,9 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
     }
 
     private void refreshOfflineStatus() {
-        if (offlineModelStatus != null) offlineModelStatus.setText(LocalModel.statusLine(this));
+        if (offlineModelStatus != null) {
+            offlineModelStatus.setText(LocalModel.statusLine(this) + "\n" + VoskModel.statusLine(this));
+        }
     }
 
     private void startOfflineStatus() {

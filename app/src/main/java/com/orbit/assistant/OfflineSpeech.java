@@ -9,16 +9,20 @@ import android.speech.SpeechRecognizer;
 import java.util.Locale;
 
 /**
- * On-device speech recognition for the phone and Android Auto.
+ * Speech recognition for the phone and Android Auto.
  *
- * <p>Android 12+ tries {@link SpeechRecognizer#createOnDeviceSpeechRecognizer} first so a turn
- * does not need a data connection. If that recogniser cannot be created, or it fails because the
- * offline language pack is missing, the session remembers the failure and the next attempt uses
- * the ordinary {@link SpeechRecognizer#createSpeechRecognizer}. While online, Android 13+ is
- * asked to download the pack in the background.
+ * <p>Every recogniser intent sets {@link RecognizerIntent#EXTRA_PREFER_OFFLINE} and
+ * {@code EXTRA_LANGUAGE=en-GB}, including the ordinary system recogniser. That is what makes
+ * airplane mode use the downloaded English (UK) pack instead of failing with
+ * {@link SpeechRecognizer#ERROR_NETWORK}. When the phone is offline, {@link #open} uses that
+ * system recogniser first and does not try {@link SpeechRecognizer#createOnDeviceSpeechRecognizer}.
+ * A hard error after that (including error 2) is the caller's cue to fall back to Vosk.
  */
 public final class OfflineSpeech {
-    /** Once set, this process keeps using the platform recogniser. */
+    /** British English pack. The phone under test has this offline pack installed. */
+    public static final String LANGUAGE = "en-GB";
+
+    /** Once set, this process skips the on-device recogniser and uses the system one. */
     private static volatile boolean networkFallback;
 
     private OfflineSpeech() {}
@@ -41,6 +45,10 @@ public final class OfflineSpeech {
 
     public static Engine open(Context context) {
         if (context == null) return null;
+        // Offline: the system recogniser, with EXTRA_PREFER_OFFLINE, before Vosk.
+        // The on-device factory is skipped here because a missing pack used to
+        // fall through to the online recogniser and return ERROR_NETWORK.
+        if (!LocalModel.online(context)) return openPlatform(context);
         if (!networkFallback) {
             Engine onDevice = openOnDevice(context);
             if (onDevice != null) return onDevice;
@@ -103,16 +111,19 @@ public final class OfflineSpeech {
             String language = languageTag == null || languageTag.trim().isEmpty()
                     ? Locale.getDefault().toLanguageTag() : languageTag.trim();
             download.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
+            download.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
             onDevice.triggerModelDownload(download);
         } catch (Throwable ignored) {
             // The platform recogniser still takes the turn. The pack can be installed later.
         }
     }
 
-    /** Marks a recognition intent as preferring the on-device model. */
+    /** Marks every recognition intent as offline-first British English. */
     public static void apply(Intent intent) {
-        if (intent == null || networkFallback) return;
+        if (intent == null) return;
         intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, LANGUAGE);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, LANGUAGE);
     }
 
     public static boolean prefersOffline(Intent intent) {

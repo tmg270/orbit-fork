@@ -96,6 +96,8 @@ public final class AssistantClient {
         public final QuotedMessage quote;
         /** What answered this assistant turn and how long it took, when Orbit knows. Or null. */
         public final ResponseDetails details;
+        /** Compact processing line. Not sent to a model. Empty on older stored messages. */
+        public String processTrace = "";
 
         public History(String role, String content) {
             this(role, content, false, "", "", "", "", "", "", "");
@@ -238,9 +240,11 @@ public final class AssistantClient {
 
         /** A copy of this message carrying the stopped request id, everything else untouched. */
         public History withStoppedRequestId(String requestId) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, requestId, documents, richImages, replyRequestId, sourceUrls, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /**
@@ -252,31 +256,39 @@ public final class AssistantClient {
          * seconds after the answer did.
          */
         public History withRichImages(List<RichAnswerImage> images) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, images, replyRequestId, sourceUrls, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         public History withReplyProvenance(String requestId, List<String> sources) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, requestId, sources, quote, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** A copy of this user turn pointing at an earlier message, everything else untouched. */
         public History withQuote(QuotedMessage value) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, replyRequestId,
                     sourceUrls, value, details);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** A copy of this assistant turn carrying what answered it, everything else untouched. */
         public History withDetails(ResponseDetails value) {
-            return new History(role, content, screenAttached, attachmentPaths, attachmentKind,
+            History next = new History(role, content, screenAttached, attachmentPaths, attachmentKind,
                     attachmentLabel, attachmentText, memoryUsage, memorySuggestionText,
                     memorySuggestionCategory, stoppedRequestId, documents, richImages, replyRequestId,
                     sourceUrls, quote, value);
+            next.processTrace = processTrace;
+            return next;
         }
 
         /** Whether this message has a picture to draw. */
@@ -391,13 +403,21 @@ public final class AssistantClient {
         AssistantReply cached = LocalIntentCache.take(prompt);
         if (cached != null) {
             DiagnosticStore.recordUtilityRoute(context, "offline-model");
+            ProcessTrace.handlerIfEmpty(ProcessTrace.QWEN);
             cb.onSuccess(cached);
             return;
         }
 
         OfflineAttempt offline = tryOffline(context, prompt, history);
         if (offline.reply != null) {
+            ProcessTrace.handlerIfEmpty(ProcessTrace.RULES);
             cb.onSuccess(offline.reply);
+            return;
+        }
+
+        // No phrase matched. Do not sit on "Thinking…" until a socket times out.
+        if (!NetStatus.online(context)) {
+            cb.onSuccess(new AssistantReply(GrokEscalation.NEEDS_CONNECTION));
             return;
         }
 

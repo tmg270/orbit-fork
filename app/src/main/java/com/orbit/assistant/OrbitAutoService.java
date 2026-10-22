@@ -70,6 +70,11 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private boolean recognizerOnDevice;
     /** This car session has already given up on the on-device recogniser. */
     private boolean triedPlatformSpeech;
+    /** This listen already left the system recogniser for Vosk. */
+    private boolean voskTried;
+    private boolean usingVosk;
+    /** Engine name recorded when this utterance is accepted. */
+    private String speechEngine = "";
     private TextToSpeech tts;
     private boolean ttsReady;
     private boolean ttsFailed;
@@ -207,6 +212,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             try { recognizer.destroy(); } catch (Exception ignored) {}
             recognizer = null;
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
     }
 
     static boolean isRetryable(int error) {
@@ -244,14 +251,19 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 .setUsage(AudioAttributes.USAGE_ASSISTANT)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(), "recogniser");
         releaseRecognizer();
+        usingVosk = false;
+        voskTried = false;
+        ProcessTrace.beginSpeech();
         OfflineSpeech.Engine engine = OfflineSpeech.open(this);
         recognizer = engine == null ? null : engine.recognizer;
         recognizerOnDevice = engine != null && engine.onDevice;
+        speechEngine = ProcessTrace.engineLabel(recognizerOnDevice, LocalModel.online(this));
         if (recognizer == null) {
             Log.w(TAG, "SpeechRecognizer not available");
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             abandon(recogFocus);
             recogFocus = null;
-            status(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT),
+            status(speechUnavailable(SpeechRecognizer.ERROR_CLIENT),
                     PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
             return;
         }
@@ -263,10 +275,11 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             @Override public void onBufferReceived(byte[] buffer) {}
             @Override public void onEndOfSpeech() { Log.i(TAG, "onEndOfSpeech"); }
             @Override public void onError(int error) {
-                if (recognizer != bound) return;
+                if (recognizer != bound || usingVosk) return;
                 String msg = "Error " + error + ": " + errorName(error);
                 Log.e(TAG, "onError " + msg);
                 if (offerPlatformFallback(error)) return;
+                if (offerVosk(error)) return;
                 abandon(recogFocus);
                 recogFocus = null;
                 releaseRecognizer();
@@ -283,8 +296,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     pendingConfirm = null;
                     status("Didn't hear yes or no, so I did nothing. Tap Ask Grok to try again",
                             PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
-                } else if (triedPlatformSpeech && isHardSpeechFailure(error)) {
-                    status(OfflineSpeech.unavailableStatus(error),
+                } else if (isHardSpeechFailure(error)) {
+                    status(speechUnavailable(error),
                             PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 } else {
                     status(friendlyError(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
@@ -303,8 +316,12 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     status("Didn't catch that, tap Ask Grok to try again", PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 } else if (confirmListening) {
                     confirmListening = false;
+                    noteSpeechEngine();
                     onConfirmation(text.trim());
-                } else onHeard(text.trim());
+                } else {
+                    noteSpeechEngine();
+                    onHeard(text.trim());
+                }
             }
             @Override public void onPartialResults(Bundle partialResults) {}
             @Override public void onEvent(int eventType, Bundle params) {}
@@ -325,10 +342,11 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         } catch (Exception e) {
             Log.e(TAG, "startListening failed", e);
             if (offerPlatformFallback(SpeechRecognizer.ERROR_CLIENT)) return;
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             abandon(recogFocus);
             recogFocus = null;
             releaseRecognizer();
-            status(OfflineSpeech.unavailableStatus(SpeechRecognizer.ERROR_CLIENT),
+            status(speechUnavailable(SpeechRecognizer.ERROR_CLIENT),
                     PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
         }
     }
@@ -360,6 +378,82 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
 
     private static boolean isHardSpeechFailure(int error) {
         return OfflineSpeech.isOnDeviceFailure(error);
+    }
+
+    /** Records the recogniser that produced this utterance. Offline platform is "Google offline". */
+    private void noteSpeechEngine() {
+        String engine = speechEngine == null || speechEngine.isEmpty()
+                ? ProcessTrace.engineLabel(recognizerOnDevice, LocalModel.online(this))
+                : speechEngine;
+        ProcessTrace.speech(engine);
+    }
+
+    private String speechUnavailable(int error) {
+        String base = OfflineSpeech.unavailableStatus(error);
+        if (VoskModel.ready(this)) return base;
+        if (LocalModel.online(this)) return base + " · downloading offline speech";
+        return base + " · offline speech is not on this phone";
+    }
+
+    /**
+     * Prefer-offline en-GB already failed. Vosk listens next when the small model is on the phone.
+     *
+     * @return true when Vosk has the turn
+     */
+    private boolean offerVosk(int error) {
+        if (usingVosk || voskTried || !isHardSpeechFailure(error)) return false;
+        voskTried = true;
+        if (!VoskModel.ready(this)) {
+            if (LocalModel.online(this)) VoskModel.startDownload(this);
+            return false;
+        }
+        usingVosk = true;
+        speechEngine = ProcessTrace.VOSK;
+        SpeechRecognizer dying = recognizer;
+        recognizer = null;
+        recognizerOnDevice = false;
+        try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+        try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+        Log.i(TAG, "system speech failed (" + error + "), listening with Vosk");
+        final int reported = error;
+        status(escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
+                PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
+        VoskSpeech.listen(this, new VoskSpeech.Listener() {
+            @Override public void onPartial(String text) {}
+
+            @Override public void onFinal(String text) {
+                if (!usingVosk) return;
+                usingVosk = false;
+                VoskSpeech.cancel();
+                abandon(recogFocus);
+                recogFocus = null;
+                String heard = text == null ? "" : text.trim();
+                if (heard.isEmpty()) {
+                    if (escalationListening) return;
+                    status("Didn't catch that, tap Ask Grok to try again",
+                            PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                    return;
+                }
+                noteSpeechEngine();
+                if (confirmListening) {
+                    confirmListening = false;
+                    onConfirmation(heard);
+                } else {
+                    onHeard(heard);
+                }
+            }
+
+            @Override public void onError(String message) {
+                if (!usingVosk) return;
+                usingVosk = false;
+                VoskSpeech.cancel();
+                abandon(recogFocus);
+                recogFocus = null;
+                status(OfflineSpeech.unavailableStatus(reported),
+                        PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+            }
+        });
+        return true;
     }
 
     /** A finished utterance that is not a yes/no for a call Grok already queued. */
@@ -505,7 +599,14 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             for (AssistantReply.Action a : actions) {
                 String line;
                 try {
+                    ProcessTrace.beginAction();
                     DeviceActionExecutor.Result res = DeviceActionExecutor.executeDetailed(app, a);
+                    if ("PLAY_MUSIC".equals(a.type)) {
+                        String via = MusicPlayer.lastVia();
+                        ProcessTrace.action(via.isEmpty() ? "Poweramp MediaBrowser" : via);
+                    } else {
+                        ProcessTrace.action(autoExecutor(a.type));
+                    }
                     Log.i(TAG, "action " + a.type + " -> " + res.status + ": " + res.message);
                     if (!res.success) line = res.message + ".";
                     else if (CarActions.kindOf(a.type) == CarActions.Kind.PHONE
@@ -521,6 +622,20 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             String summary = out.toString().trim();
             main.post(() -> then.accept(summary));
         });
+    }
+
+    private static String autoExecutor(String type) {
+        if (type == null) return "device";
+        switch (type) {
+            case "MEDIA_CONTROL": return "MediaSession";
+            case "SET_ALARM":
+            case "SET_TIMER": return "Clock";
+            case "DIAL":
+            case "DIAL_CONTACT": return "Phone";
+            case "SMS":
+            case "SMS_CONTACT": return "Messages";
+            default: return type;
+        }
     }
 
     private void sendToGrok(String question) {
@@ -736,13 +851,17 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         main.post(() -> {
             Log.i(TAG, "status[" + state + "]: " + text);
             String sub = subtitle == null ? "GrokLink" : subtitle;
+            String shown = description == null ? sub : description;
+            if (Prefs.showProcessingDetails(this)) {
+                String trace = ProcessTrace.line();
+                if (!trace.isEmpty()) shown = shown + "\n" + trace;
+            }
             MediaMetadataCompat.Builder m = new MediaMetadataCompat.Builder()
                     .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, ASK_ID)
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, text)
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, text)
                     .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, sub)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE,
-                            description == null ? sub : description)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, shown)
                     .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs > 0 ? durationMs : -1);
             if (description != null) {
                 m.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, description);

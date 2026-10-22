@@ -917,6 +917,7 @@ public class ChatActivity extends Activity {
             MessageActions.AssistantActions actions = finished ? responseActions(h, index) : null;
             if (finished) MessageActions.bindAssistant(bubble, rawVisible, actions);
             messages.addView(bubble, richLp);
+            addProcessingLine(h);
             // A source that nothing in the answer already opens belongs with the answer, above its
             // actions, never floating below them.
             if (finished) addSourceLink(rawVisible, visible, h.richImages);
@@ -928,6 +929,28 @@ public class ChatActivity extends Activity {
             if (index == history.size() - 1) addMemorySuggestion(h, index);
             addPersistedActionCards(index, h);
         }
+    }
+
+    private void addProcessingLine(AssistantClient.History h) {
+        if (h == null || !Prefs.showProcessingDetails(this)) return;
+        String line = h.processTrace == null ? "" : h.processTrace.trim();
+        if (line.isEmpty()) return;
+        TextView trace = UiKit.text(this, line, 11, UiKit.MUTED, false);
+        trace.setPadding(UiKit.dp(this, 8), 0, UiKit.dp(this, 8), UiKit.dp(this, 6));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.START;
+        messages.addView(trace, lp);
+    }
+
+    private void stampProcessingTrace() {
+        if (history.isEmpty()) return;
+        AssistantClient.History last = history.get(history.size() - 1);
+        if (last == null || !"assistant".equalsIgnoreCase(last.role)) return;
+        String line = ProcessTrace.line();
+        if (line.equals(last.processTrace)) return;
+        last.processTrace = line;
+        ConversationStore.save(this, conversationId, history);
     }
 
     private void addMemoryUsageIndicator(AssistantClient.History h) {
@@ -1317,6 +1340,8 @@ public class ChatActivity extends Activity {
      * Forget it and Ask Grok when the phone did not handle them. Ordinary typed chat does not.
      */
     private void enqueueOrAsk(String q, boolean voiceRequest, boolean attached, Runnable send) {
+        ProcessTrace.prepareSubmit(voiceRequest);
+        if (!attached && deliverWithoutGrok(q, voiceRequest)) return;
         if (attached) {
             send.run();
             return;
@@ -1331,6 +1356,41 @@ public class ChatActivity extends Activity {
             }
         });
         if (!held) send.run();
+    }
+
+    /**
+     * Phrase matchers run before any Grok request. Offline, a miss is said at once.
+     * @return true when this method already answered and the caller must not enqueue
+     */
+    private boolean deliverWithoutGrok(String q, boolean voiceRequest) {
+        AssistantReply local = null;
+        try {
+            local = AssistantClient.tryOfflineReply(this, q);
+        } catch (Throwable ignored) {}
+        if (local == null) {
+            if (!NetStatus.online(this)) {
+                showLocalAnswer(GrokEscalation.NEEDS_CONNECTION, null, voiceRequest);
+                return true;
+            }
+            return false;
+        }
+        ProcessTrace.handler(ProcessTrace.RULES);
+        String text = local.text == null || local.text.trim().isEmpty() ? "Done." : local.text.trim();
+        showLocalAnswer(text, local.actions, voiceRequest);
+        return true;
+    }
+
+    private void showLocalAnswer(String text, List<AssistantReply.Action> actions, boolean voiceRequest) {
+        AssistantClient.History item = new AssistantClient.History("assistant", text);
+        item.processTrace = ProcessTrace.line();
+        history.add(item);
+        ConversationStore.save(this, conversationId, history);
+        animateNewestOnRender = true;
+        render();
+        if (actions != null && !actions.isEmpty()) executeActions(actions);
+        if (voiceRequest && Prefs.speak(this) && voiceController != null) {
+            voiceController.speak(OrbitMarkdown.toSpeechText(SourceLinkUtil.displayText(text)));
+        }
     }
 
     /**
@@ -1948,12 +2008,14 @@ public class ChatActivity extends Activity {
                 this::confirmAction,
                 new OrbitActionEngine.Listener() {
                     @Override public void onStep(AssistantReply.Action action, DeviceActionExecutor.Result result, int index, int total) {
+                        stampProcessingTrace();
                         ActionResultStore.record(ChatActivity.this, conversationId, assistantIndex,
                                 action, result, index, total);
                         runOnUiThread(() -> render());
                     }
 
                     @Override public void onFinished(boolean completedAllSteps, int completedSteps, int totalSteps) {
+                        stampProcessingTrace();
                         runOnUiThread(() -> {
                             restoreComposerInteraction();
                             traceComposer("action.finished steps=" + completedSteps + "/" + totalSteps);

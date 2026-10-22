@@ -429,11 +429,14 @@ public final class Prefs {
     public static final String OFFLINE_MODEL_AUTO = "offline_model_autodownload";
     /** Voice, and typed commands the phone could not run, wait two seconds before asking Grok. */
     public static final String ASK_BEFORE_GROK = "ask_before_grok";
+    /** Compact speech / handler / action line under each assistant reply. On until turned off. */
+    public static final String SHOW_PROCESSING = "show_processing_details";
 
     public static boolean offlineModelEnabled(Context c) { return get(c).getBoolean(OFFLINE_MODEL, true); }
     public static boolean offlineModelWifiOnly(Context c) { return get(c).getBoolean(OFFLINE_MODEL_WIFI, true); }
     public static boolean offlineModelAutodownload(Context c) { return get(c).getBoolean(OFFLINE_MODEL_AUTO, true); }
     public static boolean askBeforeGrok(Context c) { return get(c).getBoolean(ASK_BEFORE_GROK, true); }
+    public static boolean showProcessingDetails(Context c) { return get(c).getBoolean(SHOW_PROCESSING, true); }
     public static boolean deckShortcut(Context c) { return get(c).getBoolean(DECK_SHORTCUT, true); }
     public static boolean deckSuggestions(Context c) { return get(c).getBoolean(DECK_SUGGESTIONS, true); }
 

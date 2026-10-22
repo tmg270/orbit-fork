@@ -291,7 +291,7 @@ public final class SettingsSearchIndex {
                 "On-device commands, and an optional model download. Grok stays the only cloud AI.",
                 S_AI, "ai", KEY_OFFLINE_MODEL,
                 "offline", "local model", "on device", "wifi", "wi-fi", "download", "qwen",
-                "no connection", "ask before grok"));
+                "no connection", "ask before grok", "vosk", "speech", "processing details"));
 
         out.add(new Entry("Allow GrokLink to read current-screen text",
                 "Screen awareness for the Side-button assistant.",

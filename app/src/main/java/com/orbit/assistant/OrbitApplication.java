@@ -32,6 +32,7 @@ public final class OrbitApplication extends Application {
         }
         try {
             LocalModel.maybeAutostart(this);
+            VoskModel.maybeAutostart(this);
         } catch (Exception ignored) {
             // A download can wait until Settings. Startup must not fail because of it.
         }
