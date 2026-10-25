@@ -117,9 +117,10 @@ jobs:
           APK="${apks[0]}"
           BT="$ANDROID_HOME/build-tools/35.0.0"
           LINE=$("$BT/aapt2" dump badging "$APK" | head -n 1)
-          NAME=$(printf '%s\n' "$LINE" | sed -n "s/.*name='\([^']*\)'.*/\1/p")
-          CODE=$(printf '%s\n' "$LINE" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          VER=$(printf '%s\n' "$LINE" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          # Anchor each field. A greedy ".*name=" also matches compileSdkVersionCodename.
+          NAME=$(printf '%s\n' "$LINE" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
+          CODE=$(printf '%s\n' "$LINE" | sed -n "s/^package: name='[^']*' versionCode='\([^']*\)'.*/\1/p")
+          VER=$(printf '%s\n' "$LINE" | sed -n "s/^package: name='[^']*' versionCode='[^']*' versionName='\([^']*\)'.*/\1/p")
           if [ "$NAME" != "com.tmg270.orbit" ] || [ -z "$CODE" ] || [ -z "$VER" ]; then
             echo "::error::unexpected package badging: $LINE"
             exit 1
