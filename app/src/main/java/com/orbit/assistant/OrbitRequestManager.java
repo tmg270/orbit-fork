@@ -321,8 +321,13 @@ public final class OrbitRequestManager {
         // An offline-capable provider (Orbit Local) must not wait for connectivity: its whole
         // point is answering with none. Cloud providers keep the connectivity constraint so a
         // request survives a dead network instead of failing instantly.
-        boolean offlineOk = MemoryCommandRouter.canHandle(prompt)
+        boolean offlineOk = !NetStatus.online(c)
+                || MemoryCommandRouter.canHandle(prompt)
+                || LocalCommandRouter.canHandle(prompt)
+                || DeviceStatusRouter.canHandle(prompt)
                 || KitchenMathRouter.canHandle(prompt)
+                || CalculatorRouter.canHandle(prompt)
+                || UnitConversionRouter.canHandle(prompt)
                 // An Auto request with no permitted model reports that at once, network or not.
                 || (route != null && !route.ok())
                 || AiProviders.forSelection(c, exact).capabilities().offline;

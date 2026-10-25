@@ -12,8 +12,10 @@ screen, have it set timers, alarms and calendar events, and keep full conversati
 
 ## What it does
 
-- **Grok only.** No ChatGPT, OpenRouter, Anthropic, relay server or on-device model. Every answer
-  comes from xAI.
+- **Grok only for the cloud.** No ChatGPT, OpenRouter, Anthropic or relay server. Simple commands
+  (timers, alarms, playback, calls and texts) run on the phone with no connection. An optional
+  1.60 GB on-device model can be downloaded for the ones the phrase matchers miss. Anything else
+  still goes only to xAI.
 - **SuperGrok sign-in, no API key needed.** Sign in with your SuperGrok account using a short code in
   your browser, or paste an xAI developer API key from [console.x.ai](https://console.x.ai) instead.
 - **Side-button assistant** over any app, with optional screen text and screenshots.
@@ -64,6 +66,21 @@ Android Auto only shows sideloaded apps after you turn on its developer settings
 3. Open GrokLink on your phone once, sign in and allow the microphone.
 4. In the car, open **GrokLink** from Auto's media apps and tap **Ask Grok**.
 
+Listening in the car uses the British speech model shipped in the app, so speech does not need a
+network. If that model cannot hear you and the phone is online, GrokLink tries the phone's speech
+recogniser once.
+
+**Report a bug** is on the chat list and in a chat's menu, and in the car as its own media item.
+Describe the problem, hear it read back, then Send. With a GitHub token stored from that screen,
+the report is filed as an issue on tmg270/orbit-fork. Without one, it is saved on the phone.
+
+Say **navigate to**, **directions to**, **drive to**, or **how long to** a place. Google Maps starts
+guidance, or opens the route when you asked for the time. Say **with Waze** when you want Waze.
+GrokLink does not calculate the journey time itself. **Take me to** and **go to** still open an app.
+
+Playing an album or playlist by name queues that album or playlist in Poweramp. A setlist Grok
+looks up becomes a Poweramp playlist of the songs that are actually on the phone.
+
 Android Auto never lets third-party apps take over the steering-wheel voice button or "Hey Google".
 A Google update could stop sideloaded car apps working at any time.
 
@@ -71,8 +88,8 @@ A Google update could stop sideloaded car apps working at any time.
 
 Push to `main` or run **Build GrokLink APK** manually from the Actions tab. The workflow builds the
 debug APK, runs the unit tests (a failing test fails the build), and uploads
-`GrokLink-v1.0.<run>-groklink-debug`. Each run gets its own version (`1.0.<run>-groklink`, version
-code `1000 + run`).
+`GrokLink-v1.0.<run>-groklink-debug`. Each run gets its own version (`1.0.<run>-groklink` once the
+run is past 1.0.34, otherwise `1.0.35-groklink`). The version code is never below 1035.
 
 Locally: JDK 17 and the Android SDK, then `./gradlew assembleDebug testDebugUnitTest`. On Windows,
 `BUILD_GROKLINK.cmd` (a wrapper around `tools/build_groklink.ps1`) sets the tools up for you.

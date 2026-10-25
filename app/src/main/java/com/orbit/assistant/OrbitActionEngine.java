@@ -119,8 +119,15 @@ public final class OrbitActionEngine {
                                 listener, action, result));
                 return;
             }
-            handleResult(context, actions, flow, index, confirmationHandler, listener, action,
-                    DeviceActionExecutor.executeDetailed(context, action));
+            ProcessTrace.beginAction();
+            DeviceActionExecutor.Result result = DeviceActionExecutor.executeDetailed(context, action);
+            if ("PLAY_MUSIC".equals(action.type)) {
+                String via = MusicPlayer.lastVia();
+                ProcessTrace.action(via.isEmpty() ? "Poweramp MediaBrowser" : via);
+            } else {
+                ProcessTrace.action(executorName(action.type));
+            }
+            handleResult(context, actions, flow, index, confirmationHandler, listener, action, result);
         };
 
         if (action.requiresConfirmation && confirmationHandler != null) {
@@ -131,6 +138,20 @@ public final class OrbitActionEngine {
             });
         } else {
             executeNow.run();
+        }
+    }
+
+    private static String executorName(String type) {
+        if (type == null) return "device";
+        switch (type) {
+            case "MEDIA_CONTROL": return "MediaSession";
+            case "SET_ALARM":
+            case "SET_TIMER": return "Clock";
+            case "DIAL":
+            case "DIAL_CONTACT": return "Phone";
+            case "SMS":
+            case "SMS_CONTACT": return "Messages";
+            default: return type;
         }
     }
 

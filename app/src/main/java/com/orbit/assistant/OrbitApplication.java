@@ -22,6 +22,7 @@ public final class OrbitApplication extends Application {
         AutoPermissions.migrate(this);
         super.onCreate();
         OrbitNotificationChannels.ensureAll(this);
+        SessionTrace.attach(this);
         // The one exception to keeping this empty: the 0.8.4.0 overlay upgrade rule has to be
         // decided before anything reads the overlay style, and only process start is guaranteed to
         // come first. After its first run it is a single preference read.
@@ -29,6 +30,13 @@ public final class OrbitApplication extends Application {
             Prefs.keepClassicForStableUpgrade(this, OnboardingState.packageWasUpdated(this));
         } catch (Exception ignored) {
             // Preferences unavailable this early: the flag stays unset and the next start decides.
+        }
+        try {
+            LocalModel.maybeAutostart(this);
+            VoskModel.installBundledAsync(this);
+            VoskModel.maybeAutostart(this);
+        } catch (Exception ignored) {
+            // A download can wait until Settings. Startup must not fail because of it.
         }
     }
 }

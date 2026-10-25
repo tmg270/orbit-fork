@@ -2,8 +2,10 @@ name: Build GrokLink APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ groklink, main ]
   push:
-    branches: [ main ]
+    branches: [ main, groklink, offline-local ]
 
 permissions:
   contents: read
@@ -15,11 +17,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v7
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
@@ -36,8 +38,15 @@ jobs:
         id: app_version
         shell: bash
         run: |
-          # Must match app/build.gradle: versionName 1.0.<run>-groklink, versionCode 1000 + run.
-          echo "version=1.0.${GITHUB_RUN_NUMBER}-groklink" >> "$GITHUB_OUTPUT"
+          # Must match app/build.gradle. 1.0.34 shipped as versionCode 1034, so a
+          # run whose 1000+run is still below 1035 is published as 1.0.35-groklink.
+          RUN="${GITHUB_RUN_NUMBER}"
+          CODE=$((1000 + RUN))
+          if [ "$CODE" -ge 1035 ]; then
+            echo "version=1.0.${RUN}-groklink" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=1.0.35-groklink" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Decode stable debug keystore
         shell: bash

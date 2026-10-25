@@ -24,6 +24,7 @@ import java.util.function.BooleanSupplier;
  */
 final class ApiKeyProviderClient {
     private static final String XAI_CHAT = "https://api.x.ai/v1/chat/completions";
+    private static final String XAI_RESPONSES = "https://api.x.ai/v1/responses";
     private static final ExecutorService EXEC = Executors.newCachedThreadPool();
 
     private ApiKeyProviderClient() {}
@@ -48,22 +49,33 @@ final class ApiKeyProviderClient {
         complete(c, provider, key, selection, instructions, prompt, callback, null);
     }
 
+static void complete(Context c, String provider, String key, AiSelection selection,
+                     String instructions, String prompt, AssistantClient.PlanCallback callback,
+                     Supplier<String> refreshOn401) {
+        complete(c, provider, key, selection, instructions, prompt, callback, refreshOn401, false);
+    }
+
     static void complete(Context c, String provider, String key, AiSelection selection,
                          String instructions, String prompt, AssistantClient.PlanCallback callback,
-                         Supplier<String> refreshOn401) {
+                         Supplier<String> refreshOn401, boolean webSearch) {
         EXEC.execute(() -> doComplete(c, provider, key, selection, instructions, prompt, callback,
-                refreshOn401));
+                refreshOn401, webSearch));
     }
 
     private static void doComplete(Context c, String provider, String key, AiSelection selection,
                                    String instructions, String prompt,
                                    AssistantClient.PlanCallback callback,
-                                   Supplier<String> refreshOn401) {
+                                   Supplier<String> refreshOn401, boolean webSearch) {
+        if (webSearch) {
+            doCompleteWithSearch(c, provider, key, selection, instructions, prompt, callback,
+                    refreshOn401, true, true);
+            return;
+        }
         {
             HttpURLConnection conn = null;
             try {
                 JSONObject body = ProviderRequestMapper.simple(provider, selection, instructions, prompt);
-                conn = open(provider, key, false);
+                conn = open(XAI_CHAT, key, false);
                 write(conn, body);
                 int code = conn.getResponseCode();
                 String raw = read(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream());
@@ -72,7 +84,7 @@ final class ApiKeyProviderClient {
                     if (!fresh.isEmpty()) {
                         conn.disconnect();
                         conn = null;
-                        doComplete(c, provider, fresh, selection, instructions, prompt, callback, null);
+                        doComplete(c, provider, fresh, selection, instructions, prompt, callback, null, false);
                         return;
                     }
                 }
@@ -103,6 +115,12 @@ final class ApiKeyProviderClient {
 
     private static void doSend(Context c, String provider, String key, AiRequest request,
                                AssistantClient.Callback callback, Supplier<String> refreshOn401) {
+        doSend(c, provider, key, request, callback, refreshOn401, true, true, true);
+    }
+
+    private static void doSend(Context c, String provider, String key, AiRequest request,
+                               AssistantClient.Callback callback, Supplier<String> refreshOn401,
+                               boolean responses, boolean webSearch, boolean json) {
         HttpURLConnection conn = null;
         boolean xai = true;
         try {
@@ -111,8 +129,18 @@ final class ApiKeyProviderClient {
                 callback.onError(OrbitModelCatalog.unavailableMessage(request.selection.model));
                 return;
             }
-            JSONObject body = ProviderRequestMapper.xai(c, request, true);
-            conn = open(provider, key, true);
+            JSONObject chat = ProviderRequestMapper.xai(c, request, true);
+            JSONObject body = responses
+                    ? ProviderRequestMapper.responsesFrom(chat, webSearch, json)
+                    : chat;
+            String url = responses ? XAI_RESPONSES : XAI_CHAT;
+            long started = android.os.SystemClock.elapsedRealtime();
+            SessionTrace.api("request model=" + chat.optString("model")
+                    + " effort=" + chat.optString("reasoning_effort", "")
+                    + " web_search=" + (responses && webSearch)
+                    + " json=" + (!responses || json)
+                    + " endpoint=" + (responses ? "responses" : "chat"));
+            conn = open(url, key, true);
             write(conn, body);
             int code = conn.getResponseCode();
             if (code == 401 && refreshOn401 != null) {
@@ -120,12 +148,33 @@ final class ApiKeyProviderClient {
                 if (!fresh.isEmpty()) {
                     conn.disconnect();
                     conn = null;
-                    doSend(c, provider, fresh, request, callback, null);
+                    doSend(c, provider, fresh, request, callback, null, responses, webSearch, json);
                     return;
                 }
             }
             if (code < 200 || code >= 300) {
                 String raw = read(conn.getErrorStream());
+                long ms = android.os.SystemClock.elapsedRealtime() - started;
+                SessionTrace.api("http " + code + " in " + ms + " ms " + clipTrace(raw));
+                if (responses && json && ProviderRequestMapper.jsonFormatRefused(code, raw)) {
+                    conn.disconnect();
+                    conn = null;
+                    doSend(c, provider, key, request, callback, refreshOn401, true, webSearch, false);
+                    return;
+                }
+                if (responses && webSearch && ProviderRequestMapper.webSearchRefused(code, raw)) {
+                    conn.disconnect();
+                    conn = null;
+                    doSend(c, provider, key, request, callback, refreshOn401, true, false, json);
+                    return;
+                }
+                if (responses && (code == 404 || code == 410)
+                        && !modelUnavailable(provider, code, raw, request.selection.model)) {
+                    conn.disconnect();
+                    conn = null;
+                    doSend(c, provider, key, request, callback, refreshOn401, false, false, true);
+                    return;
+                }
                 String friendly = error(c, provider, code, raw, request.selection.model);
                 if (modelUnavailable(provider, code, raw, request.selection.model)) {
                     ModelAvailability.markUnavailable(c, provider, request.selection.model);
@@ -136,6 +185,8 @@ final class ApiKeyProviderClient {
             ModelAvailability.markAvailable(c, provider, request.selection.model);
             if (request.thinkingUpdates) callback.onThinking(ThinkingUpdate.modelReasoning(request.selection.model));
             String text = readXaiStream(conn.getInputStream(), callback, true);
+            SessionTrace.api("response " + (android.os.SystemClock.elapsedRealtime() - started)
+                    + " ms chars=" + text.length());
             if (text.trim().isEmpty()) {
                 callback.onError(name(provider) + " connected but returned no assistant text. Try again.");
                 return;
@@ -145,6 +196,7 @@ final class ApiKeyProviderClient {
                     // xAI answers in Orbit's {"text","actions"} envelope (fork patch).
                     ? DeviceActionContract.parseEnvelope(text, false)
                     : new AssistantReply(text.replace("—", "-"), new ArrayList<>());
+            if (xai) reply = SetlistPlaylist.attach(request.prompt, reply);
             if (xai && reply.text.isEmpty() && reply.actions.isEmpty()) {
                 callback.onError(name(provider) + " connected but returned no assistant text. Try again.");
                 return;
@@ -159,8 +211,8 @@ final class ApiKeyProviderClient {
         }
     }
 
-    private static HttpURLConnection open(String provider, String key, boolean stream) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(XAI_CHAT).openConnection();
+    private static HttpURLConnection open(String url, String key, boolean stream) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("POST");
         conn.setInstanceFollowRedirects(false);
         conn.setConnectTimeout(15_000);
@@ -202,6 +254,33 @@ final class ApiKeyProviderClient {
                 if (data.isEmpty() || "[DONE]".equals(data)) continue;
                 JSONObject event;
                 try { event = new JSONObject(data); } catch (Exception ignored) { continue; }
+                String type = event.optString("type", "");
+                if (!type.isEmpty()) {
+                    if ("response.output_text.delta".equals(type)) {
+                        full.append(event.optString("delta", ""));
+                        if (envelope) {
+                            String visible = DeviceActionContract.removeEmDashes(
+                                    DeviceActionContract.extractPartialText(full.toString()));
+                            if (!visible.isEmpty() && !visible.equals(lastVisible)) {
+                                lastVisible = visible;
+                                callback.onDelta(visible);
+                            }
+                        } else {
+                            callback.onDelta(full.toString().replace("—", "-"));
+                        }
+                    } else if (type.contains("web_search") || type.contains("browse")) {
+                        SessionTrace.note("grok tool " + type);
+                    } else if ("response.completed".equals(type) || "response.incomplete".equals(type)) {
+                        noteCitations(event.optJSONObject("response"));
+                    } else if ("error".equals(type) || "response.failed".equals(type)) {
+                        JSONObject response = event.optJSONObject("response");
+                        JSONObject failure = response == null ? event.optJSONObject("error") : response.optJSONObject("error");
+                        String message = failure == null ? event.optString("message", "Grok request failed")
+                                : failure.optString("message", "Grok request failed");
+                        throw new StreamError(400, message);
+                    }
+                    continue;
+                }
                 JSONArray choices = event.optJSONArray("choices");
                 JSONObject choice = choices == null ? null : choices.optJSONObject(0);
                 JSONObject delta = choice == null ? null : choice.optJSONObject("delta");
@@ -306,6 +385,90 @@ final class ApiKeyProviderClient {
 
     static String name(String provider) {
         return "xAI";
+    }
+
+    private static String clipTrace(String raw) {
+        String text = SessionTrace.redact(raw == null ? "" : raw).replace('\n', ' ');
+        return text.length() > 300 ? text.substring(0, 300) : text;
+    }
+
+    private static void noteCitations(JSONObject response) {
+        if (response == null) return;
+        JSONArray citations = response.optJSONArray("citations");
+        if (citations == null || citations.length() == 0) return;
+        StringBuilder b = new StringBuilder("citations");
+        for (int i = 0; i < citations.length() && i < 8; i++) {
+            b.append(' ').append(citations.optString(i, ""));
+        }
+        SessionTrace.api(b.toString());
+    }
+
+    /**
+     * Car and other plain completions that should be allowed to browse. Same model, Responses API,
+     * falling back to chat completions if this account refuses the tool.
+     */
+    private static void doCompleteWithSearch(Context c, String provider, String key, AiSelection selection,
+                                             String instructions, String prompt,
+                                             AssistantClient.PlanCallback callback,
+                                             Supplier<String> refreshOn401,
+                                             boolean webSearch, boolean json) {
+        HttpURLConnection conn = null;
+        try {
+            JSONObject chat = ProviderRequestMapper.simple(provider, selection, instructions, prompt);
+            chat.put("stream", true);
+            JSONObject body = ProviderRequestMapper.responsesFrom(chat, webSearch, json);
+            long started = android.os.SystemClock.elapsedRealtime();
+            SessionTrace.api("request model=" + chat.optString("model")
+                    + " web_search=" + webSearch + " endpoint=responses");
+            conn = open(XAI_RESPONSES, key, true);
+            write(conn, body);
+            int code = conn.getResponseCode();
+            if (code == 401 && refreshOn401 != null) {
+                String fresh = freshCredential(refreshOn401);
+                if (!fresh.isEmpty()) {
+                    conn.disconnect();
+                    doCompleteWithSearch(c, provider, fresh, selection, instructions, prompt, callback,
+                            null, webSearch, json);
+                    return;
+                }
+            }
+            if (code < 200 || code >= 300) {
+                String raw = read(conn.getErrorStream());
+                SessionTrace.api("http " + code + " in "
+                        + (android.os.SystemClock.elapsedRealtime() - started) + " ms " + clipTrace(raw));
+                if (json && ProviderRequestMapper.jsonFormatRefused(code, raw)) {
+                    conn.disconnect();
+                    doCompleteWithSearch(c, provider, key, selection, instructions, prompt, callback,
+                            refreshOn401, webSearch, false);
+                    return;
+                }
+                if (webSearch && ProviderRequestMapper.webSearchRefused(code, raw)) {
+                    conn.disconnect();
+                    doCompleteWithSearch(c, provider, key, selection, instructions, prompt, callback,
+                            refreshOn401, false, json);
+                    return;
+                }
+                if (code == 404 || code == 410) {
+                    conn.disconnect();
+                    doComplete(c, provider, key, selection, instructions, prompt, callback, refreshOn401, false);
+                    return;
+                }
+                callback.onError(error(c, provider, code, raw, selection.model));
+                return;
+            }
+            String text = readXaiStream(conn.getInputStream(), new AssistantClient.Callback() {
+                @Override public void onSuccess(AssistantReply reply) {}
+                @Override public void onError(String message) {}
+            }, false);
+            SessionTrace.api("response " + (android.os.SystemClock.elapsedRealtime() - started)
+                    + " ms chars=" + text.length());
+            if (text.trim().isEmpty()) callback.onError(name(provider) + " returned no text.");
+            else callback.onText(text, name(provider) + " · " + selection.modelName());
+        } catch (Exception e) {
+            callback.onError("Could not reach " + name(provider) + ". Check the connection and try again.");
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
     }
 
     /** The last ~110 characters of the reasoning so far, starting at a word boundary. */

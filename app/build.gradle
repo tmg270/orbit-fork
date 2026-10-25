@@ -48,11 +48,14 @@ android {
         applicationId 'com.tmg270.orbit'
         minSdk 29
         targetSdk 36
-        // GrokLink versioning: CI builds get a rising versionCode (1000 + GitHub run number)
-        // so every build installs as an update; local builds fall back to 1000.
+        // Shipped 1.0.34 used versionCode 1034. Never install below that.
+        // CI still rises with the GitHub run number once that is past 1035.
+        // Keep this formula identical to .github/workflows/build-apk.yml.
         def runNumber = System.getenv('GITHUB_RUN_NUMBER')
-        versionCode runNumber ? 1000 + runNumber.toInteger() : 1000
-        versionName runNumber ? "1.0.${runNumber}-groklink" : "1.0.0-groklink-local"
+        def parsedRun = runNumber ? runNumber.toInteger() : 0
+        def runCode = parsedRun > 0 ? 1000 + parsedRun : 0
+        versionCode Math.max(1035, runCode)
+        versionName((parsedRun > 0 && runCode >= 1035) ? "1.0.${parsedRun}-groklink" : "1.0.35-groklink")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -148,8 +151,22 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        // tasks-genai 0.10.27 is class-file 65 (Java 21). AGP turns that dex back down to minSdk.
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    androidResources {
+        // The Vosk zip is already compressed. Leaving it uncompressed in the APK lets
+        // AssetManager stream it; a second compression breaks open() past a couple of MB.
+        noCompress += "zip"
+    }
+
+    packaging {
+        jniLibs {
+            // MediaPipe and Vosk both ship this library.
+            pickFirsts += ['**/libc++_shared.so']
+        }
     }
 }
 
@@ -187,10 +204,15 @@ dependencies {
     implementation "androidx.work:work-runtime:2.11.2"
     implementation "androidx.media:media:1.7.0"
     implementation "com.tom-roush:pdfbox-android:2.0.27.0"
+    // On-device commands (Qwen 2.5 1.5B Instruct, downloaded separately, about 1.60 GB).
+    // The runtime matches upstream Orbit Local: MediaPipe LLM Inference on a LiteRT .task file.
+    implementation "com.google.mediapipe:tasks-genai:0.10.27"
     // Smart Vault text recognition (v0.8.1.0-beta.1). The Google Play services form of ML Kit:
     // the recognition model is delivered by Play services on first use instead of being bundled
     // into every APK. Only called when the user turns on "Read text in pictures".
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:19.0.1"
+    // Offline speech that does not use Google. The ~41 MB en-GB model is in assets/speech.
+    implementation "com.alphacephei:vosk-android:0.3.75"
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.16"
     androidTestImplementation "androidx.test:core:1.6.1"

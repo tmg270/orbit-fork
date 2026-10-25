@@ -27,7 +27,7 @@ final class DeviceActionContract {
             "NAVIGATE", "DIAL", "DIAL_CONTACT", "SMS", "SMS_CONTACT", "WEB_SEARCH",
             "OPEN_URL", "SHARE", "COPY", "FLASHLIGHT", "SET_VOLUME",
             "SET_BRIGHTNESS", "SET_DND", "OPEN_INTERNET_PANEL", "OPEN_BLUETOOTH_SETTINGS",
-            "MEDIA_CONTROL", "SET_RINGER_MODE", "PLAY_MUSIC"
+            "MEDIA_CONTROL", "SET_RINGER_MODE", "PLAY_MUSIC", "PLAY_PLAYLIST"
     )));
 
     static final String SYSTEM =
@@ -62,16 +62,21 @@ final class DeviceActionContract {
             "WEB_SEARCH {query}; OPEN_URL {url}; SHARE {text}; COPY {text}; FLASHLIGHT {on}; " +
             "MEDIA_CONTROL {command} where command is PLAY, PAUSE, PLAY_PAUSE, NEXT or PREVIOUS and acts on whatever is currently playing, never a named app; " +
             "SET_RINGER_MODE {mode} where mode is normal, vibrate or silent, which is the phone's ringer profile and is not the same thing as SET_VOLUME. " +
-            "PLAY_MUSIC {query,artist,album,title,app} plays music by search, for example play Kasabian on Poweramp gives {query:\"Kasabian\",artist:\"Kasabian\",app:\"Poweramp\"}; omit app to use the default player. " +
+            "PLAY_MUSIC {query,artist,album,title,playlist,app} plays one album, artist, saved playlist or track already on the phone. Set album when they named an album, artist for an artist, playlist for a saved playlist, and title for one song. Example: play Kasabian on Poweramp gives {query:\"Kasabian\",artist:\"Kasabian\",app:\"Poweramp\"}. " +
+            "PLAY_PLAYLIST {name,app,tracks:[{title,artist}]} queues those exact songs in order after web search, for a setlist or a playlist the user asked you to build. Only include songs you actually found. " +
+            "NAVIGATE {query,app,mode} starts Google Maps or Waze. app is maps or waze, or omit it. mode is navigate, or eta when they want the travel time. For eta, do not invent a duration. " +
             "If no phone action is needed, actions must be an empty array. Keep ordinary assistant answers concise unless the user asks for detail. Never use an em dash (—) in any response. Use commas, parentheses, colons, semicolons, or ordinary hyphens instead.";
 
     /**
-     * Extra instructions for OpenAI-compatible API providers (xAI). They have no hosted web-search
-     * tool in Orbit, so they must not claim to have searched or invent a Source line.
+     * xAI server-side web search is attached to user turns. The selected model is unchanged.
+     * Search runs on xAI's side for that same model; GrokLink does not call another model.
      */
     static final String API_PROVIDER_ADDENDUM =
-            " In this mode no hosted web-search tool is available: do not claim to have searched the web, "
-            + "and add a Source line only for a URL the user or the conversation supplied. "
+            " A server-side web search tool is available on this request. It searches and browses public pages. "
+            + "Use it whenever the answer depends on current or lookup-worthy public information, including setlists, "
+            + "festival lineups, schedules and news. Do not claim you searched when you did not. "
+            + "When you use it, end the text with one line Source: https://... naming the best page. "
+            + "If the user wants those songs played or turned into a playlist, return PLAY_PLAYLIST with the songs you found, in order. "
             + "For a public schedule you cannot verify, say so instead of guessing dates.";
 
     static String extractPartialText(String raw) {

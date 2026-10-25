@@ -194,6 +194,16 @@ public class OrbitSession extends VoiceInteractionSession {
     private boolean screenSelectionOpening = false;
     private int screenContextGeneration = 0;
     private SpeechRecognizer recognizer;
+    private RecognitionListener speechListener;
+    /** True while {@link #recognizer} is the on-device engine. */
+    private boolean speechOnDevice;
+    /** Ignores errors from the recogniser we are in the middle of replacing. */
+    private boolean speechFallbackScheduled;
+    /** This turn already left the system recogniser for Vosk. */
+    private boolean voskTried;
+    private boolean usingVosk;
+    /** Engine name recorded when this utterance is accepted. */
+    private String speechEngine = "";
     private TextToSpeech tts;
     private boolean listening = false;
     /** Owns the current voice turn so an abandoned one cannot act through late callbacks. */
@@ -2594,8 +2604,6 @@ public class OrbitSession extends VoiceInteractionSession {
         busy = true;
         uiRequestConversationId = requestConversationId;
         streamingBubble = null;
-        stateTextSafe("Thinking");
-        showThinkingIndicator();
         updateComposerAction();
         if (Prefs.haptics(getContext())) vibrate(12);
 
@@ -2710,9 +2718,32 @@ public class OrbitSession extends VoiceInteractionSession {
         // Send with: this one message goes to the AI chosen by holding Send, and the choice is spent.
         AiSelection requestSelection = oneTurnSelection == null ? currentSelection : oneTurnSelection;
         oneTurnSelection = null;
-        OrbitRequestManager.enqueue(getContext(), requestConversationId, submitted, submittedScreenText,
-                submittedImages, voiceRequest, draftedReply, requestSelection,
-                hasManual || submittedSelection, listener);
+        Runnable send = () -> {
+            stateTextSafe("Thinking");
+            showThinkingIndicator();
+            updateComposerAction();
+            OrbitRequestManager.enqueue(getContext(), requestConversationId, submitted, submittedScreenText,
+                    submittedImages, voiceRequest, draftedReply, requestSelection,
+                    hasManual || submittedSelection, listener);
+        };
+        if (submittedWithAttachment) {
+            send.run();
+        } else {
+            boolean held = GrokEscalation.route(getContext(), messages, submitted, voiceRequest,
+                    new GrokEscalation.Callback() {
+                        @Override public void ask() { send.run(); }
+                        @Override public void say(String said) {
+                            busy = false;
+                            uiRequestConversationId = null;
+                            history.add(new AssistantClient.History("assistant", said));
+                            ConversationStore.save(getContext(), requestConversationId, history);
+                            if (sessionVisible) addBubble(said, false, false);
+                            stateTextSafe(readyState());
+                            updateComposerAction();
+                        }
+                    });
+            if (!held) send.run();
+        }
     }
 
     /**
@@ -2901,6 +2932,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         main.postDelayed(() -> stateTextSafe(readyState()), 800);
                     });
         }
+        addProcessingCaption();
         scrollBottom();
     }
 
@@ -2950,6 +2982,7 @@ public class OrbitSession extends VoiceInteractionSession {
      * already has, so stopping cannot produce a second one. There is no confirmation to accept.
      */
     private void stopGenerating() {
+        GrokEscalation.cancel();
         // The manager owns cancellation; this only asks for it and reacts to the answer.
         if (OrbitRequestManager.cancelActiveForConversation(getContext(), conversationId)) return;
         // Nothing was still running, so the control had gone stale. Put it back.
@@ -3994,9 +4027,15 @@ public class OrbitSession extends VoiceInteractionSession {
 
     private void initSpeech() {
         try {
-            if (SpeechRecognizer.isRecognitionAvailable(getContext())) {
-                recognizer = SpeechRecognizer.createSpeechRecognizer(getContext());
-                recognizer.setRecognitionListener(new RecognitionListener() {
+            if (SpeechRecognizer.isRecognitionAvailable(getContext())
+                    || (Build.VERSION.SDK_INT >= 31
+                    && SpeechRecognizer.isOnDeviceRecognitionAvailable(getContext()))) {
+                OfflineSpeech.Engine engine = OfflineSpeech.open(getContext());
+                if (engine == null || engine.recognizer == null) return;
+                recognizer = engine.recognizer;
+                speechOnDevice = engine.onDevice;
+                speechEngine = ProcessTrace.engineLabel(engine.onDevice, LocalModel.online(getContext()));
+                speechListener = new RecognitionListener() {
                     public void onReadyForSpeech(Bundle params) {
                         if (!voiceTurn.hasLiveTurn()) return;
                         voiceComposerStatusSafe(listeningHint());
@@ -4021,9 +4060,12 @@ public class OrbitSession extends VoiceInteractionSession {
                     public void onError(int error) {
                         // The user has already moved on; this turn no longer owns the composer.
                         if (!voiceTurn.hasLiveTurn()) return;
+                        if (usingVosk || speechFallbackScheduled) return;
                         listening = false;
                         updateMic();
                         if (voiceFinishing) return;
+                        if (switchSpeechToPlatform(error)) return;
+                        if (offerVosk(error)) return;
                         if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
                             if (voiceManualFinishRequested) {
                                 finishPauseFriendlyVoice();
@@ -4036,7 +4078,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         if (error != SpeechRecognizer.ERROR_NO_MATCH &&
                                 error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT &&
                                 error != SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
-                            voiceComposerStatusSafe("Voice input unavailable");
+                            voiceComposerStatusSafe(speechUnavailable(error));
                             main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
                         } else {
                             restoreComposerHintSafe();
@@ -4066,6 +4108,7 @@ public class OrbitSession extends VoiceInteractionSession {
                             } else {
                                 if (input != null) input.setText("");
                                 restoreComposerHintSafe();
+                                noteSpeechEngine();
                                 submitPrompt(segment, true);
                             }
                         } else if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
@@ -4091,9 +4134,59 @@ public class OrbitSession extends VoiceInteractionSession {
                         }
                     }
                     public void onEvent(int eventType, Bundle params) {}
-                });
+                };
+                recognizer.setRecognitionListener(speechListener);
             }
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * On-device recognition failed, usually because the offline language pack is not installed.
+     * Drops that recogniser, remembers the platform one for this process, and listens again.
+     *
+     * @return true when the turn is still open and the caller must not report failure yet
+     */
+    private boolean switchSpeechToPlatform(int error) {
+        if (!speechOnDevice || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        speechFallbackScheduled = true;
+        speechOnDevice = false;
+        OfflineSpeech.rememberNetworkFallback();
+        final SpeechRecognizer dying = recognizer;
+        final int reported = error;
+        recognizer = null;
+        main.post(() -> {
+            OfflineSpeech.requestLanguagePack(getContext(), dying, OfflineSpeech.LANGUAGE);
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            if (!voiceTurn.hasLiveTurn() || voiceFinishing) {
+                installPlatformRecognizer();
+                speechFallbackScheduled = false;
+                return;
+            }
+            if (!installPlatformRecognizer()) {
+                speechFallbackScheduled = false;
+                if (offerVosk(reported)) return;
+                voiceComposerStatusSafe(speechUnavailable(reported));
+                main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                return;
+            }
+            speechFallbackScheduled = false;
+            startRecognizerSegment(false);
+        });
+        return true;
+    }
+
+    private boolean installPlatformRecognizer() {
+        Context c = getContext();
+        if (c == null) return false;
+        OfflineSpeech.Engine engine = OfflineSpeech.openPlatform(c);
+        if (engine == null || engine.recognizer == null) return false;
+        recognizer = engine.recognizer;
+        speechOnDevice = false;
+        speechEngine = ProcessTrace.engineLabel(false, LocalModel.online(c));
+        if (speechListener != null) recognizer.setRecognitionListener(speechListener);
+        return true;
     }
 
     private void toggleListening() {
@@ -4115,12 +4208,17 @@ public class OrbitSession extends VoiceInteractionSession {
     }
 
     private void startListening() {
+        usingVosk = false;
+        voskTried = false;
+        VoskSpeech.cancel();
+        if (recognizer == null) installPlatformRecognizer();
         voiceAccumulated = "";
         voicePartial = "";
         voiceManualFinishRequested = false;
         voiceFinishing = false;
         cancelVoiceFinalize();
         voiceTurn.begin();
+        ProcessTrace.beginSpeech();
         startRecognizerSegment(true);
     }
 
@@ -4144,6 +4242,8 @@ public class OrbitSession extends VoiceInteractionSession {
         if (recognizer != null) {
             try { recognizer.cancel(); } catch (Exception ignored) {}
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
         String preserved = VoiceHandoff.preservedDraft(voiceAccumulated, voicePartial);
         voiceAccumulated = "";
@@ -4158,9 +4258,12 @@ public class OrbitSession extends VoiceInteractionSession {
     }
 
     private void startRecognizerSegment(boolean initialSegment) {
-        if (busy) return;
+        if (busy || usingVosk) return;
+        if (getContext() != null && OfflineSpeech.preferBundledVosk(getContext(), false)
+                && offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
         if (recognizer == null) {
-            voiceComposerStatusSafe("Speech recognition unavailable");
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
+            voiceComposerStatusSafe(speechUnavailable(SpeechRecognizer.ERROR_CLIENT));
             main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
             return;
         }
@@ -4176,6 +4279,7 @@ public class OrbitSession extends VoiceInteractionSession {
             i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag());
             i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+            OfflineSpeech.apply(i);
             if (Prefs.voicePauseFriendly(getContext())) {
                 // These hints help where supported. Orbit also stitches recognition
                 // segments locally, so an engine ending early no longer means the
@@ -4184,6 +4288,7 @@ public class OrbitSession extends VoiceInteractionSession {
                 i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 6500L);
                 i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1500L);
             }
+            speechEngine = ProcessTrace.engineLabel(speechOnDevice, LocalModel.online(getContext()));
             recognizer.startListening(i);
             listening = true;
             if (initialSegment && input != null) input.setText("");
@@ -4194,11 +4299,13 @@ public class OrbitSession extends VoiceInteractionSession {
         } catch (Exception e) {
             listening = false;
             updateMic();
+            if (switchSpeechToPlatform(SpeechRecognizer.ERROR_CLIENT)) return;
+            if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
                 voiceComposerStatusSafe(listeningHint());
                 scheduleVoiceFinalize();
             } else {
-                voiceComposerStatusSafe("Could not start microphone");
+                voiceComposerStatusSafe(speechUnavailable(SpeechRecognizer.ERROR_CLIENT));
                 main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
             }
         }
@@ -4206,7 +4313,7 @@ public class OrbitSession extends VoiceInteractionSession {
 
     private void restartPauseFriendlyRecognizer() {
         if (!Prefs.voicePauseFriendly(getContext()) || voiceManualFinishRequested ||
-                voiceFinishing || busy || !sessionVisible) return;
+                voiceFinishing || busy || !sessionVisible || usingVosk) return;
         // Captured now and rechecked on arrival, so a restart queued before the user reached for
         // the keyboard cannot reopen the microphone behind them.
         final int turn = voiceTurn.liveTurn();
@@ -4275,14 +4382,148 @@ public class OrbitSession extends VoiceInteractionSession {
         if (recognizer != null && listening) {
             try { recognizer.cancel(); } catch (Exception ignored) {}
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
         updateMic();
         voiceAccumulated = "";
         voicePartial = "";
         if (input != null) input.setText("");
         restoreComposerHintSafe();
+        noteSpeechEngine();
         submitPrompt(finalText, true);
         main.postDelayed(() -> voiceFinishing = false, 300);
+    }
+
+    /** Records the recogniser that produced this utterance. Offline platform is "Google offline". */
+    private void noteSpeechEngine() {
+        String engine = speechEngine == null || speechEngine.isEmpty()
+                ? ProcessTrace.engineLabel(speechOnDevice, LocalModel.online(getContext()))
+                : speechEngine;
+        ProcessTrace.speech(engine);
+    }
+
+    private String speechUnavailable(int error) {
+        String base = OfflineSpeech.unavailableStatus(error);
+        Context c = getContext();
+        if (c != null && VoskModel.ready(c)) return base;
+        if (c != null && LocalModel.online(c)) return base + " · downloading offline speech";
+        return base + " · offline speech is not on this phone";
+    }
+
+    /** System recogniser (prefer-offline, en-GB) failed. Vosk takes this same turn. */
+    private boolean offerVosk(int error) {
+        if (usingVosk || voskTried || speechFallbackScheduled || !OfflineSpeech.isOnDeviceFailure(error)) {
+            return false;
+        }
+        Context c = getContext();
+        if (c == null) return false;
+        voskTried = true;
+        if (!VoskModel.ready(c)) {
+            usingVosk = true;
+            speechOnDevice = false;
+            final SpeechRecognizer dying = recognizer;
+            recognizer = null;
+            final Context speechContext = c;
+            final int reported = error;
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            voiceComposerStatusSafe(listeningHint());
+            new Thread(() -> {
+                boolean ok = VoskModel.ensureInstalled(speechContext);
+                main.post(() -> {
+                    if (!usingVosk) return;
+                    usingVosk = false;
+                    if (!voiceTurn.hasLiveTurn() || voiceFinishing) return;
+                    if (!ok || !VoskModel.ready(speechContext)) {
+                        if (LocalModel.online(speechContext)) VoskModel.startDownload(speechContext);
+                        voiceComposerStatusSafe(speechUnavailable(reported));
+                        main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                        return;
+                    }
+                    voskTried = false;
+                    if (!offerVosk(reported)) {
+                        voiceComposerStatusSafe(speechUnavailable(reported));
+                        main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                    }
+                });
+            }, "groklink-speech-unpack").start();
+            return true;
+        }
+        usingVosk = true;
+        speechEngine = ProcessTrace.VOSK;
+        speechFallbackScheduled = true;
+        final SpeechRecognizer dying = recognizer;
+        recognizer = null;
+        speechOnDevice = false;
+        main.post(() -> {
+            try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
+            try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
+            speechFallbackScheduled = false;
+            if (!voiceTurn.hasLiveTurn() || voiceFinishing) {
+                usingVosk = false;
+                VoskSpeech.cancel();
+                return;
+            }
+            listening = true;
+            updateMic();
+            voiceComposerStatusSafe(listeningHint());
+            VoskSpeech.listen(c, new VoskSpeech.Listener() {
+                @Override public void onPartial(String text) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn() || input == null) return;
+                    String heard = text == null ? "" : text.trim();
+                    if (Prefs.voicePauseFriendly(getContext())) {
+                        voicePartial = heard;
+                        updateVoiceDraftField();
+                        scheduleVoiceFinalize();
+                        voiceComposerStatusSafe(listeningHint());
+                    } else {
+                        input.setText(heard);
+                        input.setSelection(input.length());
+                    }
+                }
+
+                @Override public void onFinal(String text) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn() || voiceFinishing) return;
+                    String segment = text == null ? "" : text.trim();
+                    listening = false;
+                    updateMic();
+                    if (Prefs.voicePauseFriendly(getContext())) {
+                        appendVoiceSegment(segment);
+                        voicePartial = "";
+                        updateVoiceDraftField();
+                        listening = true;
+                        if (voiceManualFinishRequested) finishPauseFriendlyVoice();
+                        else {
+                            voiceComposerStatusSafe(listeningHint());
+                            scheduleVoiceFinalize();
+                        }
+                    } else if (!segment.isEmpty()) {
+                        usingVosk = false;
+                        VoskSpeech.cancel();
+                        if (input != null) input.setText("");
+                        restoreComposerHintSafe();
+                        noteSpeechEngine();
+                        submitPrompt(segment, true);
+                    }
+                }
+
+                @Override public void onError(String message) {
+                    if (!usingVosk || !voiceTurn.hasLiveTurn()) return;
+                    usingVosk = false;
+                    listening = false;
+                    VoskSpeech.cancel();
+                    updateMic();
+                    if (Prefs.voicePauseFriendly(getContext()) && hasVoiceDraft()) {
+                        scheduleVoiceFinalize();
+                        return;
+                    }
+                    voiceComposerStatusSafe(OfflineSpeech.unavailableStatus(error));
+                    main.postDelayed(() -> restoreComposerHintIfVoiceIdleSafe(), 1200);
+                }
+            });
+        });
+        return true;
     }
 
     private void stopListening() {
@@ -4292,6 +4533,8 @@ public class OrbitSession extends VoiceInteractionSession {
         if (recognizer != null && listening) {
             try { recognizer.cancel(); } catch (Exception ignored) {}
         }
+        usingVosk = false;
+        VoskSpeech.cancel();
         listening = false;
         updateMic();
         restoreComposerHintSafe();
@@ -4561,11 +4804,22 @@ public class OrbitSession extends VoiceInteractionSession {
                     });
         }
         messages.addView(bubble, lp);
+        addProcessingCaption();
         // Orbit's shared arrival, rather than a hand-written duration and interpolator. The
         // hand-written one also ignored the system animation scale, so a device set to reduced
         // motion still got a fade here while every other Orbit surface correctly skipped it.
         UiKit.enterContent(bubble);
         scrollBottom();
+    }
+
+    /** Compact step timings under the reply. Not part of the text sent to the model. */
+    private void addProcessingCaption() {
+        if (messages == null || getContext() == null || !Prefs.showProcessingDetails(getContext())) return;
+        String line = ProcessTrace.line();
+        if (line.isEmpty()) return;
+        TextView trace = UiKit.text(getContext(), line, 11, UiKit.MUTED, false);
+        trace.setPadding(UiKit.dp(getContext(), 8), 0, UiKit.dp(getContext(), 8), UiKit.dp(getContext(), 4));
+        messages.addView(trace, fullWidthLp());
     }
 
     private LinearLayout.LayoutParams bubbleLp(int gravity, int maxWidth) {

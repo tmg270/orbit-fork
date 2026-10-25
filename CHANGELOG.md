@@ -2,6 +2,12 @@
 
 ## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
 
+- **v1.0.35**: Car speech works with the bundled offline voice, Grok can look things up, and a spoken bug report files the session.
+ - In the car, listening uses the British voice already in the app, with no network needed for speech.
+ - Ask Grok for a festival setlist and it can look the songs up, then queue the ones Poweramp has.
+ - Play an album by name and Poweramp queues that album, not the whole library.
+ - Say "navigate to" a place, or ask how long it takes, and Google Maps or Waze opens. The ETA stays on the map.
+ - Report a bug from the phone or Android Auto by describing it out loud, hearing it back, and sending the session.
 - Grok only: ChatGPT, OpenRouter, Anthropic, the API relay and Orbit Local are removed.
 - SuperGrok device-code sign-in, or an xAI API key.
 - Guided setup: Grok sign-in, microphone, default assistant, permissions and Android Auto steps.
