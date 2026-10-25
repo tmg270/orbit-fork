@@ -39,21 +39,21 @@ public final class BugReportPrompt {
         int pad = UiKit.dp(activity, 18);
         box.setPadding(pad, pad, pad, 0);
         box.addView(UiKit.text(activity,
-                "Describe the bug. GrokLink reads it back, then Send files the session.",
+                "Describe the bug. GrokLink reads it back. Send saves the report to Downloads, where you can open or share it.",
                 14, UiKit.MUTED, false));
         EditText transcript = UiKit.input(activity, "What went wrong", true);
         LinearLayout.LayoutParams field = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         field.topMargin = UiKit.dp(activity, 12);
         box.addView(transcript, field);
-        EditText token = UiKit.input(activity, "GitHub token, stored encrypted", false);
+        EditText token = UiKit.input(activity, "GitHub token (optional)", false);
         token.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         LinearLayout.LayoutParams tokenLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tokenLp.topMargin = UiKit.dp(activity, 8);
         box.addView(token, tokenLp);
         if (!SecureStore.loadGithubIssuesToken(activity).isEmpty()) {
-            token.setHint("GitHub token saved. Paste a new one to replace it");
+            token.setHint("Optional. A token is saved; paste a new one to replace it");
         }
         Button again = new Button(activity);
         again.setText("Listen again");
@@ -98,9 +98,10 @@ public final class BugReportPrompt {
             new Thread(() -> {
                 BugReport.Outcome outcome = BugReport.submit(activity.getApplicationContext(), said);
                 main.post(() -> {
-                    if (!open[0]) return;
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    if (open[0]) dialog.dismiss();
                     Toast.makeText(activity, outcome.message, Toast.LENGTH_LONG).show();
-                    dialog.dismiss();
+                    if (outcome.savedUri != null) offerSaved(activity, outcome);
                 });
             }, "groklink-bug-report").start();
         });
@@ -109,6 +110,59 @@ public final class BugReportPrompt {
         Runnable listen = () -> listen(activity, transcript, tts, google, open);
         again.setOnClickListener(v -> listen.run());
         listen.run();
+    }
+
+    private static void offerSaved(Activity activity, BugReport.Outcome outcome) {
+        if (activity == null || activity.isFinishing() || outcome == null || outcome.savedUri == null) return;
+        String where = outcome.message.isEmpty()
+                ? (outcome.where.isEmpty() ? BugReport.PUBLIC_FOLDER : outcome.where)
+                : outcome.message;
+        AlertDialog follow = new AlertDialog.Builder(activity)
+                .setTitle("Report saved")
+                .setMessage(where)
+                .setPositiveButton("Share", null)
+                .setNeutralButton("Open", null)
+                .setNegativeButton("Done", null)
+                .create();
+        UiKit.styleOrbitDialog(follow, activity, false);
+        follow.show();
+        Button share = follow.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button open = follow.getButton(AlertDialog.BUTTON_NEUTRAL);
+        if (share != null) {
+            share.setOnClickListener(v -> UiKit.handoffOrbitDialogToSystemSurface(follow,
+                    () -> share(activity, outcome)));
+        }
+        if (open != null) {
+            open.setOnClickListener(v -> UiKit.handoffOrbitDialogToSystemSurface(follow,
+                    () -> open(activity, outcome)));
+        }
+    }
+
+    private static void share(Activity activity, BugReport.Outcome outcome) {
+        if (activity.isFinishing() || outcome.savedUri == null) return;
+        String body = BugReport.readSaved(activity, outcome.savedUri);
+        Intent send = BugReport.shareIntent(outcome.savedUri, body);
+        Intent chooser = Intent.createChooser(send, "Share bug report");
+        chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            activity.startActivity(chooser);
+        } catch (Exception e) {
+            Toast.makeText(activity, "Couldn't open the share sheet. It's in " + outcome.where,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void open(Activity activity, BugReport.Outcome outcome) {
+        if (activity.isFinishing() || outcome.savedUri == null) return;
+        Intent view = BugReport.openIntent(outcome.savedUri);
+        Intent chooser = Intent.createChooser(view, "Open bug report");
+        chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            activity.startActivity(chooser);
+        } catch (Exception e) {
+            Toast.makeText(activity, "Couldn't open the report. It's in " + outcome.where,
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private static void listen(Activity activity, EditText transcript, TextToSpeech[] tts,

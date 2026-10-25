@@ -71,8 +71,9 @@ network. If that model cannot hear you and the phone is online, GrokLink tries t
 recogniser once.
 
 **Report a bug** is on the chat list and in a chat's menu, and in the car as its own media item.
-Describe the problem, hear it read back, then Send. With a GitHub token stored from that screen,
-the report is filed as an issue on tmg270/orbit-fork. Without one, it is saved on the phone.
+Describe the problem, hear it read back, then Send. The report is saved to Downloads/GrokLink,
+and GrokLink offers to open or share the file. Paste a GitHub token on that screen only if you
+also want it filed as an issue on tmg270/orbit-fork. Without a token, the Downloads copy is enough.
 
 Say **navigate to**, **directions to**, **drive to**, or **how long to** a place. Google Maps starts
 guidance, or opens the route when you asked for the time. Say **with Waze** when you want Waze.

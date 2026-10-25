@@ -2,6 +2,10 @@
 
 ## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
 
+- **v1.0.37**: A bug report saves to Downloads, where you can open or share it.
+ - Send on Report a bug writes the full session to Downloads/GrokLink, then offers to open or share the file.
+ - The same copy is saved when you send a report from the car.
+ - A GitHub token stays optional. Without one, the report is still saved and GrokLink does not ask you to add a token.
 - **v1.0.35**: Car speech works with the bundled offline voice, Grok can look things up, and a spoken bug report files the session.
  - In the car, listening uses the British voice already in the app, with no network needed for speech.
  - Ask Grok for a festival setlist and it can look the songs up, then queue the ones Poweramp has.
