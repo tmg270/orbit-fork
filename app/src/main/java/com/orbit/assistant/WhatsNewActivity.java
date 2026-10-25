@@ -133,7 +133,7 @@ public final class WhatsNewActivity extends Activity {
             + "- **Live thinking.** Grok's reasoning is shown while it works on models that send it, such as grok-4.7.\n"
             + "- **Phone actions for Grok.** Timers, alarms, calendar and settings actions through the shared action contract.\n"
             + "- **New look.** GrokLink name, icon and cyan theme.\n"
-            + "- **Updates.** GrokLink does not update itself. Install new builds from the fork; they install over the top and keep your data.\n";
+            + "- **Updates.** Settings, About, Check for update downloads a newer build. Android still asks you to tap Install once, and your sign-in and chats stay.\n";
 
     private void renderNotes() {
         status.setText("Built into this version of GrokLink.");

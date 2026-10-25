@@ -18,13 +18,24 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.Locale;
 
-/** Orbit-styled stable-release update UI. Installation always remains user-confirmed Android UI. */
+/** About GrokLink, including the check that downloads a newer build for Android to install. */
 public final class UpdateActivity extends Activity {
+    /** Set when the chat-list offer or the update notification should start the download. */
+    static final String EXTRA_START_DOWNLOAD = "groklink_start_download";
+
     private TextView status;
     private Button action;
+    private ProgressBar progress;
+    private GrokLinkUpdateManifest published;
+    private boolean newer;
+    private String error;
+    private boolean checking;
+    private boolean downloading;
+    private boolean confirming;
+    private boolean startDownloadRequested;
+    private int generation;
 
     /** Interactive Back for this page. Its classification lives in OrbitNavigation. */
     private OrbitPredictiveBack navigation;
@@ -39,17 +50,17 @@ public final class UpdateActivity extends Activity {
         setContentView(content);
         UiKit.applyActivityInsets(this, content, true);
         navigation = OrbitPredictiveBack.install(this);
-        // GrokLink never updates itself. Clear any update check an older build scheduled.
-        try {
-            androidx.work.WorkManager.getInstance(getApplicationContext())
-                    .cancelUniqueWork("orbit-stable-update-check");
-        } catch (Exception ignored) {}
+        startDownloadRequested = getIntent() != null
+                && getIntent().getBooleanExtra(EXTRA_START_DOWNLOAD, false);
     }
 
     @Override protected void onResume() {
         super.onResume();
         UiPresence.enter(this);
+        if (!OrbitDistribution.selfUpdates() || downloading || confirming) return;
+        startCheck(false);
     }
+
 
     @Override protected void onPause() {
         UiPresence.leave(this);
@@ -127,15 +138,24 @@ public final class UpdateActivity extends Activity {
         current.setPadding(0, UiKit.dp(this, 5), 0, UiKit.dp(this, 11));
         card.addView(current);
 
-        status = UiKit.text(this, "GrokLink does not update itself. New builds are published on "
-                + "the GitHub fork and install over this one, keeping your sign-in and chats.",
+        status = UiKit.text(this, OrbitDistribution.selfUpdates()
+                ? "Checking for a newer build…"
+                : OrbitDistribution.PLAY_UPDATES_MESSAGE,
                 14, UiKit.TEXT, false);
         status.setLineSpacing(0, 1.12f);
         status.setPadding(0, 0, 0, UiKit.dp(this, 14));
         card.addView(status);
 
-        action = primaryButton("Get new builds");
-        action.setOnClickListener(v -> openExternal(this, BUILDS_URL));
+        progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        progress.setVisibility(View.GONE);
+        LinearLayout.LayoutParams progressLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 8));
+        progressLp.setMargins(0, 0, 0, UiKit.dp(this, 14));
+        card.addView(progress, progressLp);
+
+        action = primaryButton(OrbitDistribution.selfUpdates() ? "Check for update" : "Open in Google Play");
+        action.setOnClickListener(v -> onAction());
         card.addView(action, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, UiKit.dp(this, 48)));
 
@@ -205,12 +225,14 @@ public final class UpdateActivity extends Activity {
         }
     }
 
-    static final String BUILDS_URL = "https://github.com/tmg270/orbit-fork/actions/workflows/build-apk.yml";
+    static final String BUILDS_URL = "https://github.com/tmg270/orbit-fork/releases/tag/groklink";
 
     /** Everything on the Links card, in order. A new link is one more entry here. */
     static final AboutLink[] LINKS = {
             new AboutLink("GrokLink on GitHub", "Source code and new builds",
                     "https://github.com/tmg270/orbit-fork"),
+            new AboutLink("Latest build", "The published APK, if you need the file itself",
+                    BUILDS_URL),
             new AboutLink("Licence", "Mozilla Public License 2.0",
                     "https://www.mozilla.org/MPL/2.0/"),
     };
@@ -371,5 +393,154 @@ public final class UpdateActivity extends Activity {
     private static String formatSize(long bytes) {
         if (bytes <= 0L) return "Unknown";
         return String.format(Locale.US, "%.1f MB", bytes / (1024d * 1024d));
+    }
+
+    private void onAction() {
+        if (!OrbitDistribution.selfUpdates()) {
+            OrbitDistribution.openPlayListing(this);
+            return;
+        }
+        if (downloading || checking) return;
+        if (newer && published != null && !GrokLinkUpdater.canRequestPackageInstalls(this)) {
+            GrokLinkUpdater.openUnknownSourcesSettings(this);
+            return;
+        }
+        if (newer && published != null) {
+            beginDownload();
+            return;
+        }
+        startCheck(true);
+    }
+
+    private void startCheck(boolean force) {
+        if (!OrbitDistribution.selfUpdates() || downloading) return;
+        int gen = ++generation;
+        checking = true;
+        error = null;
+        render();
+        GrokLinkUpdater.CheckCallback callback = (found, isNewer, problem) -> {
+            if (gen != generation || !alive()) return;
+            checking = false;
+            published = found;
+            newer = isNewer && found != null;
+            error = problem;
+            render();
+            if (newer && startDownloadRequested) {
+                startDownloadRequested = false;
+                beginDownload();
+            }
+        };
+        if (force) GrokLinkUpdater.checkNow(this, callback);
+        else GrokLinkUpdater.refreshSoon(this, callback);
+    }
+
+    private void beginDownload() {
+        if (!alive() || published == null || downloading) return;
+        if (!GrokLinkUpdater.canRequestPackageInstalls(this)) {
+            render();
+            return;
+        }
+        downloading = true;
+        confirming = false;
+        error = null;
+        progress.setIndeterminate(true);
+        progress.setVisibility(View.VISIBLE);
+        render();
+        GrokLinkUpdater.downloadAndInstall(this, published, new GrokLinkUpdater.DownloadCallback() {
+            @Override public void onProgress(int percent) {
+                if (!alive()) return;
+                if (percent < 0) {
+                    progress.setIndeterminate(true);
+                } else {
+                    progress.setIndeterminate(false);
+                    progress.setProgress(percent);
+                }
+                progress.setVisibility(View.VISIBLE);
+            }
+
+            @Override public void onConfirm() {
+                if (!alive()) return;
+                downloading = false;
+                confirming = true;
+                progress.setVisibility(View.GONE);
+                render();
+            }
+
+            @Override public void onError(String message) {
+                if (!alive()) return;
+                downloading = false;
+                progress.setVisibility(View.GONE);
+                if (GrokLinkUpdater.NEED_PERMISSION.equals(message)) {
+                    error = null;
+                    render();
+                    return;
+                }
+                error = message;
+                render();
+            }
+        });
+    }
+
+    private void render() {
+        if (!OrbitDistribution.selfUpdates() || status == null || action == null) return;
+        if (!downloading && progress != null) progress.setVisibility(View.GONE);
+        String installed = BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")";
+        boolean needsPermission = newer && published != null
+                && !GrokLinkUpdater.canRequestPackageInstalls(this);
+        if (checking) {
+            status.setText("Checking for a newer build…");
+            action.setText("Checking…");
+            action.setEnabled(false);
+            return;
+        }
+        action.setEnabled(true);
+        if (downloading) {
+            String size = published != null && published.sizeBytes > 0
+                    ? " (" + formatSize(published.sizeBytes) + ")" : "";
+            status.setText("Downloading " + (published == null ? "the new build" : published.versionName)
+                    + size + ". Keep GrokLink open until Android asks you to tap Install.");
+            action.setText("Downloading…");
+            action.setEnabled(false);
+            return;
+        }
+        if (confirming) {
+            status.setText("Android is asking you to confirm the install. Tap Install once. "
+                    + "Your sign-in and chats stay.");
+            action.setText("Download and install");
+            return;
+        }
+        if (error != null && !error.isEmpty()) {
+            status.setText(error);
+            action.setText("Check for update");
+            return;
+        }
+        if (newer && published != null && needsPermission) {
+            status.setText(published.comparison(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
+                    + " Allow installs from GrokLink, then come back and tap Download and install. "
+                    + "You'll still tap Install once. Allowing a browser or Files does not allow GrokLink.");
+            action.setText("Allow unknown apps");
+            return;
+        }
+        if (newer && published != null) {
+            status.setText(published.comparison(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
+                    + " Download it here. Android will ask you to tap Install once. "
+                    + "Your sign-in and chats stay.");
+            action.setText("Download and install");
+            return;
+        }
+        if (published != null && published.versionCode < BuildConfig.VERSION_CODE) {
+            status.setText("This phone is on " + installed
+                    + ", which is newer than the published build " + published.versionName
+                    + " (" + published.versionCode + "). GrokLink won't replace it with an older one.");
+            action.setText("Check for update");
+            return;
+        }
+        if (published != null) {
+            status.setText("You're on the newest published build, " + installed + ".");
+            action.setText("Check for update");
+            return;
+        }
+        status.setText("Installed " + installed + ". Tap Check for update to look for a newer build.");
+        action.setText("Check for update");
     }
 }

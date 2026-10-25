@@ -74,6 +74,9 @@ public final class OrbitNotificationChannels {
         out.add(new Definition(ROUTINE_TRIGGERS, "Routine triggers",
                 "Only alerts you when an automatic GrokLink routine needs attention or a foreground step.",
                 NotificationManager.IMPORTANCE_DEFAULT));
+        out.add(new Definition(UPDATES, "GrokLink updates",
+                "Tells you when a newer GrokLink build is ready to install.",
+                NotificationManager.IMPORTANCE_DEFAULT));
         return out;
     }
 
@@ -88,8 +91,6 @@ public final class OrbitNotificationChannels {
         NotificationManager manager = manager(context);
         if (manager == null) return;
         for (Definition definition : definitions()) create(manager, definition);
-        // GrokLink has no updater: drop the channel an older build may have registered.
-        try { manager.deleteNotificationChannel(UPDATES); } catch (RuntimeException ignored) {}
     }
 
     /** Declares one channel by ID, for the notifier that is about to use it. */

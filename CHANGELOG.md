@@ -2,6 +2,10 @@
 
 ## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
 
+- **v1.0.39**: GrokLink can download a newer build and hand it to Android for you to confirm.
+ - The phone notices after a build is published, from the chat list or from Settings, About, Check for update.
+ - You still tap Install once. If Android blocks it, GrokLink opens the page where you allow installs from GrokLink.
+ - A saved GitHub token files a bug as an issue. The Downloads copy stays available to open or share.
 - **v1.0.38**: A setlist still plays in Poweramp if you leave the chat while Grok is looking it up.
  - The songs queue, and a card under the reply says what Poweramp did, even if the screen was off.
  - If Poweramp has not allowed library access, GrokLink asks, then matches each song by its title.
@@ -22,7 +26,7 @@
 - Guided setup: Grok sign-in, microphone, default assistant, permissions and Android Auto steps.
 - Android Auto "Ask Grok" media item (experimental).
 - Live reasoning for models that send it; xAI device actions.
-- GrokLink name, icon and theme. No self-updater; builds come from tmg270/orbit-fork.
+- GrokLink name, icon and theme. New builds install from the groklink release, after you tap Install.
 
 Everything below is the upstream Orbit Assistant history by lpnovi.
 

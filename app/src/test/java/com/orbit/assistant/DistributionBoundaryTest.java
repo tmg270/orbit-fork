@@ -45,11 +45,11 @@ public final class DistributionBoundaryTest {
 
 
     @Test public void theGitHubEditionKeepsItsUpdaterEndpoints() {
-        assertEquals("https://api.github.com/repos/lpnovi/GrokLink-Assistant/releases/latest",
+        assertEquals("https://api.github.com/repos/tmg270/orbit-fork/releases/tags/groklink",
                 OrbitEdition.latestReleaseApi());
-        assertEquals("https://api.github.com/repos/lpnovi/GrokLink-Assistant/releases?per_page=15",
+        assertEquals("https://api.github.com/repos/tmg270/orbit-fork/releases?per_page=15",
                 OrbitEdition.releasesListApi(15));
-        assertEquals("https://github.com/lpnovi/GrokLink-Assistant/releases/download/",
+        assertEquals("https://github.com/tmg270/orbit-fork/releases/download/",
                 OrbitEdition.releaseDownloadBase());
         assertEquals("application/vnd.android.package-archive",
                 OrbitEdition.apkInstallerIntent(android.net.Uri.parse("content://x/y")).getType());

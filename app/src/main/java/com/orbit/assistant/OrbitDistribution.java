@@ -55,9 +55,14 @@ public final class OrbitDistribution {
         return current() == Channel.PLAY;
     }
 
-    /** Whether Orbit may check GitHub for, download, and install its own updates. */
+    /**
+     * Whether this build may check for, download, and install its own updates.
+     *
+     * <p>GitHub builds install a newer GrokLink debug build from this fork's {@code groklink}
+     * release. They do not fetch upstream Orbit APKs. Play builds never do either.
+     */
     public static boolean selfUpdates() {
-        return false; // fork: never pull/install upstream-signed Orbit APKs
+        return selfUpdates(current());
     }
 
     /** Whether Orbit may download the Orbit Local component APK and hand it to Android. */

@@ -256,7 +256,7 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
         categories.addView(settingsCategoryCard(SECTION_APPEARANCE, "Look & Feel",
                 "Theme Studio, font, chat text size and haptics"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_UPDATES, "About",
-                "Version, licence, links and how to get new builds"), categoryLp());
+                "Version, updates and links"), categoryLp());
         categories.addView(settingsCategoryCard(SECTION_ADVANCED, "Advanced",
                 "Diagnostics and developer tools"), categoryLp());
 

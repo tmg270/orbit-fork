@@ -146,6 +146,9 @@ public final class OrbitNavigation {
         put(DocumentViewerActivity.class, Policy.LOCAL, "Document viewer");
         put(CalendarPermissionActivity.class, Policy.LOCAL, "Calendar permission");
         put(OrbitWidgetActionActivity.class, Policy.LOCAL, "Widget action");
+        // The package installer's confirmation bridge. It draws nothing of its own, forwards
+        // Android's Install screen, and finishes. There is no GrokLink page underneath it.
+        put(GrokLinkInstallActivity.class, Policy.LOCAL, "Install update");
         // Widget configuration answers the launcher with a result; leaving it is not navigation.
         put(OrbitWidgetConfigureActivity.class, Policy.LOCAL, "Widget setup");
         // Onboarding owns Back for its own steps: it walks backwards through setup and confirms

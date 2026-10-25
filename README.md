@@ -28,17 +28,52 @@ screen, have it set timers, alarms and calendar events, and keep full conversati
 
 ## Install (sideload)
 
-GrokLink is not on the Play Store. Builds come from this repository's GitHub Actions.
+GrokLink is not on the Play Store. The first install is a file. After that, the app can fetch a
+newer build itself.
 
-1. Open the latest successful run of
-   [Build GrokLink APK](https://github.com/tmg270/orbit-fork/actions/workflows/build-apk.yml) while
-   signed in to GitHub, and download the `GrokLink-v<version>-debug` artifact.
-2. Unzip it and open `GrokLink-<version>-debug.apk` on your phone. Allow installs from that app when
-   Android asks.
+1. Open the latest [groklink release](https://github.com/tmg270/orbit-fork/releases/tag/groklink)
+   and download the `GrokLink-*-debug.apk`. Until that release exists, use the latest successful
+   [Build GrokLink APK](https://github.com/tmg270/orbit-fork/actions/workflows/build-apk.yml) run,
+   signed in to GitHub, and unzip the `GrokLink-v<version>-debug` artifact.
+2. Open the APK on your phone. When Android asks, allow that app (Files, Chrome, or whichever one
+   you opened the file with) to install unknown apps, then tap Install.
 3. GrokLink installs as `com.tmg270.orbit`, next to the original Orbit if you have it.
 
 Builds are signed with a fixed test key, so a newer build installs over an older one and keeps your
 sign-in and chats. That key is public in this repository, so only install builds from this repository.
+
+## Updates
+
+A green push to the `groklink` branch publishes a release the phone can see. You do not need to
+open Actions or paste a link.
+
+1. Open GrokLink. If a newer build is published, it says so on the chat list. You can also open
+   **Settings → About → Check for update** and compare the installed version with the published one.
+2. Tap **Download and install**. The file stays in the app.
+3. Android shows its own Install screen. Tap **Install** once. Your sign-in and chats stay.
+
+The first sideload allowed some other app to install files. That does not allow GrokLink. The first
+time GrokLink itself installs an update, Android asks you to allow **GrokLink**:
+
+- In the app, tap **Allow unknown apps**. It opens GrokLink's page. Turn the switch on, come back,
+  and tap **Download and install** again.
+- Or open it yourself: **Settings → Apps → Special app access → Install unknown apps → GrokLink**.
+- On Samsung (One UI): **Settings → Security and privacy → More security settings → Install unknown
+  apps → GrokLink**. Some phones put the same switch on **Settings → Apps → GrokLink**.
+
+Allowing Chrome, My Files, or Drive does not count. The switch has to be for GrokLink. Android
+still asks you to tap Install. GrokLink does not install a build silently.
+
+The check uses a public release page. There is no token in the app. If no build has been published
+yet, About says so and the Actions artifact above is the way to install.
+
+## Report a bug
+
+**Report a bug** is on the chat list and in a chat's menu, and in the car as its own media item.
+Describe the problem, hear it read back, then Send. When a GitHub token is saved on that screen,
+Send files a GitHub issue on tmg270/orbit-fork, which is the path to use. A copy is still written
+to Downloads/GrokLink, and you can share it if GitHub did not take the report. Without a token,
+the Downloads copy is the whole result. The token is optional and stays on the phone.
 
 **Notification access** is blocked by Android for sideloaded apps until you allow it: Settings >
 Apps > GrokLink > ⋮ > *Allow restricted settings*, then turn notification access on again.
@@ -70,10 +105,8 @@ Listening in the car uses the British speech model shipped in the app, so speech
 network. If that model cannot hear you and the phone is online, GrokLink tries the phone's speech
 recogniser once.
 
-**Report a bug** is on the chat list and in a chat's menu, and in the car as its own media item.
-Describe the problem, hear it read back, then Send. The report is saved to Downloads/GrokLink,
-and GrokLink offers to open or share the file. Paste a GitHub token on that screen only if you
-also want it filed as an issue on tmg270/orbit-fork. Without a token, the Downloads copy is enough.
+**Report a bug** works in the car the same way as on the phone: describe it, hear it back, then Send.
+With a saved GitHub token it is filed as an issue. The Downloads copy is still there to share.
 
 Say **navigate to**, **directions to**, **drive to**, or **how long to** a place. Google Maps starts
 guidance, or opens the route when you asked for the time. Say **with Waze** when you want Waze.
@@ -89,10 +122,12 @@ A Google update could stop sideloaded car apps working at any time.
 
 ## Building
 
-Push to `main` or run **Build GrokLink APK** manually from the Actions tab. The workflow builds the
-debug APK, runs the unit tests (a failing test fails the build), and uploads
-`GrokLink-v1.0.<run>-groklink-debug`. Each run gets its own version (`1.0.<run>-groklink` once the
-run is past 1.0.34, otherwise `1.0.35-groklink`). The version code is never below 1035.
+Push to `groklink` or run **Build GrokLink APK** manually from the Actions tab on that branch.
+The workflow builds the debug APK, runs the unit tests (a failing test fails the build), and uploads
+`GrokLink-v1.0.<run>-groklink-debug`. A successful push to `groklink` also publishes the
+[groklink release](https://github.com/tmg270/orbit-fork/releases/tag/groklink) the phone checks.
+Pull requests only build; they do not publish. Each run gets its own version (`1.0.<run>-groklink`
+once the run is past 1.0.34, otherwise `1.0.35-groklink`). The version code is never below 1035.
 
 Locally: JDK 17 and the Android SDK, then `./gradlew assembleDebug testDebugUnitTest`. On Windows,
 `BUILD_GROKLINK.cmd` (a wrapper around `tools/build_groklink.ps1`) sets the tools up for you.

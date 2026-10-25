@@ -76,7 +76,6 @@ public class MainActivity extends Activity {
         // recovery path in addition to the manifest reschedule receiver.
         RoutineTriggerScheduler.rescheduleAll(this);
         ReminderScheduler.rescheduleAll(this);
-        cancelLegacyUpdateCheck();
         Window w = getWindow();
         w.setStatusBarColor(UiKit.BG);
         w.setNavigationBarColor(UiKit.BG);
@@ -111,6 +110,11 @@ public class MainActivity extends Activity {
         UiPresence.enter(this);
         ConversationTitleManager.addListener(titleListener);
         if (!syncThemeIfNeeded()) refresh();
+        GrokLinkUpdater.refreshSoon(this, (published, available, error) -> {
+            if (!available || published == null || isFinishing() || isDestroyed()) return;
+            if (OnboardingState.shouldLaunchAutomatically(this)) return;
+            showUpdateOffer(published);
+        });
     }
 
     @Override protected void onPause() {
@@ -130,12 +134,30 @@ public class MainActivity extends Activity {
 
 
 
-    /** GrokLink never updates itself: drop the periodic GitHub check an Orbit build may have left. */
-    private void cancelLegacyUpdateCheck() {
-        try {
-            androidx.work.WorkManager.getInstance(getApplicationContext())
-                    .cancelUniqueWork("orbit-stable-update-check");
-        } catch (Exception ignored) {}
+    private boolean updateOfferShowing;
+
+    /** Once per published build, offer to download it. Check for update in About still works later. */
+    private void showUpdateOffer(GrokLinkUpdateManifest manifest) {
+        if (manifest == null || updateOfferShowing || isFinishing() || isDestroyed()) return;
+        if (!manifest.newerThan(BuildConfig.VERSION_CODE)) return;
+        if (manifest.alreadyOffered(GrokLinkUpdater.seenCode(this))) return;
+        updateOfferShowing = true;
+        GrokLinkUpdater.rememberOffer(this, manifest.versionCode);
+        String message = "GrokLink " + manifest.versionName + " (" + manifest.versionCode
+                + ") is ready. This phone is on " + BuildConfig.VERSION_NAME
+                + " (" + BuildConfig.VERSION_CODE
+                + "). Download it, then tap Install when Android asks. Your sign-in and chats stay.";
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Newer build")
+                .setMessage(message)
+                .setPositiveButton("Download", (d, w) -> startActivity(
+                        new Intent(this, UpdateActivity.class)
+                                .putExtra(UpdateActivity.EXTRA_START_DOWNLOAD, true)))
+                .setNegativeButton("Later", null)
+                .create();
+        dialog.setOnDismissListener(d -> updateOfferShowing = false);
+        UiKit.styleOrbitDialog(dialog, this, false);
+        dialog.show();
     }
 
     /** How long the GrokLink mark has to be held before the hidden scene opens. */

@@ -7,8 +7,15 @@ on:
   push:
     branches: [ main, groklink, offline-local ]
 
+# contents: write lets a green push to groklink publish the public debug release the phone
+# checks. The token is the workflow's own GITHUB_TOKEN. It is not written into the APK.
+# Fork pull requests still get a read-only token, and the publish step does not run for them.
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: groklink-apk-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   build:
@@ -86,3 +93,74 @@ jobs:
           name: GrokLink-v${{ steps.app_version.outputs.version }}-debug
           path: app/build/outputs/apk/debug/GrokLink-*-debug.apk
           if-no-files-found: error
+
+      # A pull request only builds. Publishing happens after the push to groklink, which is
+      # the merge, and only when the tests above succeeded. The release is the floating tag
+      # "groklink": groklink-update.json has a stable public URL the phone can fetch with no token.
+      - name: Publish groklink release
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/groklink'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REPOSITORY" != "tmg270/orbit-fork" ]; then
+            echo "Not publishing: $GITHUB_REPOSITORY is not tmg270/orbit-fork"
+            exit 0
+          fi
+          shopt -s nullglob
+          apks=(app/build/outputs/apk/debug/GrokLink-*-debug.apk)
+          if [ "${#apks[@]}" -ne 1 ]; then
+            echo "::error::expected one debug APK, found ${#apks[@]}"
+            exit 1
+          fi
+          APK="${apks[0]}"
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          LINE=$("$BT/aapt2" dump badging "$APK" | head -n 1)
+          NAME=$(printf '%s\n' "$LINE" | sed -n "s/.*name='\([^']*\)'.*/\1/p")
+          CODE=$(printf '%s\n' "$LINE" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          VER=$(printf '%s\n' "$LINE" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          if [ "$NAME" != "com.tmg270.orbit" ] || [ -z "$CODE" ] || [ -z "$VER" ]; then
+            echo "::error::unexpected package badging: $LINE"
+            exit 1
+          fi
+          if [ "$CODE" -lt 1035 ]; then
+            echo "::error::versionCode $CODE is below the shipped floor 1035"
+            exit 1
+          fi
+          SHA=$(sha256sum "$APK" | awk '{print $1}')
+          SIZE=$(stat -c%s "$APK")
+          BASE=$(basename "$APK")
+          URL="https://github.com/tmg270/orbit-fork/releases/download/groklink/${BASE}"
+          jq -n \
+            --argjson versionCode "$CODE" \
+            --arg versionName "$VER" \
+            --arg apkName "$BASE" \
+            --arg apkUrl "$URL" \
+            --arg sha256 "$SHA" \
+            --argjson size "$SIZE" \
+            --arg commit "$GITHUB_SHA" \
+            --arg packageName "com.tmg270.orbit" \
+            '{versionCode:$versionCode, versionName:$versionName, apkName:$apkName, apkUrl:$apkUrl, sha256:$sha256, size:$size, commit:$commit, packageName:$packageName}' \
+            > "$RUNNER_TEMP/groklink-update.json"
+          jq -e --argjson c "$CODE" --arg u "$URL" --arg s "$SHA" \
+            '.versionCode == $c and .apkUrl == $u and .sha256 == $s and (.sha256|length) == 64' \
+            "$RUNNER_TEMP/groklink-update.json" >/dev/null
+          cp "$APK" "$RUNNER_TEMP/$BASE"
+          printf '%s\n' \
+            "Debug build ${VER} (versionCode ${CODE})." \
+            "" \
+            "GrokLink checks this release for updates. On the phone: Settings, About, Check for update. Android still asks you to tap Install once." \
+            "" \
+            "The app reads groklink-update.json from this release. Nothing in the APK is a secret." \
+            > "$RUNNER_TEMP/notes.md"
+          gh release delete groklink --yes --cleanup-tag --repo tmg270/orbit-fork || true
+          gh release create groklink \
+            --repo tmg270/orbit-fork \
+            --prerelease \
+            --latest=false \
+            --target "$GITHUB_SHA" \
+            --title "GrokLink ${VER} (${CODE})" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            "$RUNNER_TEMP/$BASE" \
+            "$RUNNER_TEMP/groklink-update.json"
