@@ -171,6 +171,8 @@ public final class GrokLinkUpdateTest {
         assertTrue(yml.contains("github.event_name != 'pull_request'"));
         assertTrue(yml.contains("refs/heads/groklink"));
         assertTrue(yml.contains("tmg270/orbit-fork"));
+        assertTrue(yml.contains("s/^package: name='\\([^']*\\)'.*/\\1/p"));
+        assertFalse(yml.contains("s/.*name="));
         assertFalse(yml.contains("ghp_"));
     }
 
