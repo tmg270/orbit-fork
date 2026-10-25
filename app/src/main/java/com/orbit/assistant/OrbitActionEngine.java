@@ -121,7 +121,7 @@ public final class OrbitActionEngine {
             }
             ProcessTrace.beginAction();
             DeviceActionExecutor.Result result = DeviceActionExecutor.executeDetailed(context, action);
-            if ("PLAY_MUSIC".equals(action.type)) {
+            if ("PLAY_MUSIC".equals(action.type) || "PLAY_PLAYLIST".equals(action.type)) {
                 String via = MusicPlayer.lastVia();
                 ProcessTrace.action(via.isEmpty() ? "Poweramp MediaBrowser" : via);
             } else {

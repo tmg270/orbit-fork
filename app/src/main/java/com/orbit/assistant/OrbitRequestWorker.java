@@ -243,6 +243,11 @@ public final class OrbitRequestWorker extends Worker {
             PendingRequestStore.markDone(c, id);
             RequestTrace.lifecycle(id, "completed");
             AttachmentStore.deleteAll(item.screenshotPaths);
+            // Before any screen is told. A chat that was paused during the wait has already
+            // dropped its listener, and that used to mean the reply's actions never ran and no
+            // card was saved. Scheduling here runs them anyway; the screen only draws the card.
+            ReplyActionRunner.schedule(c, item.conversationId, id, assistantIndex(c, item),
+                    reply == null ? null : reply.actions);
             OrbitRequestManager.dispatchSuccess(id, reply);
             // Metadata work begins only after the answer is persisted and delivered. It uses its
             // own fixed lightweight policy and never enters visible history or response details.
@@ -256,6 +261,15 @@ public final class OrbitRequestWorker extends Worker {
                 NotificationHelper.notifyResponseComplete(c, item.conversationId, item.prompt, notificationText);
             }
         });
+    }
+
+    /** Where the card belongs: the answer a retry replaced, or the message just appended. */
+    private static int assistantIndex(Context c, PendingRequestStore.Item item) {
+        int replaced = item.variantAt();
+        if (replaced >= 0) return replaced;
+        ConversationStore.Conversation chat = ConversationStore.load(c, item.conversationId);
+        if (chat == null || chat.messages.isEmpty()) return 0;
+        return chat.messages.size() - 1;
     }
 
     /** Reports a retry that produced no answer, writing nothing into the conversation. */

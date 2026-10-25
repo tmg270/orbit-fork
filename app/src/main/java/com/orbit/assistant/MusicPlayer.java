@@ -110,6 +110,14 @@ final class MusicPlayer {
     static final String KEY_PREFERRED = "preferred_app";
     static final String MTAG = "OrbitAuto/Music";
     private static final long CONNECT_MS = 3000, VERIFY_MS = 4000;
+    /** How long to pause after asking Poweramp for library access, before one retry. */
+    static long permissionRetryMs = 400;
+    private static final int TRACK_SCAN_CAP = 20000;
+    static final String ASK_DATA_PERMISSION = "com.maxmpz.audioplayer.ACTION_ASK_FOR_DATA_PERMISSION";
+    static final String POWERAMP_API_ACTIVITY = "com.maxmpz.audioplayer.PowerampAPIActivity";
+    static final Uri POWERAMP_FILES = Uri.parse("content://com.maxmpz.audioplayer.data/files");
+    private static final Uri POWERAMP_FILES_PROBE =
+            Uri.parse("content://com.maxmpz.audioplayer.data/files?lim=1");
 
     /** Preferred player package: the saved setting, else Poweramp when installed, else null. */
     static String preferredPackage(Context c) {
@@ -240,6 +248,7 @@ final class MusicPlayer {
     /**
      * Queues the songs Grok found, in order, as one Poweramp playlist.
      * A miss is reported. The rest of the library is not played in its place.
+     * When the library has none of them, each song is searched for and played instead of stopping.
      */
     static DeviceActionExecutor.Result playTracks(Context c, String playlistName, JSONArray tracks, String app) {
         if (tracks == null || tracks.length() == 0) {
@@ -253,21 +262,39 @@ final class MusicPlayer {
         if (!installed(c, POWERAMP)) {
             return DeviceActionExecutor.Result.unavailable("Poweramp is not installed on this phone");
         }
+        boolean askedPermission = false;
+        if (!filesReadable(c)) {
+            askedPermission = requestLibraryPermission(c);
+            if (permissionRetryMs > 0) {
+                try { Thread.sleep(permissionRetryMs); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
+        }
         List<String> ids = new ArrayList<>();
         List<String> missing = new ArrayList<>();
         int limit = Math.min(tracks.length(), 40);
+        int requested = 0;
         for (int i = 0; i < limit; i++) {
             JSONObject one = tracks.optJSONObject(i);
             if (one == null) continue;
             String title = one.optString("title", "").trim();
             String artist = one.optString("artist", "").trim();
             if (title.isEmpty()) continue;
+            requested++;
             String id = findTrackId(c, title, artist);
             if (id == null) missing.add(title);
             else ids.add(id);
         }
-        if (ids.isEmpty()) {
-            return DeviceActionExecutor.Result.failed("None of those songs are in Poweramp");
+        if (searchInstead(ids.size(), requested)) {
+            DeviceActionExecutor.Result searched = playTracksBySearch(c, tracks, app);
+            if (askedPermission && !filesReadable(c) && searched.message != null) {
+                return searched.success
+                        ? DeviceActionExecutor.Result.success(searched.message
+                        + " Allow Poweramp library access when it asks, so the next setlist can queue.")
+                        : DeviceActionExecutor.Result.failed(searched.message
+                        + " Allow Poweramp library access when it asks, so the next setlist can queue.");
+            }
+            return searched;
         }
         String name = playlistName == null || playlistName.trim().isEmpty()
                 ? "GrokLink playlist" : playlistName.trim();
@@ -461,28 +488,129 @@ final class MusicPlayer {
         return out;
     }
 
+    /** No library hit at all: search Poweramp for each song rather than reporting a silent miss. */
+    static boolean searchInstead(int matched, int requested) {
+        return requested > 0 && matched == 0;
+    }
+
+    /**
+     * Poweramp's file row keeps the tag title in {@code title_tag}. {@code title} and {@code name}
+     * are fallbacks; {@code name} is often the file name and must not win over the tag.
+     */
+    static String trackLabel(String titleTag, String title, String name) {
+        if (hasText(titleTag)) return titleTag.trim();
+        if (hasText(title)) return title.trim();
+        return name == null ? "" : name.trim();
+    }
+
+    /**
+     * True when this library row is the song that was asked for.
+     * {@code artist} null means the row has no artist column, so the title alone decides.
+     */
+    static boolean titleMatches(String titleTag, String title, String name, String artist,
+                                String wantTitle, String wantArtist) {
+        String found = MusicLibrary.norm(trackLabel(titleTag, title, name));
+        String want = MusicLibrary.norm(wantTitle);
+        if (want.isEmpty() || found.isEmpty()) return false;
+        if (!found.equals(want) && !found.startsWith(want + " ")) return false;
+        String whoWanted = MusicLibrary.norm(wantArtist);
+        if (whoWanted.isEmpty() || artist == null) return true;
+        String who = MusicLibrary.norm(artist);
+        return who.equals(whoWanted) || who.contains(whoWanted);
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    /** Broadcast when the chat is in the background; an activity when someone can tap Allow. */
+    static Intent libraryPermissionIntent(Context c, boolean activity) {
+        Intent ask = new Intent(ASK_DATA_PERMISSION).putExtra("package", c.getPackageName());
+        if (activity) {
+            return ask.setComponent(new ComponentName(POWERAMP, POWERAMP_API_ACTIVITY))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        return ask.setComponent(new ComponentName(POWERAMP, POWERAMP_RECEIVER));
+    }
+
+    private static boolean requestLibraryPermission(Context c) {
+        boolean visible = UiPresence.isVisible();
+        try {
+            if (visible) c.startActivity(libraryPermissionIntent(c, true));
+            else c.sendBroadcast(libraryPermissionIntent(c, false));
+            Log.i(MTAG, "asked Poweramp for library data permission, visible=" + visible);
+            return true;
+        } catch (Exception e) {
+            Log.w(MTAG, "library permission request failed", e);
+            return false;
+        }
+    }
+
+    private static boolean filesReadable(Context c) {
+        try {
+            Cursor cursor = c.getContentResolver().query(POWERAMP_FILES_PROBE, null, null, null, null);
+            if (cursor == null) return false;
+            cursor.close();
+            return true;
+        } catch (SecurityException e) {
+            Log.w(MTAG, "Poweramp library not readable");
+            return false;
+        } catch (Exception e) {
+            Log.w(MTAG, "Poweramp library query failed", e);
+            return false;
+        }
+    }
+
+    /** Each song goes through the same search Poweramp uses for "play this track". */
+    private static DeviceActionExecutor.Result playTracksBySearch(Context c, JSONArray tracks, String app) {
+        int started = 0;
+        String startedWith = "";
+        List<String> missed = new ArrayList<>();
+        int limit = Math.min(tracks.length(), 40);
+        for (int i = 0; i < limit; i++) {
+            JSONObject one = tracks.optJSONObject(i);
+            if (one == null) continue;
+            String title = one.optString("title", "").trim();
+            String artist = one.optString("artist", "").trim();
+            if (title.isEmpty()) continue;
+            String query = (title + " " + artist).trim();
+            DeviceActionExecutor.Result oneResult = play(c, query, artist, "", title, "", app);
+            if (DeviceActionExecutor.STATUS_UNAVAILABLE.equals(oneResult.status)) return oneResult;
+            if (oneResult.success) {
+                if (startedWith.isEmpty()) startedWith = title;
+                started++;
+            } else missed.add(title);
+        }
+        if (started == 0) {
+            String why = missed.isEmpty() ? "None of those songs started in Poweramp"
+                    : "None of those songs started in Poweramp. Missing: " + joinNames(missed);
+            return DeviceActionExecutor.Result.failed(why);
+        }
+        String msg = "Playing " + started + (started == 1 ? " song" : " songs")
+                + " on Poweramp by search, starting with " + startedWith;
+        if (!missed.isEmpty()) msg += ". Not started: " + joinNames(missed);
+        return DeviceActionExecutor.Result.success(msg);
+    }
+
     private static String findTrackId(Context c, String title, String artist) {
         try {
-            Cursor cursor = c.getContentResolver().query(
-                    Uri.parse("content://com.maxmpz.audioplayer.data/files"),
-                    null, null, null, null);
+            Cursor cursor = c.getContentResolver().query(POWERAMP_FILES, null, null, null, null);
             if (cursor == null) return null;
             try {
                 int id = firstColumn(cursor, "_id", "id");
-                int name = firstColumn(cursor, "title", "name");
+                int titleTag = firstColumn(cursor, "title_tag");
+                int titleCol = firstColumn(cursor, "title");
+                int name = firstColumn(cursor, "name");
                 int who = firstColumn(cursor, "artist", "album_artist");
-                if (id < 0 || name < 0) return null;
-                String wantTitle = MusicLibrary.norm(title);
-                String wantArtist = MusicLibrary.norm(artist);
+                if (id < 0 || (titleTag < 0 && titleCol < 0 && name < 0)) return null;
                 int seen = 0;
-                while (cursor.moveToNext() && seen < 4000) {
+                while (cursor.moveToNext() && seen < TRACK_SCAN_CAP) {
                     seen++;
-                    String found = MusicLibrary.norm(cursor.getString(name));
-                    if (!found.equals(wantTitle)) continue;
-                    if (!wantArtist.isEmpty() && who >= 0 && !cursor.isNull(who)) {
-                        String foundArtist = MusicLibrary.norm(cursor.getString(who));
-                        if (!foundArtist.equals(wantArtist) && !foundArtist.contains(wantArtist)) continue;
-                    }
+                    String tag = cell(cursor, titleTag);
+                    String titled = cell(cursor, titleCol);
+                    String file = cell(cursor, name);
+                    String rowArtist = who < 0 || cursor.isNull(who) ? null : cursor.getString(who);
+                    if (!titleMatches(tag, titled, file, rowArtist, title, artist)) continue;
                     return cursor.getString(id);
                 }
                 return null;
@@ -493,6 +621,11 @@ final class MusicPlayer {
             Log.w(MTAG, "track lookup failed for " + title, e);
             return null;
         }
+    }
+
+    private static String cell(Cursor cursor, int index) {
+        if (index < 0 || cursor.isNull(index)) return null;
+        return cursor.getString(index);
     }
 
     /**

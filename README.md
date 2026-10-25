@@ -80,7 +80,9 @@ guidance, or opens the route when you asked for the time. Say **with Waze** when
 GrokLink does not calculate the journey time itself. **Take me to** and **go to** still open an app.
 
 Playing an album or playlist by name queues that album or playlist in Poweramp. A setlist Grok
-looks up becomes a Poweramp playlist of the songs that are actually on the phone.
+looks up becomes a Poweramp playlist of the songs that are actually on the phone, including when
+you leave the chat while Grok is still looking them up. If a title is not in the library, that
+song is searched for in Poweramp instead.
 
 Android Auto never lets third-party apps take over the steering-wheel voice button or "Hey Google".
 A Google update could stop sideloaded car apps working at any time.
