@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      So GrokLink can hand a build it downloaded to Android's package installer. This does not
+      install anything by itself: Android still shows its own Install screen, and only after the
+      user has allowed installs from GrokLink. The Play edition's manifest removes this permission.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
@@ -334,6 +340,15 @@
             android:enableOnBackInvokedCallback="true" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".UpdateActivity"
             android:enableOnBackInvokedCallback="true" android:exported="false" />
+        <!--
+          Package-installer callback. Not a page in the app: Android starts it to deliver the
+          session result, it forwards the system Install screen, and it closes.
+        -->
+        <activity android:name=".GrokLinkInstallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.Orbit.Bridge" />
         <activity android:name=".WhatsNewActivity"
             android:enableOnBackInvokedCallback="true" android:exported="false" />
         <activity android:name=".RoadmapActivity"

@@ -249,6 +249,8 @@ public final class GrokLinkNextFixesTest {
         assertFalse(report.contains("Add a GitHub token"));
         assertFalse(report.contains("getFilesDir()"));
         assertTrue(prompt.contains("GitHub token (optional)"));
+        assertTrue(prompt.contains("files it as a GitHub issue"));
+        assertTrue(prompt.contains("Open issue"));
         assertTrue(prompt.contains("Share"));
         assertTrue(prompt.contains("Open"));
         assertTrue(report.contains("Downloads/GrokLink"));

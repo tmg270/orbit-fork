@@ -70,6 +70,8 @@ public final class OrbitNavigationPolicyTest {
     private static final String[] LOCAL = {
             "ScreenSelectionActivity", "AttachmentPickerActivity", "CalendarPermissionActivity",
             "OrbitWidgetActionActivity", "OrbitWidgetConfigureActivity", "OnboardingActivity",
+            // Forwards Android's Install screen and finishes. Not a page in the app.
+            "GrokLinkInstallActivity",
             // A decorative full-screen scene. Back closes it; it is not a page to be revealed from.
             "OrbitLaunchSequenceActivity",
             // The external Share doorway. It arrives from another app, draws nothing, and finishes

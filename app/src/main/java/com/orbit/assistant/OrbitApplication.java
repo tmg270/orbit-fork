@@ -38,5 +38,10 @@ public final class OrbitApplication extends Application {
         } catch (Exception ignored) {
             // A download can wait until Settings. Startup must not fail because of it.
         }
+        // Enqueues the update check. It does not download anything until a newer build exists
+        // and somebody asks to install it. A failure here must not stop the process from starting.
+        try {
+            GrokLinkUpdater.schedule(this);
+        } catch (Exception ignored) {}
     }
 }

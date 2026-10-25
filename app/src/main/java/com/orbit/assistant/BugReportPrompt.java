@@ -38,8 +38,10 @@ public final class BugReportPrompt {
         box.setOrientation(LinearLayout.VERTICAL);
         int pad = UiKit.dp(activity, 18);
         box.setPadding(pad, pad, pad, 0);
-        box.addView(UiKit.text(activity,
-                "Describe the bug. GrokLink reads it back. Send saves the report to Downloads, where you can open or share it.",
+        boolean tokenSaved = !SecureStore.loadGithubIssuesToken(activity).isEmpty();
+        box.addView(UiKit.text(activity, tokenSaved
+                ? "Describe the bug. GrokLink reads it back. Send files it as a GitHub issue. A copy is also saved to Downloads."
+                : "Describe the bug. GrokLink reads it back. Send saves the report to Downloads, where you can open or share it.",
                 14, UiKit.MUTED, false));
         EditText transcript = UiKit.input(activity, "What went wrong", true);
         LinearLayout.LayoutParams field = new LinearLayout.LayoutParams(
@@ -101,7 +103,11 @@ public final class BugReportPrompt {
                     if (activity.isFinishing() || activity.isDestroyed()) return;
                     if (open[0]) dialog.dismiss();
                     Toast.makeText(activity, outcome.message, Toast.LENGTH_LONG).show();
-                    if (outcome.savedUri != null) offerSaved(activity, outcome);
+                    if (outcome.filed && outcome.url != null && !outcome.url.isEmpty()) {
+                        offerFiled(activity, outcome);
+                    } else if (outcome.savedUri != null) {
+                        offerSaved(activity, outcome);
+                    }
                 });
             }, "groklink-bug-report").start();
         });
@@ -110,6 +116,41 @@ public final class BugReportPrompt {
         Runnable listen = () -> listen(activity, transcript, tts, google, open);
         again.setOnClickListener(v -> listen.run());
         listen.run();
+    }
+
+    /** A filed issue is the result. Share stays available when the Downloads copy is what you need. */
+    private static void offerFiled(Activity activity, BugReport.Outcome outcome) {
+        if (activity == null || activity.isFinishing() || outcome == null) return;
+        AlertDialog follow = new AlertDialog.Builder(activity)
+                .setTitle("Filed on GitHub")
+                .setMessage(outcome.message)
+                .setPositiveButton("Open issue", null)
+                .setNeutralButton("Share", null)
+                .setNegativeButton("Done", null)
+                .create();
+        UiKit.styleOrbitDialog(follow, activity, false);
+        follow.show();
+        Button open = follow.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button share = follow.getButton(AlertDialog.BUTTON_NEUTRAL);
+        if (open != null) {
+            open.setOnClickListener(v -> UiKit.handoffOrbitDialogToSystemSurface(follow,
+                    () -> openIssue(activity, outcome.url)));
+        }
+        if (share != null && outcome.savedUri != null) {
+            share.setOnClickListener(v -> UiKit.handoffOrbitDialogToSystemSurface(follow,
+                    () -> share(activity, outcome)));
+        }
+    }
+
+    private static void openIssue(Activity activity, String url) {
+        if (activity.isFinishing() || url == null || url.isEmpty()) return;
+        try {
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                    .addCategory(Intent.CATEGORY_BROWSABLE));
+        } catch (Exception e) {
+            Toast.makeText(activity, "Couldn't open the issue. It's still filed on GitHub.",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private static void offerSaved(Activity activity, BugReport.Outcome outcome) {

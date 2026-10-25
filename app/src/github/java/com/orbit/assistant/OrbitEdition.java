@@ -24,13 +24,14 @@ final class OrbitEdition {
     /** Read by {@link OrbitDistribution}. */
     static final String ID = "github";
 
-    private static final String REPOSITORY = "lpnovi/GrokLink-Assistant";
+    /** This fork. Updates come from its public {@code groklink} release, not upstream Orbit. */
+    private static final String REPOSITORY = "tmg270/orbit-fork";
 
     private OrbitEdition() {}
 
-    /** GitHub's newest published non-prerelease, the Stable update channel's source. */
+    /** The floating debug release GrokLink installs from. It is a prerelease, so it is not {@code /latest}. */
     static String latestReleaseApi() {
-        return "https://api.github.com/repos/" + REPOSITORY + "/releases/latest";
+        return "https://api.github.com/repos/" + REPOSITORY + "/releases/tags/groklink";
     }
 
     /** A bounded page of recent releases, the Beta update channel's source. */
