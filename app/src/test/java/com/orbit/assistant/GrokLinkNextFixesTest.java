@@ -7,6 +7,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,8 +20,14 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 
 /** Decisions behind the 1.0.35 car fixes. Nothing here unpacks the speech model. */
 @RunWith(RobolectricTestRunner.class)
@@ -178,5 +188,82 @@ public final class GrokLinkNextFixesTest {
         assertEquals("GrokLink bug: Poweramp played everything",
                 BugReport.title("Poweramp played everything"));
         assertFalse(BugReport.title("token ghp_shouldnotappear").contains("ghp_"));
+    }
+
+    @Test public void aBugReportSavesToDownloadsWithoutAskingForGitHub() throws Exception {
+        SessionTrace.resetForTests();
+        Context context = RuntimeEnvironment.getApplication();
+        String secret = "Bearer ghp_exampletokenvalue";
+        SessionTrace.api("request " + secret);
+        BugReport.Outcome outcome = BugReport.submit(context, "Poweramp played everything");
+        assertFalse(outcome.filed);
+        assertEquals("", outcome.url);
+        assertNotNull(outcome.savedUri);
+        assertTrue(outcome.where.startsWith(BugReport.PUBLIC_FOLDER + "/bug-"));
+        assertTrue(outcome.where.endsWith(".txt"));
+        assertTrue(outcome.message.startsWith("Saved to " + outcome.where));
+        String lower = outcome.message.toLowerCase(Locale.US);
+        assertFalse(lower.contains("token"));
+        assertFalse(lower.contains("github"));
+        String saved = BugReport.readSaved(context, outcome.savedUri);
+        assertTrue(saved.contains("Poweramp played everything"));
+        assertTrue(saved.contains("## Session"));
+        assertFalse(saved.contains("ghp_"));
+        assertFalse(new File(context.getFilesDir(), "bug-reports").exists());
+        assertEquals("Download/GrokLink", BugReport.RELATIVE_PATH);
+        assertEquals(Environment.DIRECTORY_DOWNLOADS + "/GrokLink", BugReport.RELATIVE_PATH);
+        try (android.database.Cursor cursor = context.getContentResolver().query(outcome.savedUri,
+                new String[] {MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
+                null, null, null)) {
+            assertNotNull(cursor);
+            assertTrue(cursor.moveToFirst());
+            assertTrue(outcome.where.endsWith("/" + cursor.getString(0)));
+            String relative = cursor.getString(1);
+            if (relative != null && !relative.isEmpty()) {
+                assertTrue(relative.replace('\\', '/').contains("GrokLink"));
+                assertTrue(relative.startsWith(Environment.DIRECTORY_DOWNLOADS));
+            }
+        }
+    }
+
+    @Test public void aSavedBugReportCanBeSharedOrOpened() {
+        Uri uri = Uri.parse("content://media/external/downloads/7");
+        Intent share = BugReport.shareIntent(uri, "the session");
+        assertEquals(Intent.ACTION_SEND, share.getAction());
+        assertEquals("text/plain", share.getType());
+        assertEquals(uri, share.getParcelableExtra(Intent.EXTRA_STREAM));
+        assertEquals("the session", share.getStringExtra(Intent.EXTRA_TEXT));
+        assertTrue((share.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        assertNotNull(share.getClipData());
+        Intent open = BugReport.openIntent(uri);
+        assertEquals(Intent.ACTION_VIEW, open.getAction());
+        assertEquals(uri, open.getData());
+        assertEquals("text/plain", open.getType());
+        assertTrue((open.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+    }
+
+    @Test public void theBugReportScreenDoesNotRequireAGitHubToken() throws Exception {
+        String prompt = source("app/src/main/java/com/orbit/assistant/BugReportPrompt.java");
+        String report = source("app/src/main/java/com/orbit/assistant/BugReport.java");
+        assertFalse(prompt.contains("Add a GitHub token"));
+        assertFalse(report.contains("Add a GitHub token"));
+        assertFalse(report.contains("getFilesDir()"));
+        assertTrue(prompt.contains("GitHub token (optional)"));
+        assertTrue(prompt.contains("Share"));
+        assertTrue(prompt.contains("Open"));
+        assertTrue(report.contains("Downloads/GrokLink"));
+        assertFalse(report.contains("ghp_"));
+        assertFalse(prompt.contains("ghp_"));
+    }
+
+    private static String source(String relativePath) throws Exception {
+        Path start = Paths.get("").toAbsolutePath();
+        for (Path directory = start; directory != null; directory = directory.getParent()) {
+            Path file = directory.resolve(relativePath);
+            if (Files.isRegularFile(file)) {
+                return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+            }
+        }
+        throw new AssertionError("missing " + relativePath);
     }
 }

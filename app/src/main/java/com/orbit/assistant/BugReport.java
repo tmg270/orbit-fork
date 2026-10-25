@@ -1,37 +1,59 @@
 package com.orbit.assistant;
 
+import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /**
- * A verbal bug report: the user's description plus the session trace, saved on the phone and
- * filed as a GitHub issue on tmg270/orbit-fork when a token is stored.
+ * A verbal bug report: the user's description plus the session trace, written to
+ * Downloads/GrokLink so it can be opened from Files, and filed as a GitHub issue on
+ * tmg270/orbit-fork only when a token is already stored.
  *
- * <p>The token is a fine-grained personal access token with issue access, kept in the keystore.
- * It is never written into the report, the log, or the request body.
+ * <p>The token is a fine-grained personal access token the user pastes into Report a bug.
+ * It stays in the keystore. It is never written into the report, the log, the APK, or the
+ * request body. Without a token the Downloads copy is the whole result.
  */
 public final class BugReport {
     static final String REPO = "tmg270/orbit-fork";
     private static final String ISSUES = "https://api.github.com/repos/" + REPO + "/issues";
     private static final int MAX_BODY = 60_000;
 
+    /** MediaStore relative path. {@code Download} is the on-disk name of the public Downloads folder. */
+    static final String RELATIVE_PATH = Environment.DIRECTORY_DOWNLOADS + "/GrokLink";
+    /** What a person looks for in the Files app. */
+    static final String PUBLIC_FOLDER = "Downloads/GrokLink";
+
     public static final class Outcome {
         public final boolean filed;
         public final String message;
+        /** GitHub issue page when one was created; empty otherwise. */
         public final String url;
+        /** Content URI of the Downloads copy, or null when it could not be written. */
+        public final Uri savedUri;
+        /** Plain location such as {@code Downloads/GrokLink/bug-20261025-120000.txt}. */
+        public final String where;
 
-        Outcome(boolean filed, String message, String url) {
+        Outcome(boolean filed, String message, String url, Uri savedUri, String where) {
             this.filed = filed;
             this.message = message == null ? "" : message;
             this.url = url == null ? "" : url;
+            this.savedUri = savedUri;
+            this.where = where == null ? "" : where;
         }
     }
 
@@ -39,12 +61,11 @@ public final class BugReport {
 
     public static Outcome submit(Context context, String transcript) {
         String body = build(context, transcript);
-        File saved = write(context, body);
+        Saved saved = write(context, body);
+        String local = savedLine(saved);
         String token = SecureStore.loadGithubIssuesToken(context);
         if (token.isEmpty()) {
-            return new Outcome(false,
-                    "Saved the report on this phone. Add a GitHub token in Report a bug to file it.",
-                    saved == null ? "" : saved.getAbsolutePath());
+            return outcome(false, local, "", saved);
         }
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(ISSUES).openConnection();
@@ -65,30 +86,38 @@ public final class BugReport {
             conn.setFixedLengthStreamingMode(bytes.length);
             conn.getOutputStream().write(bytes);
             int code = conn.getResponseCode();
-            String raw = read(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream());
+            // The created issue echoes the report, so the reply is larger than the 60k body.
+            String raw = readUpTo(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                    512_000);
             conn.disconnect();
             if (code == 201) {
                 JSONObject created = new JSONObject(raw);
                 int number = created.optInt("number", 0);
                 String url = created.optString("html_url", "");
                 String said = number > 0
-                        ? "Filed on GitHub as issue " + number + "."
-                        : "Filed the report on GitHub.";
-                return new Outcome(true, said, url);
+                        ? "Filed on GitHub as issue " + number + ". " + local
+                        : "Filed the report on GitHub. " + local;
+                return outcome(true, said, url, saved);
             }
             if (code == 401 || code == 403) {
-                return new Outcome(false,
-                        "GitHub refused the token. The report is saved on this phone.",
-                        saved == null ? "" : saved.getAbsolutePath());
+                return outcome(false, "GitHub refused the token. " + local, "", saved);
             }
-            return new Outcome(false,
-                    "GitHub didn't accept the report (" + code + "). It is saved on this phone.",
-                    saved == null ? "" : saved.getAbsolutePath());
+            return outcome(false,
+                    "GitHub didn't accept the report (" + code + "). " + local, "", saved);
         } catch (Exception e) {
-            return new Outcome(false,
-                    "Couldn't reach GitHub. The report is saved on this phone.",
-                    saved == null ? "" : saved.getAbsolutePath());
+            return outcome(false, "Couldn't reach GitHub. " + local, "", saved);
         }
+    }
+
+    private static Outcome outcome(boolean filed, String message, String url, Saved saved) {
+        return new Outcome(filed, message, url,
+                saved == null ? null : saved.uri,
+                saved == null ? "" : saved.where);
+    }
+
+    private static String savedLine(Saved saved) {
+        if (saved == null || saved.where.isEmpty()) return "Couldn't save the report to Downloads.";
+        return "Saved to " + saved.where + ".";
     }
 
     static String title(String transcript) {
@@ -115,29 +144,130 @@ public final class BugReport {
         return all;
     }
 
-    private static File write(Context context, String body) {
-        if (context == null) return null;
-        try {
-            File dir = new File(context.getFilesDir(), "bug-reports");
-            if (!dir.isDirectory() && !dir.mkdirs()) return null;
-            String name = String.format(Locale.US, "bug-%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS.txt",
-                    System.currentTimeMillis());
-            File out = new File(dir, name);
-            try (FileOutputStream stream = new FileOutputStream(out)) {
-                stream.write(body.getBytes(StandardCharsets.UTF_8));
+    /**
+     * Hands the Downloads copy to another app. The stream is the file; the text is the same
+     * report for apps that only accept a message.
+     */
+    static Intent shareIntent(Uri uri, String body) {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_STREAM, uri);
+        send.putExtra(Intent.EXTRA_SUBJECT, "GrokLink bug report");
+        if (body != null && !body.isEmpty()) send.putExtra(Intent.EXTRA_TEXT, body);
+        send.setClipData(ClipData.newRawUri("GrokLink bug report", uri));
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        return send;
+    }
+
+    static Intent openIntent(Uri uri) {
+        Intent view = new Intent(Intent.ACTION_VIEW);
+        view.setDataAndType(uri, "text/plain");
+        view.setClipData(ClipData.newRawUri("GrokLink bug report", uri));
+        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        return view;
+    }
+
+    static String readSaved(Context context, Uri uri) {
+        if (context == null || uri == null) return "";
+        try (InputStream input = context.getContentResolver().openInputStream(uri)) {
+            return readUpTo(input, MAX_BODY + 4096);
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static final class Saved {
+        final Uri uri;
+        final String where;
+
+        Saved(Uri uri, String where) {
+            this.uri = uri;
+            this.where = where == null ? "" : where;
+        }
+    }
+
+    private static Saved write(Context context, String body) {
+        if (context == null || body == null) return null;
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        String name = fileName(System.currentTimeMillis());
+        Saved saved = insertDownload(context, name, bytes, true);
+        if (saved != null) return saved;
+        return insertDownload(context, name, bytes, false);
+    }
+
+    private static String fileName(long when) {
+        return String.format(Locale.US, "bug-%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS.txt", when);
+    }
+
+    private static Saved insertDownload(Context context, String name, byte[] bytes, boolean pending) {
+        ContentResolver resolver = context.getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, RELATIVE_PATH);
+        if (pending) values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        Uri uri = insertRow(resolver, values);
+        if (uri == null) return null;
+        try (OutputStream out = resolver.openOutputStream(uri)) {
+            if (out == null) {
+                abandon(resolver, uri);
+                return null;
             }
-            return out;
+            out.write(bytes);
+        } catch (Exception e) {
+            abandon(resolver, uri);
+            return null;
+        }
+        if (pending) {
+            ContentValues done = new ContentValues();
+            done.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            try {
+                resolver.update(uri, done, null, null);
+            } catch (Exception e) {
+                abandon(resolver, uri);
+                return null;
+            }
+        }
+        String shown = storedName(resolver, uri, name);
+        return new Saved(uri, PUBLIC_FOLDER + "/" + shown);
+    }
+
+    private static Uri insertRow(ContentResolver resolver, ContentValues values) {
+        Uri primary = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        try {
+            Uri uri = resolver.insert(primary, new ContentValues(values));
+            if (uri != null) return uri;
+        } catch (Exception ignored) {}
+        try {
+            return resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, new ContentValues(values));
         } catch (Exception ignored) {
             return null;
         }
     }
 
-    private static String read(java.io.InputStream input) throws Exception {
+    private static String storedName(ContentResolver resolver, Uri uri, String fallback) {
+        try (android.database.Cursor cursor = resolver.query(uri,
+                new String[] {MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                String name = cursor.getString(0);
+                if (name != null && !name.isEmpty()) return name;
+            }
+        } catch (Exception ignored) {}
+        return fallback;
+    }
+
+    private static void abandon(ContentResolver resolver, Uri uri) {
+        try {
+            resolver.delete(uri, null, null);
+        } catch (Exception ignored) {}
+    }
+
+    private static String readUpTo(InputStream input, int limit) throws Exception {
         if (input == null) return "";
-        java.io.ByteArrayOutputStream raw = new java.io.ByteArrayOutputStream();
+        ByteArrayOutputStream raw = new ByteArrayOutputStream();
         byte[] buf = new byte[4096];
         int n;
-        while ((n = input.read(buf)) >= 0 && raw.size() < 20_000) raw.write(buf, 0, n);
+        while ((n = input.read(buf)) >= 0 && raw.size() < limit) raw.write(buf, 0, n);
         return raw.toString(StandardCharsets.UTF_8.name());
     }
 }
