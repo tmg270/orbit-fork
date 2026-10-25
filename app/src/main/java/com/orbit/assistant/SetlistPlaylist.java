@@ -14,8 +14,9 @@ import java.util.regex.Pattern;
  * build one from the list in the answer. Songs are taken only from that answer.
  */
 final class SetlistPlaylist {
+    /** A numbered row or a bullet, after bold markers and links have been removed. */
     private static final Pattern LINE = Pattern.compile(
-            "^(?:\\d{1,2}[.)]|[-*•])\\s+(.{2,80})$");
+            "^(?:\\d{1,2}\\s*[.)]|\\d{1,2}\\s+-|[-*•])\\s+(.{2,160})$");
 
     private SetlistPlaylist() {}
 
@@ -41,7 +42,12 @@ final class SetlistPlaylist {
         if (user == null) return false;
         String q = user.toLowerCase(Locale.US);
         return q.contains("setlist") || q.contains("set list") || q.contains("playlist")
-                || q.contains("their set") || q.contains("the set ") || q.contains("play the songs");
+                || q.contains("their set") || q.contains("the set ") || q.contains("play the songs")
+                || q.contains("queue the") || q.contains("queue those") || q.contains("queue them")
+                || q.contains("nothing played") || q.contains("didn't play") || q.contains("did not play")
+                || q.contains("not playing") || q.contains("didn't queue") || q.contains("didnt play")
+                || q.contains("songs i have") || q.contains("songs he has")
+                || q.contains("tracks i have") || q.contains("tracks he has");
     }
 
     private static boolean hasPlaylist(AssistantReply reply) {
@@ -57,12 +63,12 @@ final class SetlistPlaylist {
         JSONArray tracks = new JSONArray();
         if (text == null) return tracks;
         for (String raw : text.split("\\n")) {
-            String line = raw.trim();
+            String line = loosen(raw);
             if (line.isEmpty() || line.toLowerCase(Locale.US).startsWith("source:")) continue;
             Matcher m = LINE.matcher(line);
             if (!m.matches()) continue;
             String body = m.group(1).trim();
-            if (body.contains("http") || body.length() > 80) continue;
+            if (body.toLowerCase(Locale.US).contains("http")) continue;
             String title = body;
             String artist = "";
             int by = indexOfSeparator(body);
@@ -70,7 +76,8 @@ final class SetlistPlaylist {
                 title = body.substring(0, by).trim();
                 artist = body.substring(by).replaceFirst("^(?:\\s*[-|\\u2013\\u2014]\\s*|\\s+by\\s+)", "").trim();
             }
-            title = title.replaceAll("\\s*\\([^)]*\\)\\s*$", "").trim();
+            title = cleanTitle(title);
+            artist = cleanTitle(artist);
             if (title.length() < 2) continue;
             try {
                 JSONObject one = new JSONObject().put("title", title);
@@ -79,6 +86,29 @@ final class SetlistPlaylist {
             } catch (Exception ignored) {}
         }
         return tracks;
+    }
+
+    /**
+     * Grok's setlist rows often wear bold, quotation marks and a markdown source link.
+     * Those are not part of the song, and a leftover URL used to make the row be ignored.
+     */
+    static String loosen(String raw) {
+        if (raw == null) return "";
+        String s = raw.trim();
+        if (s.isEmpty()) return "";
+        s = s.replaceAll("\\[([^\\]\\[]*)]\\([^)]*\\)", "$1");
+        s = s.replaceAll("https?://\\S+", "");
+        s = s.replaceAll("[\\[【]\\d{1,3}[]】]", "");
+        s = s.replace("**", "").replace("__", "");
+        return s.replaceAll("[ \\t]{2,}", " ").trim();
+    }
+
+    private static String cleanTitle(String value) {
+        if (value == null) return "";
+        String title = value.replace("*", "").trim();
+        title = title.replaceAll("^[\"“”']+|[\"“”']+$", "").trim();
+        title = title.replaceAll("\\s*\\([^)]*\\)\\s*$", "").trim();
+        return title;
     }
 
     private static int indexOfSeparator(String body) {

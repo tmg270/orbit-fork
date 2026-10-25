@@ -1821,6 +1821,13 @@ public class OrbitSession extends VoiceInteractionSession {
         renderConversation();
     });
 
+    /** Redraws once a background playlist or other device action has stored its card. */
+    private final ReplyActionRunner.Listener actionCardsListener = chat -> main.post(() -> {
+        if (chat == null || !chat.equals(conversationId)) return;
+        if (!sessionVisible || historyMode || busy || messages == null) return;
+        renderConversation();
+    });
+
     private void showInternal(Bundle args, int showFlags) {
         super.onShow(args, showFlags);
         RichAnswerCoordinator.addListener(richImageListener);
@@ -1840,6 +1847,7 @@ public class OrbitSession extends VoiceInteractionSession {
         freshExternalShowAtElapsedMs = internalResume
                 ? 0L : SystemClock.elapsedRealtime();
         sessionVisible = true;
+        ReplyActionRunner.addListener(actionCardsListener);
         // Orbit is on screen again, so no external picker can still be running. If the bridge no
         // longer holds this token the result already arrived; if it does, that flow ended without
         // delivering. Either way nothing is in flight, so the guard is released rather than being
@@ -1899,6 +1907,7 @@ public class OrbitSession extends VoiceInteractionSession {
                 if (focusComposer && input != null) input.requestFocus();
             }, 120);
         }
+        showDeferredPrompts();
     }
 
     @Override
@@ -2677,7 +2686,11 @@ public class OrbitSession extends VoiceInteractionSession {
                             if (!voiceRequest) addSourceLink(storedText,
                                     java.util.Collections.emptyList());
                         }
-                        executeActions(reply.actions, 0);
+                        // The worker already started playback and any other action that does not
+                        // need a tap. This sheet only asks when one does, and draws a card that
+                        // was saved while the sheet was closed.
+                        addPersistedActionCards(Math.max(0, history.size() - 1));
+                        showDeferredPrompts();
                         if (voiceRequest && Prefs.speak(getContext())) speak(OrbitMarkdown.toSpeechText(
                                 SourceLinkUtil.displayText(storedText)));
                     }
@@ -3542,7 +3555,8 @@ public class OrbitSession extends VoiceInteractionSession {
                             if (!voiceRequest) addSourceLink(storedText,
                                     java.util.Collections.emptyList());
                         }
-                        executeActions(reply.actions, 0);
+                        addPersistedActionCards(Math.max(0, history.size() - 1));
+                        showDeferredPrompts();
                         if (voiceRequest && Prefs.speak(getContext())) speak(OrbitMarkdown.toSpeechText(
                                 SourceLinkUtil.displayText(storedText)));
                     }
@@ -3665,15 +3679,23 @@ public class OrbitSession extends VoiceInteractionSession {
         scrollBottom();
     }
 
-    private void executeActions(List<AssistantReply.Action> actions, int index) {
-        if (actions == null || actions.isEmpty() || index > 0) return;
-        final int assistantIndex = Math.max(0, history.size() - 1);
-        OrbitActionEngine.execute(getContext(), actions,
+    /** Confirmations the worker left for a visible sheet. Automatic actions already ran. */
+    private void showDeferredPrompts() {
+        if (!sessionVisible || getContext() == null) return;
+        for (ReplyActionRunner.Prompt prompt : ReplyActionRunner.takePrompts(getContext(), conversationId)) {
+            executeActions(prompt.actions, prompt.assistantIndex);
+        }
+    }
+
+    private void executeActions(List<AssistantReply.Action> actions, int assistantIndex) {
+        if (actions == null || actions.isEmpty()) return;
+        final int cardAt = Math.max(0, assistantIndex);
+        DeviceActionRunner.execute(getContext(), actions,
                 (action, onAllow, onCancel) -> showActionConfirmation(action, onAllow, onCancel),
                 new OrbitActionEngine.Listener() {
                     @Override public void onStep(AssistantReply.Action action, DeviceActionExecutor.Result result, int stepIndex, int total) {
                         ActionResultStore.Entry entry = ActionResultStore.record(
-                                getContext(), conversationId, assistantIndex, action, result, stepIndex, total);
+                                getContext(), conversationId, cardAt, action, result, stepIndex, total);
                         addActionCard(action, result, entry);
                     }
 
@@ -3836,6 +3858,12 @@ public class OrbitSession extends VoiceInteractionSession {
             case "SET_TIMER": return "Timer · " + friendlyDuration(p.optInt("seconds", 60));
             case "SET_REMINDER": return "Reminder · " + clip(p.optString("message", "Reminder"), 34);
             case "NAVIGATE": return "Navigate · " + clip(p.optString("query", p.optString("destination", "Destination")), 34);
+            case "PLAY_MUSIC": return "Play · " + clip(p.optString("title",
+                    p.optString("query", p.optString("playlist", "Music"))), 34);
+            case "PLAY_PLAYLIST": {
+                int songs = p.optJSONArray("tracks") == null ? 0 : p.optJSONArray("tracks").length();
+                return songs > 0 ? "Playlist · " + songs + " songs" : "Playlist";
+            }
             case "OPEN_APP": return "Open · " + clip(p.optString("app", "App"), 34);
             case "DIAL_CONTACT": return "Call · " + clip(p.optString("name", "Contact"), 34);
             case "SMS_CONTACT": return "Message · " + clip(p.optString("name", "Contact"), 34);
@@ -5590,6 +5618,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         .flag("attachmentOpening", attachmentOpening));
         detachFirstFrameListener();
         MessageActions.dismiss();
+        ReplyActionRunner.removeListener(actionCardsListener);
         super.onHide();
         sessionVisible = false;
         freshExternalShowAtElapsedMs = 0L;
@@ -5619,6 +5648,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         .flag("sessionVisible", sessionVisible)
                         .flag("busy", busy));
         RichAnswerCoordinator.removeListener(richImageListener);
+        ReplyActionRunner.removeListener(actionCardsListener);
         detachFirstFrameListener();
         UiPresence.leave(this);
         ScreenSelectionBridge.cancel(screenSelectionCallbackToken);

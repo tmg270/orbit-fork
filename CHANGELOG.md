@@ -2,6 +2,11 @@
 
 ## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
 
+- **v1.0.38**: A setlist still plays in Poweramp if you leave the chat while Grok is looking it up.
+ - The songs queue, and a card under the reply says what Poweramp did, even if the screen was off.
+ - If Poweramp has not allowed library access, GrokLink asks, then matches each song by its title.
+ - When none of the titles match, GrokLink searches Poweramp for each song instead of stopping quietly.
+ - A numbered setlist in the reply is enough. Grok does not have to send a separate playlist command.
 - **v1.0.37**: A bug report saves to Downloads, where you can open or share it.
  - Send on Report a bug writes the full session to Downloads/GrokLink, then offers to open or share the file.
  - The same copy is saved when you send a report from the car.

@@ -315,6 +315,19 @@ public class ChatActivity extends Activity {
         reloadConversation();
     });
 
+    /**
+     * A reply's device actions finish on a background thread, often after this screen was paused.
+     * The card is already stored; this only redraws it.
+     */
+    private final ReplyActionRunner.Listener actionCardsListener = chat -> runOnUiThread(() -> {
+        if (chat == null || !chat.equals(conversationId)) return;
+        if (isFinishing() || isDestroyed()) return;
+        // A redraw here replaces the live stream. The card is already stored, and the next
+        // reload (this reply finishing, or coming back to the chat) draws it.
+        if (PendingRequestStore.hasActiveForConversation(ChatActivity.this, conversationId)) return;
+        reloadConversation();
+    });
+
     /** A title completion changes only Android's title metadata; the chat hierarchy stays intact. */
     private final ConversationTitleManager.Listener titleListener = (chat, title) -> runOnUiThread(() -> {
         if (chat == null || !chat.equals(conversationId) || isFinishing() || isDestroyed()) return;
@@ -335,6 +348,8 @@ public class ChatActivity extends Activity {
         rebuildForNewAppearanceIfNeeded();
         reloadConversation();
         attachToPending();
+        ReplyActionRunner.addListener(actionCardsListener);
+        presentDeferredPrompts();
         applyLauncherComposerIntent();
         applySharedContent();
         applyVaultItem();
@@ -573,6 +588,7 @@ public class ChatActivity extends Activity {
 
     @Override protected void onPause() {
         UiPresence.leave(this);
+        ReplyActionRunner.removeListener(actionCardsListener);
         RichAnswerCoordinator.removeListener(richImageListener);
         ConversationTitleManager.removeListener(titleListener);
         detachListeners();
@@ -1896,7 +1912,13 @@ public class ChatActivity extends Activity {
                     // The answer settles in as the thinking state resolves, rather than popping.
                     animateNewestOnRender = true;
                     reloadConversation();
-                    executeActions(reply.actions);
+                    // Playback and other device actions are already running from the worker, which
+                    // is what still happens when this screen was paused for the whole wait. This
+                    // only asks about an action that needs a confirmation, and frees the composer.
+                    restoreComposerInteraction();
+                    presentDeferredPrompts();
+                    traceComposer("response.rendered actions="
+                            + (reply == null || reply.actions == null ? 0 : reply.actions.size()));
                     if (voiceRequest && Prefs.speak(ChatActivity.this) &&
                             voiceController != null && reply != null) {
                         voiceController.speak(OrbitMarkdown.toSpeechText(
@@ -1998,30 +2020,50 @@ public class ChatActivity extends Activity {
     }
 
     private void executeActions(List<AssistantReply.Action> actions) {
+        executeActions(actions, Math.max(0, history.size() - 1));
+    }
+
+    /**
+     * Shows a confirmation, then runs the action off the main thread.
+     * {@code assistantIndex} is the saved answer the card belongs under.
+     */
+    private void executeActions(List<AssistantReply.Action> actions, int assistantIndex) {
         if (actions == null || actions.isEmpty()) {
             restoreComposerInteraction();
             traceComposer("response.rendered actions=0");
             return;
         }
-        final int assistantIndex = Math.max(0, history.size() - 1);
-        OrbitActionEngine.execute(this, actions,
+        final int cardIndex = Math.max(0, assistantIndex);
+        DeviceActionRunner.execute(this, actions,
                 this::confirmAction,
                 new OrbitActionEngine.Listener() {
                     @Override public void onStep(AssistantReply.Action action, DeviceActionExecutor.Result result, int index, int total) {
                         stampProcessingTrace();
-                        ActionResultStore.record(ChatActivity.this, conversationId, assistantIndex,
+                        ActionResultStore.record(ChatActivity.this, conversationId, cardIndex,
                                 action, result, index, total);
-                        runOnUiThread(() -> render());
+                        runOnUiThread(() -> {
+                            if (isFinishing() || isDestroyed()) return;
+                            render();
+                        });
                     }
 
                     @Override public void onFinished(boolean completedAllSteps, int completedSteps, int totalSteps) {
                         stampProcessingTrace();
                         runOnUiThread(() -> {
+                            if (isFinishing() || isDestroyed()) return;
                             restoreComposerInteraction();
                             traceComposer("action.finished steps=" + completedSteps + "/" + totalSteps);
                         });
                     }
                 });
+    }
+
+    /** Asks about actions the worker deliberately did not run while this chat was away. */
+    private void presentDeferredPrompts() {
+        if (isFinishing() || isDestroyed()) return;
+        for (ReplyActionRunner.Prompt prompt : ReplyActionRunner.takePrompts(this, conversationId)) {
+            executeActions(prompt.actions, prompt.assistantIndex);
+        }
     }
 
     /**
@@ -2378,6 +2420,12 @@ public class ChatActivity extends Activity {
             case "SET_REMINDER": return "Reminder · " + p.optString("message", "Reminder");
             case "SET_ALARM": return "Alarm";
             case "NAVIGATE": return "Navigate · " + p.optString("query", p.optString("destination", "Destination"));
+            case "PLAY_MUSIC": return "Play · " + p.optString("title",
+                    p.optString("query", p.optString("playlist", "Music")));
+            case "PLAY_PLAYLIST": {
+                int songs = p.optJSONArray("tracks") == null ? 0 : p.optJSONArray("tracks").length();
+                return songs > 0 ? "Playlist · " + songs + " songs" : "Playlist";
+            }
             case "CREATE_EVENT": return "Calendar composer · " + p.optString("title", "Event");
             case CalendarActionExecutor.ACTION_TYPE: return CalendarConfirmation.cardTitle(action);
             default:
