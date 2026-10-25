@@ -395,6 +395,7 @@ public final class AssistantClient {
         // is checked against what has actually been done. A protected dial that is about to be put
         // to the user for confirmation cannot leave here described as though it already happened.
         final Callback cb = ActionNarration.guard(callback);
+        SessionTrace.conversation("user", prompt);
         final Bitmap screenshot = images == null || images.isEmpty() ? null : images.get(0);
         final List<Bitmap> requestImages = images == null
                 ? java.util.Collections.emptyList() : images;
@@ -404,6 +405,7 @@ public final class AssistantClient {
         if (cached != null) {
             DiagnosticStore.recordUtilityRoute(context, "offline-model");
             ProcessTrace.handlerIfEmpty(ProcessTrace.QWEN);
+            SessionTrace.local("qwen", cached.text);
             cb.onSuccess(cached);
             return;
         }
@@ -451,12 +453,12 @@ public final class AssistantClient {
     private static OfflineAttempt tryOffline(Context context, String prompt, List<History> history) {
         // Explicit Memory commands stay local, inspectable, and instant.
         AssistantReply memory = MemoryCommandRouter.tryHandle(context, prompt, history);
-        if (memory != null) return new OfflineAttempt(memory, "");
+        if (memory != null) return decided("memory", memory, "");
 
         // Saved routines are local, deterministic Action Engine plans. Resolve them
         // before generic device commands or the network-backed assistant.
         AssistantReply routine = RoutineCommandRouter.tryHandle(context, prompt);
-        if (routine != null) return new OfflineAttempt(routine, "");
+        if (routine != null) return decided("routine", routine, "");
 
         // A question about a device state has to be resolved before the command parser sees it.
         // "Is Do Not Disturb on?" contains the words LocalCommandRouter treats as an instruction,
@@ -467,20 +469,20 @@ public final class AssistantClient {
         AssistantReply status = DeviceStatusRouter.tryHandle(context, prompt);
         if (status != null) {
             DiagnosticStore.recordUtilityRoute(context, "device-status");
-            return new OfflineAttempt(status, "");
+            return decided("device-status", status, "");
         }
 
         // Obvious phone commands stay instant and offline regardless of the network.
         AssistantReply local = LocalCommandRouter.tryHandle(context, prompt);
         if (local != null) {
             DiagnosticStore.recordUtilityRoute(context, "device-command");
-            return new OfflineAttempt(local, "");
+            return decided("rules", local, "");
         }
 
         NotificationQueryHelper.Prepared notification =
                 NotificationQueryHelper.prepare(context, prompt);
         if (notification.recognized && notification.localReply != null) {
-            return new OfflineAttempt(notification.localReply, "");
+            return decided("notifications", notification.localReply, "");
         }
         String notificationContext = notification.context;
 
@@ -488,28 +490,33 @@ public final class AssistantClient {
         // memory, explicit Routine syntax, device commands, and local notification
         // queries intentionally retain priority.
         AssistantReply customCommand = CustomCommandRouter.tryHandle(context, prompt);
-        if (customCommand != null) return new OfflineAttempt(customCommand, "");
+        if (customCommand != null) return decided("custom-command", customCommand, "");
 
         // Kitchen arithmetic is arithmetic: a conversion or a scaled quantity has one right
         // answer, so it is given here rather than paying a round trip to Grok.
         AssistantReply kitchen = KitchenMathRouter.tryHandle(context, prompt);
         if (kitchen != null) {
             DiagnosticStore.recordUtilityRoute(context, "kitchen");
-            return new OfflineAttempt(kitchen, "");
+            return decided("kitchen", kitchen, "");
         }
 
         AssistantReply calculated = CalculatorRouter.tryHandle(context, prompt);
         if (calculated != null) {
             DiagnosticStore.recordUtilityRoute(context, "calculator");
-            return new OfflineAttempt(calculated, "");
+            return decided("calculator", calculated, "");
         }
 
         AssistantReply converted = UnitConversionRouter.tryHandle(context, prompt);
         if (converted != null) {
             DiagnosticStore.recordUtilityRoute(context, "conversion");
-            return new OfflineAttempt(converted, "");
+            return decided("conversion", converted, "");
         }
         return new OfflineAttempt(null, notificationContext);
+    }
+
+    private static OfflineAttempt decided(String router, AssistantReply reply, String notificationContext) {
+        if (reply != null) SessionTrace.local(router, reply.text);
+        return new OfflineAttempt(reply, notificationContext);
     }
 
     /**

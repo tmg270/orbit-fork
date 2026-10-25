@@ -7,7 +7,7 @@ final class XaiProvider implements AiProvider {
     private static final AiCapabilities CAPABILITIES = AiCapabilities.builder()
             .streaming(true).deviceActions(true).images(true).multipleImages(true)
             .offline(false).needsCredentials(true).reasoningLevels(true)
-            .hostedWebSearch(false).routinePlanning(true).reasoningSummaries(false).build();
+            .hostedWebSearch(true).routinePlanning(true).reasoningSummaries(false).build();
 
     @Override public String id() { return Prefs.PROVIDER_XAI; }
     @Override public String displayName() { return "xAI / Grok"; }
@@ -43,7 +43,7 @@ final class XaiProvider implements AiProvider {
         AiSelection selection = ModelLibraryStore.providerDefault(context, id());
         withCredential(context, callback::onError,
                 (key, on401) -> ApiKeyProviderClient.complete(context, id(), key, AiSelections.resolve(selection),
-                        instructions, prompt, callback, on401));
+                        instructions, prompt, callback, on401, true));
     }
 
     private static final java.util.concurrent.ExecutorService CREDENTIALS =

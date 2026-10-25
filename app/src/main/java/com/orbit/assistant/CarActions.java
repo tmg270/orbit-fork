@@ -23,11 +23,11 @@ final class CarActions {
 
     static final Set<String> SAFE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "SET_ALARM", "SET_TIMER", "SET_REMINDER", "ADD_CALENDAR_EVENTS", "MEDIA_CONTROL",
-            "SET_VOLUME", "SET_DND", "SET_RINGER_MODE", "PLAY_MUSIC")));
+            "SET_VOLUME", "SET_DND", "SET_RINGER_MODE", "PLAY_MUSIC", "PLAY_PLAYLIST", "NAVIGATE")));
     static final Set<String> CONFIRM = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "DIAL", "DIAL_CONTACT", "SMS", "SMS_CONTACT")));
     static final Set<String> PHONE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "NAVIGATE", "CREATE_EVENT", "OPEN_APP")));
+            "CREATE_EVENT", "OPEN_APP")));
 
     static Kind kindOf(String type) {
         String t = type == null ? "" : type.toUpperCase(Locale.US);
@@ -103,7 +103,11 @@ final class CarActions {
             + "NAVIGATE {query}; DIAL {number}; DIAL_CONTACT {name}; SMS {number,body}; SMS_CONTACT {name,body}; "
             + "MEDIA_CONTROL {command} with PLAY, PAUSE, PLAY_PAUSE, NEXT or PREVIOUS; SET_VOLUME {percent}; "
             + "SET_DND {enabled}; SET_RINGER_MODE {mode} with normal, vibrate or silent; "
-            + "PLAY_MUSIC {query,artist,album,title,app} for requests like play Kasabian on Poweramp (text should be just: Playing Kasabian on Poweramp). "
+            + "A server-side web search tool is available. Use it for setlists, lineups, schedules and anything current, then say what you found. "
+            + "PLAY_MUSIC {query,artist,album,title,playlist,app} plays an album, artist, saved playlist or one track already on the phone. Set album, artist or playlist to match what they asked for. "
+            + "PLAY_PLAYLIST {name,tracks:[{title,artist}]} queues those songs in Poweramp after you look a setlist up. Only songs you found. "
+            + "NAVIGATE {query,app,mode} with app maps or waze and mode navigate or eta. For eta, do not invent a travel time. "
+            + "For a normal play request the text should be just: Playing Kasabian on Poweramp. "
             + "Never return a DIAL for an emergency number unless the driver directly asked to call it. "
             + "Never use an em dash.";
 }

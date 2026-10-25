@@ -40,8 +40,35 @@ public final class SecureStore {
     private static final String SUPERGROK_ALIAS = "orbit_supergrok_oauth_v1";
     private static final String SUPERGROK_ENC = "supergrok_oauth_enc";
     private static final String SUPERGROK_IV = "supergrok_oauth_iv";
+    /** Fine-grained GitHub token used only to file bug reports. Never logged or backed up in plaintext. */
+    private static final String GITHUB_ALIAS = "orbit_github_issues_v1";
+    private static final String GITHUB_ENC = "github_issues_token_enc";
+    private static final String GITHUB_IV = "github_issues_token_iv";
 
     private SecureStore() {}
+
+    public static boolean saveGithubIssuesToken(Context c, String value) {
+        if (c == null) return false;
+        if (value == null || value.trim().isEmpty()) {
+            Prefs.get(c).edit().remove(GITHUB_ENC).remove(GITHUB_IV).commit();
+            return true;
+        }
+        try {
+            return encrypt(c, GITHUB_ALIAS, GITHUB_ENC, GITHUB_IV, value.trim());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static String loadGithubIssuesToken(Context c) {
+        if (c == null) return "";
+        try {
+            String value = decrypt(c, GITHUB_ALIAS, GITHUB_ENC, GITHUB_IV);
+            return value == null ? "" : value.trim();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 
     public static void saveRelayToken(Context c, String value) {
         try {

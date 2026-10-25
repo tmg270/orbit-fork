@@ -402,6 +402,8 @@ public final class VoiceInputController {
 
     private void startSegment(boolean initial) {
         if (!active || usingVosk) return;
+        if (OfflineSpeech.preferBundledVosk(context, false)
+                && offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
         if (recognizer == null) {
             if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             active = false;

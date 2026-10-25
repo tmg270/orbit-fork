@@ -48,11 +48,14 @@ android {
         applicationId 'com.tmg270.orbit'
         minSdk 29
         targetSdk 36
-        // GrokLink versioning: CI builds get a rising versionCode (1000 + GitHub run number)
-        // so every build installs as an update; local builds fall back to 1000.
+        // Shipped 1.0.34 used versionCode 1034. Never install below that.
+        // CI still rises with the GitHub run number once that is past 1035.
+        // Keep this formula identical to .github/workflows/build-apk.yml.
         def runNumber = System.getenv('GITHUB_RUN_NUMBER')
-        versionCode runNumber ? 1000 + runNumber.toInteger() : 1000
-        versionName runNumber ? "1.0.${runNumber}-groklink" : "1.0.0-groklink-local"
+        def parsedRun = runNumber ? runNumber.toInteger() : 0
+        def runCode = parsedRun > 0 ? 1000 + parsedRun : 0
+        versionCode Math.max(1035, runCode)
+        versionName((parsedRun > 0 && runCode >= 1035) ? "1.0.${parsedRun}-groklink" : "1.0.35-groklink")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

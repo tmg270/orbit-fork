@@ -151,5 +151,93 @@ final class ProviderRequestMapper {
     }
 
     private static String safe(String value) { return value == null ? "" : value; }
+
+    /**
+     * The Responses API body for the same model the chat request already chose.
+     * Web search is xAI's server-side tool. No other model is substituted.
+     */
+    static JSONObject responsesFrom(JSONObject chat, boolean webSearch, boolean json) throws Exception {
+        JSONObject out = new JSONObject();
+        out.put("model", chat.getString("model"));
+        out.put("stream", true);
+        String effort = chat.optString("reasoning_effort", "");
+        if (!effort.isEmpty()) out.put("reasoning", new JSONObject().put("effort", effort));
+        StringBuilder instructions = new StringBuilder();
+        JSONArray input = new JSONArray();
+        JSONArray messages = chat.optJSONArray("messages");
+        if (messages != null) {
+            for (int i = 0; i < messages.length(); i++) {
+                JSONObject message = messages.optJSONObject(i);
+                if (message == null) continue;
+                String role = message.optString("role", "user");
+                if ("system".equals(role)) {
+                    instructions.append(contentText(message.opt("content")));
+                    continue;
+                }
+                input.put(new JSONObject()
+                        .put("role", "assistant".equals(role) ? "assistant" : "user")
+                        .put("content", toResponseParts(message.opt("content"))));
+            }
+        }
+        out.put("instructions", instructions.toString());
+        out.put("input", input);
+        if (webSearch) out.put("tools", new JSONArray().put(new JSONObject().put("type", "web_search")));
+        if (json) out.put("text", new JSONObject().put("format", new JSONObject().put("type", "json_object")));
+        return out;
+    }
+
+    static boolean webSearchRefused(int code, String body) {
+        if (code != 400 && code != 422) return false;
+        String lower = body == null ? "" : body.toLowerCase(java.util.Locale.US);
+        return lower.contains("web_search") || lower.contains("tool") || lower.contains("live search");
+    }
+
+    static boolean jsonFormatRefused(int code, String body) {
+        if (code != 400 && code != 422) return false;
+        String lower = body == null ? "" : body.toLowerCase(java.util.Locale.US);
+        return lower.contains("json_object") || lower.contains("response_format")
+                || lower.contains("text.format") || lower.contains("\"format\"");
+    }
+
+    private static String contentText(Object content) {
+        if (content == null) return "";
+        if (content instanceof String) return (String) content;
+        if (!(content instanceof JSONArray)) return String.valueOf(content);
+        StringBuilder b = new StringBuilder();
+        JSONArray array = (JSONArray) content;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject part = array.optJSONObject(i);
+            if (part != null && part.has("text")) b.append(part.optString("text"));
+        }
+        return b.toString();
+    }
+
+    private static JSONArray toResponseParts(Object content) throws Exception {
+        JSONArray parts = new JSONArray();
+        if (content instanceof String) {
+            parts.put(new JSONObject().put("type", "input_text").put("text", content));
+            return parts;
+        }
+        if (content instanceof JSONArray) {
+            JSONArray array = (JSONArray) content;
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject part = array.optJSONObject(i);
+                if (part == null) {
+                    Object raw = array.opt(i);
+                    if (raw != null) parts.put(new JSONObject().put("type", "input_text").put("text", String.valueOf(raw)));
+                    continue;
+                }
+                if ("image_url".equals(part.optString("type"))) {
+                    JSONObject image = part.optJSONObject("image_url");
+                    String url = image == null ? "" : image.optString("url", "");
+                    if (!url.isEmpty()) parts.put(new JSONObject().put("type", "input_image").put("image_url", url));
+                } else {
+                    parts.put(new JSONObject().put("type", "input_text").put("text", part.optString("text", "")));
+                }
+            }
+        }
+        if (parts.length() == 0) parts.put(new JSONObject().put("type", "input_text").put("text", ""));
+        return parts;
+    }
 }
 

@@ -3964,9 +3964,11 @@ public class ChatActivity extends Activity {
     }
 
     private void showChatOptions(View anchor) {
-        String[] actions = {"Rename chat", "Clear chat", "Delete chat"};
+        String[] actions = {"Rename chat", "Clear chat", "Delete chat", "Report a bug"};
         UiKit.showOrbitMenu(this, anchor, actions, -1, (index, title) -> {
-            if (index == 0) {
+            if (index == 3) {
+                BugReportPrompt.show(this);
+            } else if (index == 0) {
                 ConversationStore.Conversation current = ConversationStore.load(this, conversationId);
                 OrbitRenameDialog.show(this, current == null ? "" : current.title,
                         name -> ConversationStore.rename(this, conversationId, name));

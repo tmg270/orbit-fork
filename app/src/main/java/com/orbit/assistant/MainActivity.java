@@ -323,6 +323,20 @@ public class MainActivity extends Activity {
             vaultLp.rightMargin = UiKit.dp(this, 2);
             top.addView(vault, vaultLp);
         }
+        Button report = new Button(this);
+        report.setText("Bug");
+        report.setAllCaps(false);
+        report.setTextColor(UiKit.MUTED);
+        report.setContentDescription("Report a bug");
+        report.setBackground(UiKit.ripple(android.graphics.Color.TRANSPARENT, UiKit.TEXT, 18, this));
+        report.setMinWidth(0);
+        report.setMinimumWidth(0);
+        report.setMinHeight(0);
+        report.setMinimumHeight(0);
+        report.setPadding(UiKit.dp(this, 8), 0, UiKit.dp(this, 8), 0);
+        report.setOnClickListener(v -> BugReportPrompt.show(this));
+        top.addView(report, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(this, 48)));
         ImageButton settings = iconButton(com.orbit.assistant.R.drawable.ic_settings, "Settings");
         settings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         top.addView(settings, new LinearLayout.LayoutParams(UiKit.dp(this, 48), UiKit.dp(this, 48)));

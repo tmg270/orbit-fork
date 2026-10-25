@@ -4259,6 +4259,8 @@ public class OrbitSession extends VoiceInteractionSession {
 
     private void startRecognizerSegment(boolean initialSegment) {
         if (busy || usingVosk) return;
+        if (getContext() != null && OfflineSpeech.preferBundledVosk(getContext(), false)
+                && offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
         if (recognizer == null) {
             if (offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
             voiceComposerStatusSafe(speechUnavailable(SpeechRecognizer.ERROR_CLIENT));

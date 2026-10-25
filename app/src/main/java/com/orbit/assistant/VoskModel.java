@@ -36,6 +36,11 @@ public final class VoskModel {
     private static final AtomicBoolean INSTALL_QUEUED = new AtomicBoolean();
     private static volatile boolean unpacking;
     private static volatile Boolean unitTest;
+    private static volatile String lastProblem = "";
+
+    public static String lastProblem() {
+        return lastProblem == null ? "" : lastProblem;
+    }
 
     private VoskModel() {}
 
@@ -108,7 +113,9 @@ public final class VoskModel {
                 deleteTree(staging);
                 if (!SUPERSEDED.equals(FOLDER)) deleteTree(new File(root(c), SUPERSEDED));
                 return ready(c);
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                lastProblem = t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage();
+                SessionTrace.note("speech unpack failed: " + lastProblem);
                 deleteTree(staging);
                 return false;
             } finally {

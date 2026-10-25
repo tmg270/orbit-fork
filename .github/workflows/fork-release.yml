@@ -48,7 +48,8 @@ jobs:
           BT=$ANDROID_HOME/build-tools/35.0.0
           $BT/aapt2 dump badging "$APK" | grep "package: name='com.tmg270.orbit'"
           $BT/apksigner verify --print-certs "$APK"
-          VER="1.0.${GITHUB_RUN_NUMBER}-groklink"
+          CODE=$((1000 + GITHUB_RUN_NUMBER))
+          if [ "$CODE" -ge 1035 ]; then VER="1.0.${GITHUB_RUN_NUMBER}-groklink"; else VER="1.0.35-groklink"; fi
           cp "$APK" "GrokLink-v${VER}-${GITHUB_SHA::7}.apk"
           sha256sum GrokLink-*.apk
       - name: Remove keystore

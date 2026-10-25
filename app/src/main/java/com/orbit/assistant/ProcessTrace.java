@@ -45,6 +45,7 @@ public final class ProcessTrace {
             speechAt = now;
             speechStarted = 0;
             logLocked();
+            SessionTrace.speech(speech, speechMs < 0 ? "" : speechMs + " ms");
         }
     }
 

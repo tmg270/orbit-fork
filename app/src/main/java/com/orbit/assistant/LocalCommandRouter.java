@@ -71,6 +71,8 @@ public final class LocalCommandRouter {
         // matchers below see the instruction itself rather than every way of asking for it.
         String q = LanguageNormalizer.stripPoliteness(LanguageNormalizer.canonical(raw));
         if (q.isEmpty()) return null;
+        ParsedCommand navigation = parseNavigation(q);
+        if (navigation != null) return navigation;
         // A question about how something works is never a device command.
         if (LanguageNormalizer.isConceptualQuestion(q)) return null;
         try {
@@ -355,6 +357,15 @@ public final class LocalCommandRouter {
         } else if (rest.matches("^(?:the\\s+)?(?:song|track)\\s+.+")) {
             title = tidy(rest.replaceFirst("^(?:the\\s+)?(?:song|track)\\s+", ""));
             query = title;
+        } else if (rest.matches("^(?:the\\s+)?playlist\\s+.+")) {
+            String playlist = tidy(rest.replaceFirst("^(?:the\\s+)?playlist\\s+", ""));
+            query = playlist;
+            if (query.isEmpty()) return null;
+            JSONObject params = new JSONObject().put("query", query).put("playlist", playlist);
+            if (app != null) params.put("app", app);
+            String where = app == null ? "" : " on " + app;
+            return new ParsedCommand(action("PLAY_MUSIC", params),
+                    "Playing " + query + where + ".", "play " + query);
         } else if (by.matches()) {
             title = tidy(by.group(1));
             artist = tidy(by.group(2));
@@ -376,6 +387,27 @@ public final class LocalCommandRouter {
 
     private static String tidy(String value) {
         return value == null ? "" : value.replaceAll("\\s+", " ").trim();
+    }
+
+    /**
+     * "Navigate to", "directions to", "drive to" and "how long to". "Take me to" and "go to"
+     * stay app launches, so "take me to Spotify" still opens the app.
+     */
+    private static ParsedCommand parseNavigation(String q) {
+        try {
+            NavigationIntents.Request request = NavigationIntents.parse(q);
+            if (request == null) return null;
+            JSONObject params = new JSONObject().put("query", request.destination);
+            params.put("mode", request.mode == NavigationIntents.Mode.ETA ? "eta" : "navigate");
+            if (request.app == NavigationIntents.App.WAZE) params.put("app", "waze");
+            else if (request.app == NavigationIntents.App.MAPS) params.put("app", "maps");
+            String spoken = request.mode == NavigationIntents.Mode.ETA
+                    ? "Opening directions to " + request.destination + "."
+                    : "Navigating to " + request.destination + ".";
+            return new ParsedCommand(action("NAVIGATE", params), spoken, "navigate to " + request.destination);
+        } catch (org.json.JSONException e) {
+            return null;
+        }
     }
 
     private static ParsedCommand parseReach(String q) throws org.json.JSONException {

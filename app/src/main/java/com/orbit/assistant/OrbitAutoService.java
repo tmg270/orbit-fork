@@ -38,6 +38,9 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private static final String ROOT = "orbit_auto_root";
     private static final String ASK_ID = "ask_grok";
     private static final String NEW_ID = "new_conversation";
+    private static final String BUG_ID = "report_bug";
+    private static final String BUG_SEND = "send_bug";
+    private static final String BUG_AGAIN = "describe_bug";
     static final int MAX_TURNS = 6;
     static final long IDLE_RESET_MS = 10 * 60 * 1000L;
     /** Recent question/answer pairs so follow-ups in the car have context. */
@@ -73,6 +76,11 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     /** This listen already left the system recogniser for Vosk. */
     private boolean voskTried;
     private boolean usingVosk;
+    /** One Google attempt after Vosk fails, and only when the phone is online. */
+    private boolean googleAfterVosk;
+    /** The driver is describing a bug. The next utterance is the report, not a question. */
+    private boolean bugReportMode;
+    private String bugTranscript = "";
     /** Engine name recorded when this utterance is accepted. */
     private String speechEngine = "";
     private TextToSpeech tts;
@@ -96,7 +104,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         session.setCallback(new MediaSessionCompat.Callback() {
             @Override public void onPlay() { ask(); }
             @Override public void onPlayFromMediaId(String mediaId, Bundle extras) {
-                if (NEW_ID.equals(mediaId)) { newConversation(); ask(); } else ask();
+                if (NEW_ID.equals(mediaId)) { newConversation(); ask(); }
+                else if (BUG_ID.equals(mediaId) || BUG_AGAIN.equals(mediaId)) beginBugReport();
+                else if (BUG_SEND.equals(mediaId)) sendBugReport();
+                else ask();
             }
             @Override public void onPlayFromSearch(String query, Bundle extras) {
                 if (query != null && !query.trim().isEmpty()) {
@@ -178,8 +189,45 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             MediaDescriptionCompat n = new MediaDescriptionCompat.Builder()
                     .setMediaId(NEW_ID).setTitle("New conversation").setSubtitle("Forget earlier questions").build();
             items.add(new MediaBrowserCompat.MediaItem(n, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            String heard = bugTranscript == null || bugTranscript.isEmpty()
+                    ? "Describe what went wrong" : bugTranscript;
+            MediaDescriptionCompat bug = new MediaDescriptionCompat.Builder()
+                    .setMediaId(BUG_ID).setTitle("Report a bug").setSubtitle("Speak what went wrong").build();
+            items.add(new MediaBrowserCompat.MediaItem(bug, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            MediaDescriptionCompat send = new MediaDescriptionCompat.Builder()
+                    .setMediaId(BUG_SEND).setTitle("Send bug report").setSubtitle(heard).build();
+            items.add(new MediaBrowserCompat.MediaItem(send, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            MediaDescriptionCompat again = new MediaDescriptionCompat.Builder()
+                    .setMediaId(BUG_AGAIN).setTitle("Describe the bug again").setSubtitle("Replace the last description").build();
+            items.add(new MediaBrowserCompat.MediaItem(again, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
         }
         result.sendResult(items);
+    }
+
+    private void beginBugReport() {
+        main.post(() -> {
+            bugReportMode = true;
+            pendingConfirm = null;
+            confirmListening = false;
+            cancelEscalation();
+            notifyChildrenChanged(ROOT);
+            ask();
+        });
+    }
+
+    private void sendBugReport() {
+        main.post(() -> {
+            String said = bugTranscript == null ? "" : bugTranscript.trim();
+            if (said.isEmpty()) {
+                speak("Describe the bug first, then tap Send bug report.");
+                return;
+            }
+            status("Sending the bug report…", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", said, 0, 0);
+            ACTIONS.execute(() -> {
+                BugReport.Outcome outcome = BugReport.submit(getApplicationContext(), said);
+                main.post(() -> speak(outcome.message));
+            });
+        });
     }
 
     private int attempt;
@@ -214,6 +262,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         }
         usingVosk = false;
         VoskSpeech.cancel();
+        MicCaptureService.release(this);
     }
 
     static boolean isRetryable(int error) {
@@ -247,13 +296,26 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             status("Mic permission missing - open GrokLink on phone", PlaybackStateCompat.STATE_ERROR, null, null, 0, 0);
             return;
         }
+        googleAfterVosk = false;
+        beginCapture();
+    }
+
+    /** Opens the microphone. The car uses bundled Vosk first so Google never announces a missing connection. */
+    private void beginCapture() {
         recogFocus = focus(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT, new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ASSISTANT)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build(), "recogniser");
         releaseRecognizer();
         usingVosk = false;
-        voskTried = false;
+        if (!googleAfterVosk) voskTried = false;
         ProcessTrace.beginSpeech();
+        if (!googleAfterVosk && OfflineSpeech.preferBundledVosk(this, true)) {
+            if (offerVosk(SpeechRecognizer.ERROR_NETWORK)) return;
+        }
+        startGoogleListening();
+    }
+
+    private void startGoogleListening() {
         OfflineSpeech.Engine engine = OfflineSpeech.open(this);
         recognizer = engine == null ? null : engine.recognizer;
         recognizerOnDevice = engine != null && engine.onDevice;
@@ -300,7 +362,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     status(speechUnavailable(error),
                             PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 } else {
-                    status(friendlyError(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                    status(speechFailure(error), PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                 }
             }
             @Override public void onResults(Bundle results) {
@@ -389,10 +451,20 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private String speechUnavailable(int error) {
+        if (VoskModel.ready(this) || VoskModel.hasBundledAsset(this)) {
+            return "Didn't catch that, tap Ask Grok to try again";
+        }
         String base = OfflineSpeech.unavailableStatus(error);
-        if (VoskModel.ready(this)) return base;
         if (LocalModel.online(this)) return base + " · downloading offline speech";
         return base + " · offline speech is not on this phone";
+    }
+
+    /** A system-recogniser message. The connection sentence is only used when Vosk cannot listen. */
+    private String speechFailure(int error) {
+        if (VoskModel.ready(this) || VoskModel.hasBundledAsset(this)) {
+            return "Didn't catch that, tap Ask Grok to try again";
+        }
+        return friendlyError(error);
     }
 
     /**
@@ -402,7 +474,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
      * @return true when Vosk has the turn, or is about to
      */
     private boolean offerVosk(int error) {
-        if (usingVosk || voskTried || !isHardSpeechFailure(error)) return false;
+        if (googleAfterVosk) return false;
+        boolean forced = OfflineSpeech.preferBundledVosk(this, true);
+        if (usingVosk || voskTried) return false;
+        if (!forced && !isHardSpeechFailure(error)) return false;
         voskTried = true;
         if (!VoskModel.ready(this)) {
             // Hold the turn. A missing model used to bail straight into friendlyError.
@@ -421,12 +496,19 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                     if (!usingVosk) return;
                     usingVosk = false;
                     if (!ok || !VoskModel.ready(OrbitAutoService.this)) {
+                        SessionTrace.speech("vosk", "model not ready");
                         if (LocalModel.online(OrbitAutoService.this)) {
                             VoskModel.startDownload(OrbitAutoService.this);
                         }
+                        if (!googleAfterVosk && LocalModel.online(OrbitAutoService.this)) {
+                            googleAfterVosk = true;
+                            voskTried = false;
+                            startGoogleListening();
+                            return;
+                        }
                         abandon(recogFocus);
                         recogFocus = null;
-                        status(speechUnavailable(reported),
+                        status("Didn't catch that, tap Ask Grok to try again",
                                 PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
                         return;
                     }
@@ -448,9 +530,11 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         recognizerOnDevice = false;
         try { if (dying != null) dying.cancel(); } catch (Exception ignored) {}
         try { if (dying != null) dying.destroy(); } catch (Exception ignored) {}
-        Log.i(TAG, "system speech failed (" + error + "), listening with Vosk");
-        final int reported = error;
-        status(escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
+        Log.i(TAG, "listening with Vosk (trigger " + error + ")");
+        SessionTrace.speech("vosk", "listening");
+        MicCaptureService.acquire(this);
+        status(bugReportMode ? "Describe the bug"
+                        : escalationListening ? "Say Ask Grok or Forget it" : "Listening…",
                 PlaybackStateCompat.STATE_PLAYING, null, null, 0, 0);
         VoskSpeech.listen(this, new VoskSpeech.Listener() {
             @Override public void onPartial(String text) {}
@@ -459,6 +543,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 if (!usingVosk) return;
                 usingVosk = false;
                 VoskSpeech.cancel();
+                MicCaptureService.release(OrbitAutoService.this);
                 abandon(recogFocus);
                 recogFocus = null;
                 String heard = text == null ? "" : text.trim();
@@ -481,9 +566,20 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 if (!usingVosk) return;
                 usingVosk = false;
                 VoskSpeech.cancel();
+                MicCaptureService.release(OrbitAutoService.this);
+                Log.w(TAG, "vosk error: " + message);
+                SessionTrace.note("vosk error " + (message == null ? "" : message));
+                ProcessTrace.speech("vosk");
+                if (!googleAfterVosk && LocalModel.online(OrbitAutoService.this)) {
+                    googleAfterVosk = true;
+                    voskTried = false;
+                    ProcessTrace.beginSpeech();
+                    main.post(() -> startGoogleListening());
+                    return;
+                }
                 abandon(recogFocus);
                 recogFocus = null;
-                status(friendlyError(reported),
+                status("Didn't catch that, tap Ask Grok to try again",
                         PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
             }
         });
@@ -512,6 +608,14 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private void onHeardFresh(String text) {
+        SessionTrace.conversation("user", text);
+        if (bugReportMode) {
+            bugReportMode = false;
+            bugTranscript = text;
+            notifyChildrenChanged(ROOT);
+            speak("I heard: " + text + ". Tap Send bug report to file it, or Describe the bug again.");
+            return;
+        }
         AssistantReply offline = null;
         try {
             offline = AssistantClient.tryOfflineReply(this, text);
@@ -533,6 +637,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 AssistantReply found = local;
                 main.post(() -> {
                     if (found != null) {
+                        SessionTrace.local("qwen", found.text);
                         handleReply(found.text == null ? "" : found.text,
                                 found.actions == null ? new ArrayList<>() : found.actions);
                     } else escalate(heard);
@@ -590,7 +695,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         List<AssistantReply.Action> music = new ArrayList<>();
         for (AssistantReply.Action a : actions) {
             if (CarActions.kindOf(a.type) == CarActions.Kind.CONFIRM) confirm.add(a);
-            else if ("PLAY_MUSIC".equalsIgnoreCase(a.type)) music.add(a);
+            else if ("PLAY_MUSIC".equalsIgnoreCase(a.type)
+                    || "PLAY_PLAYLIST".equalsIgnoreCase(a.type)) music.add(a);
             else now.add(a);
         }
         if (!music.isEmpty() && confirm.isEmpty()) {
@@ -635,7 +741,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 try {
                     ProcessTrace.beginAction();
                     DeviceActionExecutor.Result res = DeviceActionExecutor.executeDetailed(app, a);
-                    if ("PLAY_MUSIC".equals(a.type)) {
+                    if ("PLAY_MUSIC".equals(a.type) || "PLAY_PLAYLIST".equals(a.type)) {
                         String via = MusicPlayer.lastVia();
                         ProcessTrace.action(via.isEmpty() ? "Poweramp MediaBrowser" : via);
                     } else {
@@ -691,7 +797,9 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 prompt, new AssistantClient.PlanCallback() {
                     @Override public void onText(String raw, String label) {
                         // Always unwrap the JSON envelope: only the text is ever shown or spoken.
-                        AssistantReply parsed = DeviceActionContract.parseEnvelope(raw, true);
+                        AssistantReply parsed = SetlistPlaylist.attach(question,
+                                DeviceActionContract.parseEnvelope(raw, true));
+                        SessionTrace.conversation("grok", parsed.text);
                         String reply = cleanReply(parsed.text);
                         List<AssistantReply.Action> actions = CarActions.keep(parsed.actions);
                         Log.i(TAG, "Grok reply (" + label + "), " + reply.length() + " chars, "

@@ -169,13 +169,9 @@ public final class DeviceActionExecutor {
                     result = CalendarActionExecutor.execute(c, p);
                     break;
                 }
-                case "NAVIGATE": {
-                    String query = p.optString("query", p.optString("destination", ""));
-                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + Uri.encode(query)));
-                    start(c, i);
-                    result = Result.success("Navigation opened");
+                case "NAVIGATE":
+                    result = NavigationIntents.launch(c, p);
                     break;
-                }
                 case "DIAL":
                     result = dial(c, p.optString("number", ""));
                     break;
@@ -281,7 +277,12 @@ public final class DeviceActionExecutor {
                 }
                 case "PLAY_MUSIC":
                     result = MusicPlayer.play(c, p.optString("query", ""), p.optString("artist", ""),
-                            p.optString("album", ""), p.optString("title", ""), p.optString("app", ""));
+                            p.optString("album", ""), p.optString("title", ""),
+                            p.optString("playlist", ""), p.optString("app", ""));
+                    break;
+                case "PLAY_PLAYLIST":
+                    result = MusicPlayer.playTracks(c, p.optString("name", ""),
+                            p.optJSONArray("tracks"), p.optString("app", ""));
                     break;
                 case "SET_RINGER_MODE": {
                     String before = DeviceStatusReader.ringerModeName(c);
@@ -337,14 +338,19 @@ public final class DeviceActionExecutor {
             if (!result.success && !result.shouldContinue && continueOnFailure) {
                 result = result.withContinuation(true);
             }
+            SessionTrace.action(action.type, result.success, result.message);
             return result;
         } catch (SecurityException e) {
-            return Result.permission("GrokLink does not currently have permission to complete that phone action.");
+            Result denied = Result.permission("GrokLink does not currently have permission to complete that phone action.");
+            SessionTrace.action(action.type, false, denied.message);
+            return denied;
         } catch (Exception e) {
             String message = e.getMessage();
             if (message == null || message.trim().isEmpty()) message = e.getClass().getSimpleName();
             if (message.length() > 140) message = message.substring(0, 137) + "…";
-            return Result.failed("Action failed: " + message);
+            Result failed = Result.failed("Action failed: " + message);
+            SessionTrace.action(action.type, false, failed.message);
+            return failed;
         }
     }
 

@@ -130,6 +130,25 @@ public final class OfflineSpeech {
         return intent != null && intent.getBooleanExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false);
     }
 
+    /**
+     * Speech that must not touch Google's recogniser.
+     *
+     * <p>The car always uses the bundled Vosk model when it is in the APK. Google's recogniser is
+     * what tells the driver speech cannot work without a connection, including before
+     * {@code onError} runs. On the phone the same skip happens only while the phone is offline,
+     * so an online chat can still use the system recogniser.
+     */
+    public static boolean preferBundledVosk(Context context, boolean car) {
+        boolean model = context != null && (VoskModel.ready(context) || VoskModel.hasBundledAsset(context));
+        return preferBundledVosk(car, context != null && LocalModel.online(context), model);
+    }
+
+    static boolean preferBundledVosk(boolean car, boolean online, boolean modelAvailable) {
+        if (!modelAvailable) return false;
+        if (car) return true;
+        return !online;
+    }
+
     private static Engine openOnDevice(Context context) {
         if (Build.VERSION.SDK_INT < 31) return null;
         boolean available;
