@@ -149,6 +149,8 @@ public final class OrbitNavigation {
         // The package installer's confirmation bridge. It draws nothing of its own, forwards
         // Android's Install screen, and finishes. There is no GrokLink page underneath it.
         put(GrokLinkInstallActivity.class, Policy.LOCAL, "Install update");
+        // The Bug dialog's host. It draws the report and finishes. Back closes it.
+        put(BugReportActivity.class, Policy.LOCAL, "Bug");
         // Widget configuration answers the launcher with a result; leaving it is not navigation.
         put(OrbitWidgetConfigureActivity.class, Policy.LOCAL, "Widget setup");
         // Onboarding owns Back for its own steps: it walks backwards through setup and confirms

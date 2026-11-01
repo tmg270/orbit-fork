@@ -472,6 +472,9 @@ public final class AssistantClient {
             return decided("device-status", status, "");
         }
 
+        AssistantReply alarm = AlarmQueries.tryHandle(context, prompt);
+        if (alarm != null) return decided("alarm", alarm, "");
+
         // Obvious phone commands stay instant and offline regardless of the network.
         AssistantReply local = LocalCommandRouter.tryHandle(context, prompt);
         if (local != null) {
@@ -511,6 +514,10 @@ public final class AssistantClient {
             DiagnosticStore.recordUtilityRoute(context, "conversion");
             return decided("conversion", converted, "");
         }
+
+        // A phrase the user already marked good, with the actions that worked, stays on the phone.
+        AssistantReply learned = InteractionRating.recall(context, prompt);
+        if (learned != null) return decided("learned", learned, "");
         return new OfflineAttempt(null, notificationContext);
     }
 

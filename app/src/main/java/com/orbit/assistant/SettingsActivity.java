@@ -892,11 +892,11 @@ public class SettingsActivity extends Activity implements UiKit.AppearanceListen
                 Prefs.AUTO_LISTEN_ON_OPEN, false)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_FOLLOW_UPS,
                 toggle("Hands-free voice follow-ups",
-                "Reopen the microphone after GrokLink speaks.",
+                "The microphone stays closed after GrokLink speaks. Tap the mic to talk.",
                 Prefs.AUTO_LISTEN, false)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_SMART_FOLLOW_UPS,
                 toggle("Smart follow-ups",
-                "Only reopen the microphone when GrokLink is waiting for your answer.",
+                "Does not open the microphone. Tap the mic when you want to speak.",
                 Prefs.SMART_FOLLOW_UPS, true)));
         voiceCard.addView(target(SettingsSearchIndex.KEY_KEYBOARD_AWARE,
                 toggle("Keyboard-aware assistant invocation", Prefs.KEYBOARD_AWARE_ASSISTANT, true)));

@@ -80,6 +80,7 @@ public final class BugReportPrompt {
             open[0] = false;
             stop.run();
             if (tts[0] != null) tts[0].shutdown();
+            if (activity instanceof BugReportActivity && !activity.isFinishing()) activity.finish();
         });
         UiKit.styleOrbitDialog(dialog, activity, false);
         dialog.show();
@@ -317,10 +318,15 @@ public final class BugReportPrompt {
         transcript.setText(heard);
         transcript.setHint(heard.isEmpty() ? "Didn't catch that" : "What went wrong");
         if (heard.isEmpty()) return;
+        // The microphone is shut before the read-back, so the next result cannot be GrokLink's
+        // own voice. Vosk keeps the session open across a final result unless it is cancelled.
+        VoskSpeech.cancel();
+        MicCaptureService.release(activity);
         SessionTrace.speech("bug report", "transcript " + heard);
         if (tts[0] != null) {
             tts[0].setLanguage(Locale.UK);
-            tts[0].speak("I heard: " + heard, TextToSpeech.QUEUE_FLUSH, null, "bug-readback");
+            tts[0].speak("I heard: " + heard + ". Tap Send to file it.", TextToSpeech.QUEUE_FLUSH,
+                    null, "bug-readback");
         }
     }
 

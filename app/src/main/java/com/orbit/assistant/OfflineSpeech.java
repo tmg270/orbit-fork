@@ -14,9 +14,9 @@ import java.util.Locale;
  * <p>Every recogniser intent sets {@link RecognizerIntent#EXTRA_PREFER_OFFLINE} and
  * {@code EXTRA_LANGUAGE=en-GB}, including the ordinary system recogniser. That is what makes
  * airplane mode use the downloaded English (UK) pack instead of failing with
- * {@link SpeechRecognizer#ERROR_NETWORK}. When the phone is offline, {@link #open} uses that
- * system recogniser first and does not try {@link SpeechRecognizer#createOnDeviceSpeechRecognizer}.
- * A hard error after that (including error 2) is the caller's cue to fall back to Vosk.
+ * {@link SpeechRecognizer#ERROR_NETWORK}. {@link #open} tries the on-device recogniser first,
+ * online or offline, then the system recogniser. A hard error after that (including error 2)
+ * is the caller's cue to fall back to Vosk. Vosk is not the first listener.
  */
 public final class OfflineSpeech {
     /** British English pack. The phone under test has this offline pack installed. */
@@ -45,10 +45,9 @@ public final class OfflineSpeech {
 
     public static Engine open(Context context) {
         if (context == null) return null;
-        // Offline: the system recogniser, with EXTRA_PREFER_OFFLINE, before Vosk.
-        // The on-device factory is skipped here because a missing pack used to
-        // fall through to the online recogniser and return ERROR_NETWORK.
-        if (!LocalModel.online(context)) return openPlatform(context);
+        // British English on the device, online or not. The platform recogniser is next, still
+        // marked prefer-offline. Vosk is only the caller's fallback after one of these errors:
+        // the small model is not accurate enough to listen first.
         if (!networkFallback) {
             Engine onDevice = openOnDevice(context);
             if (onDevice != null) return onDevice;
@@ -131,12 +130,11 @@ public final class OfflineSpeech {
     }
 
     /**
-     * Speech that must not touch Google's recogniser.
+     * Whether this listen should skip straight to the bundled Vosk model.
      *
-     * <p>The car always uses the bundled Vosk model when it is in the APK. Google's recogniser is
-     * what tells the driver speech cannot work without a connection, including before
-     * {@code onError} runs. On the phone the same skip happens only while the phone is offline,
-     * so an online chat can still use the system recogniser.
+     * <p>It no longer should. The small model turned commands into nonsense and also heard
+     * GrokLink's own voice. Vosk still runs after the British English recogniser reports a hard
+     * failure, which is what keeps an offline phone working when that recogniser cannot start.
      */
     public static boolean preferBundledVosk(Context context, boolean car) {
         boolean model = context != null && (VoskModel.ready(context) || VoskModel.hasBundledAsset(context));
@@ -144,9 +142,9 @@ public final class OfflineSpeech {
     }
 
     static boolean preferBundledVosk(boolean car, boolean online, boolean modelAvailable) {
-        if (!modelAvailable) return false;
-        if (car) return true;
-        return !online;
+        // The three facts stay in the signature so a later policy can use them. Today Vosk is
+        // never the first listener, in the car or on the phone, online or offline.
+        return false && car && online && modelAvailable;
     }
 
     private static Engine openOnDevice(Context context) {

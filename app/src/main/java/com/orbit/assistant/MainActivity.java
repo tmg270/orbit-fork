@@ -349,7 +349,7 @@ public class MainActivity extends Activity {
         report.setText("Bug");
         report.setAllCaps(false);
         report.setTextColor(UiKit.MUTED);
-        report.setContentDescription("Report a bug");
+        report.setContentDescription("Bug");
         report.setBackground(UiKit.ripple(android.graphics.Color.TRANSPARENT, UiKit.TEXT, 18, this));
         report.setMinWidth(0);
         report.setMinimumWidth(0);

@@ -141,7 +141,16 @@ public final class DeviceActionExecutor {
                             .putExtra(AlarmClock.EXTRA_MESSAGE, p.optString("label", "GrokLink alarm"))
                             .putExtra(AlarmClock.EXTRA_SKIP_UI, true);
                     start(c, i);
-                    result = Result.success("Alarm set");
+                    if (android.os.Build.VERSION.SDK_INT >= 31
+                            && !RoutineTriggerScheduler.canScheduleExact(c)) {
+                        RoutineTriggerScheduler.openExactAlarmAccess(c);
+                    }
+                    result = Result.success(AlarmQueries.setResult(c, true));
+                    break;
+                }
+                case "SHOW_ALARMS": {
+                    start(c, AlarmQueries.showAlarms());
+                    result = Result.success("Opening your alarms");
                     break;
                 }
                 case "SET_REMINDER": {

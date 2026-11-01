@@ -59,6 +59,50 @@ public final class BugReport {
 
     private BugReport() {}
 
+    /** Downloads copy only. Does not contact GitHub. */
+    static Outcome writeDownload(Context context, String name, String body) {
+        if (context == null || name == null || name.isEmpty() || body == null) {
+            return outcome(false, "Couldn't save the report to Downloads.", "", null);
+        }
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        Saved saved = insertDownload(context, name, bytes, true);
+        if (saved == null) saved = insertDownload(context, name, bytes, false);
+        return outcome(false, savedLine(saved), "", saved);
+    }
+
+    /**
+     * Creates a GitHub issue when a token is already stored. Without one, this does nothing.
+     * The token is not written into the issue.
+     */
+    static boolean postIssue(Context context, String title, String body) {
+        String token = SecureStore.loadGithubIssuesToken(context);
+        if (token.isEmpty() || title == null || title.isEmpty() || body == null) return false;
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(ISSUES).openConnection();
+            conn.setRequestMethod("POST");
+            conn.setInstanceFollowRedirects(false);
+            conn.setConnectTimeout(15_000);
+            conn.setReadTimeout(30_000);
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setRequestProperty("X-GitHub-Api-Version", "2022-11-28");
+            conn.setRequestProperty("User-Agent", GrokLinkHttp.userAgent());
+            JSONObject payload = new JSONObject();
+            payload.put("title", SessionTrace.redact(title));
+            payload.put("body", body);
+            byte[] bytes = payload.toString().getBytes(StandardCharsets.UTF_8);
+            conn.setFixedLengthStreamingMode(bytes.length);
+            conn.getOutputStream().write(bytes);
+            int code = conn.getResponseCode();
+            conn.disconnect();
+            return code == 201;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     public static Outcome submit(Context context, String transcript) {
         String body = build(context, transcript);
         Saved saved = write(context, body);

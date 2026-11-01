@@ -163,11 +163,11 @@ public final class GrokLinkNextFixesTest {
         assertFalse(ProviderRequestMapper.webSearchRefused(401, "bad key"));
     }
 
-    @Test public void theCarUsesBundledSpeechAndThePhoneOnlyWhenOffline() {
-        assertTrue(OfflineSpeech.preferBundledVosk(true, true, true));
-        assertTrue(OfflineSpeech.preferBundledVosk(true, false, true));
+    @Test public void bundledSpeechIsTheFallbackNotTheFirstListener() {
+        assertFalse(OfflineSpeech.preferBundledVosk(true, true, true));
+        assertFalse(OfflineSpeech.preferBundledVosk(true, false, true));
         assertFalse(OfflineSpeech.preferBundledVosk(false, true, true));
-        assertTrue(OfflineSpeech.preferBundledVosk(false, false, true));
+        assertFalse(OfflineSpeech.preferBundledVosk(false, false, true));
         assertFalse(OfflineSpeech.preferBundledVosk(true, false, false));
     }
 

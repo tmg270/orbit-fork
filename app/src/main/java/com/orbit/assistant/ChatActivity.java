@@ -938,6 +938,7 @@ public class ChatActivity extends Activity {
             // actions, never floating below them.
             if (finished) addSourceLink(rawVisible, visible, h.richImages);
             if (finished) addResponseStrip(rawVisible, actions, fork, index);
+            if (finished) addTurnRating(index);
             else if (fork != null) addBranchNavigator(fork, index, false);
         }
         if (!visible.trim().isEmpty() && !visible.startsWith("GrokLink could not finish")) {
@@ -3766,6 +3767,58 @@ public class ChatActivity extends Activity {
      * answer has other versions, their navigator leads the strip; otherwise the strip is exactly
      * what it always was.
      */
+    /** Good and Bad under every finished reply. The same words as the car controls. */
+    private void addTurnRating(int index) {
+        String user = "";
+        for (int i = index - 1; i >= 0; i--) {
+            AssistantClient.History previous = history.get(i);
+            if (previous != null && "user".equalsIgnoreCase(previous.role)) {
+                user = previous.content == null ? "" : previous.content;
+                break;
+            }
+        }
+        String assistant = history.get(index) == null || history.get(index).content == null
+                ? "" : history.get(index).content;
+        java.util.List<AssistantReply.Action> ran = new ArrayList<>();
+        for (ActionResultStore.Entry entry : ActionResultStore.forAssistant(this, conversationId, index)) {
+            if (entry != null && entry.success && entry.action != null) ran.add(entry.action);
+        }
+        String phrase = user;
+        String answer = assistant;
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(rateButton("Good", "Thumbs up", v -> {
+            InteractionRating.record(this, phrase, answer, true, ran);
+            Toast.makeText(this, "Marked good", Toast.LENGTH_SHORT).show();
+        }));
+        row.addView(rateButton("Bad", "Thumbs down", v -> {
+            InteractionRating.record(this, phrase, answer, false, ran);
+            Toast.makeText(this, "Marked bad", Toast.LENGTH_SHORT).show();
+        }));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.START;
+        lp.setMargins(UiKit.dp(this, 2), 0, 0, UiKit.dp(this, 4));
+        messages.addView(row, lp);
+    }
+
+    private Button rateButton(String label, String description, View.OnClickListener click) {
+        Button button = new Button(this);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setTextColor(UiKit.MUTED);
+        button.setContentDescription(description);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setPadding(UiKit.dp(this, 10), 0, UiKit.dp(this, 10), 0);
+        button.setBackground(UiKit.ripple(android.graphics.Color.TRANSPARENT, UiKit.TEXT, 14, this));
+        button.setOnClickListener(click);
+        return button;
+    }
+
     private void addResponseStrip(String rawVisible, MessageActions.AssistantActions actions,
                                   ConversationBranches.Fork fork, int index) {
         LinearLayout strip = MessageActions.actionStrip(this, rawVisible, actions);
@@ -4012,7 +4065,7 @@ public class ChatActivity extends Activity {
     }
 
     private void showChatOptions(View anchor) {
-        String[] actions = {"Rename chat", "Clear chat", "Delete chat", "Report a bug"};
+        String[] actions = {"Rename chat", "Clear chat", "Delete chat", "Bug"};
         UiKit.showOrbitMenu(this, anchor, actions, -1, (index, title) -> {
             if (index == 3) {
                 BugReportPrompt.show(this);

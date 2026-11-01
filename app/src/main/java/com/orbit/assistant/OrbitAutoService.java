@@ -93,6 +93,22 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private AudioAttributes speechAttrs;
     private long speechStartMs;
     private long speechDurationMs;
+    /** True from the moment a reply is handed to the speech engine until it finishes. */
+    private boolean ttsSpeaking;
+    /** When the engine last finished. Zero means the tail has already passed. */
+    private long speechDoneAtMs;
+    /** The turn Good and Bad rate, including the actions that actually ran. */
+    private String ratedUser = "";
+    private String ratedAssistant = "";
+    private List<AssistantReply.Action> ratedActions = new ArrayList<>();
+    static final String LABEL_BUG = "Bug";
+    static final String LABEL_SEND = "Send";
+    static final String LABEL_GOOD = "Good";
+    static final String LABEL_BAD = "Bad";
+    private static final String ACTION_BUG = "bug";
+    private static final String ACTION_SEND = "send";
+    private static final String ACTION_GOOD = "good";
+    private static final String ACTION_BAD = "bad";
 
     @Override public void onCreate() {
         super.onCreate();
@@ -119,6 +135,12 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             @Override public void onSkipToPrevious() { ask(); }
             @Override public void onStop() { stopAll("Stopped"); }
             @Override public void onPause() { stopAll("Stopped"); }
+            @Override public void onCustomAction(String action, Bundle extras) {
+                if (ACTION_BUG.equals(action)) beginBugReport();
+                else if (ACTION_SEND.equals(action)) sendBugReport();
+                else if (ACTION_GOOD.equals(action)) rateLast(true);
+                else if (ACTION_BAD.equals(action)) rateLast(false);
+            }
         });
         session.setActive(true);
         setSessionToken(session.getSessionToken());
@@ -192,10 +214,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             String heard = bugTranscript == null || bugTranscript.isEmpty()
                     ? "Describe what went wrong" : bugTranscript;
             MediaDescriptionCompat bug = new MediaDescriptionCompat.Builder()
-                    .setMediaId(BUG_ID).setTitle("Report a bug").setSubtitle("Speak what went wrong").build();
+                    .setMediaId(BUG_ID).setTitle(LABEL_BUG).setSubtitle("Speak what went wrong").build();
             items.add(new MediaBrowserCompat.MediaItem(bug, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
             MediaDescriptionCompat send = new MediaDescriptionCompat.Builder()
-                    .setMediaId(BUG_SEND).setTitle("Send bug report").setSubtitle(heard).build();
+                    .setMediaId(BUG_SEND).setTitle(LABEL_SEND).setSubtitle(heard).build();
             items.add(new MediaBrowserCompat.MediaItem(send, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
             MediaDescriptionCompat again = new MediaDescriptionCompat.Builder()
                     .setMediaId(BUG_AGAIN).setTitle("Describe the bug again").setSubtitle("Replace the last description").build();
@@ -209,6 +231,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             bugReportMode = true;
             pendingConfirm = null;
             confirmListening = false;
+            SpokenConfirm.clear();
             cancelEscalation();
             notifyChildrenChanged(ROOT);
             ask();
@@ -219,7 +242,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         main.post(() -> {
             String said = bugTranscript == null ? "" : bugTranscript.trim();
             if (said.isEmpty()) {
-                speak("Describe the bug first, then tap Send bug report.");
+                speak("Tap " + LABEL_BUG + ", then say what went wrong.");
                 return;
             }
             status("Sending the bug report…", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", said, 0, 0);
@@ -233,13 +256,29 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private int attempt;
 
     private void ask() {
-        main.post(() -> {
-            pendingConfirm = null;
-            confirmListening = false;
-            SpokenConfirm.clear();
-            cancelEscalation();
-        });
+        main.post(this::prepareExplicitListen);
         ask(0);
+    }
+
+    /**
+     * Ask Grok was pressed. A question already spoken stays armed so the answer can be "yes",
+     * and nothing here opens the microphone on its own: {@link #ask(int)} is the button path.
+     */
+    private void prepareExplicitListen() {
+        if (pendingConfirm != null) {
+            confirmListening = true;
+            cancelEscalation();
+            return;
+        }
+        if (SpokenConfirm.isArmed()) {
+            confirmListening = false;
+            cancelEscalation();
+            return;
+        }
+        pendingConfirm = null;
+        confirmListening = false;
+        SpokenConfirm.clear();
+        cancelEscalation();
     }
 
     private void cancelEscalation() {
@@ -284,7 +323,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             recogFocus = null;
             status("Getting ready…", PlaybackStateCompat.STATE_BUFFERING, null, null, 0, 0);
             // Give TTS / the previous recogniser time to release audio focus and the mic.
-            main.postDelayed(this::startListeningNow, 300);
+            main.postDelayed(this::startListeningNow, SpeechGate.TAIL_MS);
         });
     }
 
@@ -370,6 +409,13 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 String text = list == null || list.isEmpty() ? "" : list.get(0);
                 Log.i(TAG, "onResults: " + text);
+                if (ignoreHeard(text)) {
+                    abandon(recogFocus);
+                    recogFocus = null;
+                    main.post(() -> releaseRecognizer());
+                    status("Tap Ask Grok to follow up", PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                    return;
+                }
                 abandon(recogFocus);
                 recogFocus = null;
                 main.post(() -> releaseRecognizer());
@@ -547,6 +593,10 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
                 abandon(recogFocus);
                 recogFocus = null;
                 String heard = text == null ? "" : text.trim();
+                if (ignoreHeard(heard)) {
+                    status("Tap Ask Grok to follow up", PlaybackStateCompat.STATE_STOPPED, null, null, 0, 0);
+                    return;
+                }
                 if (heard.isEmpty()) {
                     if (escalationListening) return;
                     status("Didn't catch that, tap Ask Grok to try again",
@@ -613,9 +663,19 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             bugReportMode = false;
             bugTranscript = text;
             notifyChildrenChanged(ROOT);
-            speak("I heard: " + text + ". Tap Send bug report to file it, or Describe the bug again.");
+            String said = text;
+            ACTIONS.execute(() -> {
+                BugReport.Outcome saved = BugReport.writeDownload(getApplicationContext(),
+                        String.format(Locale.US, "bug-%1$tY%1$tm%1$td-%1$tH%1$tM%1$tS.txt",
+                                System.currentTimeMillis()),
+                        BugReport.build(getApplicationContext(), said));
+                String where = saved.where == null || saved.where.isEmpty()
+                        ? BugReport.PUBLIC_FOLDER : saved.where;
+                main.post(() -> speak(bugPrompt(said, where)));
+            });
             return;
         }
+        ratedUser = text;
         AssistantReply offline = null;
         try {
             offline = AssistantClient.tryOfflineReply(this, text);
@@ -687,8 +747,32 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         return b.append("\nNow the driver asks: ").append(question).toString();
     }
 
+    /** What the car says after a description. Send and Bug are the on-screen controls. */
+    static String bugPrompt(String heard, String where) {
+        String place = where == null || where.isEmpty() ? BugReport.PUBLIC_FOLDER : where;
+        return "I heard: " + heard + ". Saved to " + place + ". Tap " + LABEL_SEND
+                + " to file it, or tap " + LABEL_BUG + " to say it again.";
+    }
+
+    private boolean ignoreHeard(String text) {
+        long since = speechDoneAtMs == 0 ? -1L : SystemClock.elapsedRealtime() - speechDoneAtMs;
+        return !SpeechGate.accept(ttsSpeaking, since, text, lastReply);
+    }
+
+    private void rateLast(boolean up) {
+        if ((ratedUser == null || ratedUser.isEmpty()) && (ratedAssistant == null || ratedAssistant.isEmpty())) {
+            speak("Nothing to rate yet.");
+            return;
+        }
+        InteractionRating.record(this, ratedUser, ratedAssistant, up, ratedActions);
+        speak(up ? "Marked good." : "Marked bad.");
+    }
+
     /** Runs safe actions now; asks out loud before calls and texts. */
     private void handleReply(String reply, List<AssistantReply.Action> actions) {
+        ratedAssistant = reply == null ? "" : reply;
+        if (actions == null) actions = new ArrayList<>();
+        ratedActions = new ArrayList<>(actions);
         if (actions.isEmpty()) { speak(reply); return; }
         List<AssistantReply.Action> now = new ArrayList<>();
         List<AssistantReply.Action> confirm = new ArrayList<>();
@@ -789,6 +873,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
         }
         long now = SystemClock.elapsedRealtime();
         if (lastTurnMs != 0 && now - lastTurnMs > IDLE_RESET_MS) history.clear();
+        ratedUser = question;
         String prompt = withHistory(new ArrayList<>(history), question);
         status("Heard: " + question, PlaybackStateCompat.STATE_BUFFERING, null, null, 0, 0);
         main.postDelayed(() -> status("Thinking…", PlaybackStateCompat.STATE_BUFFERING, question, null, 0, 0), 400);
@@ -881,6 +966,17 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private void startSpeaking(String reply) {
+        ttsSpeaking = true;
+        speechDoneAtMs = 0;
+        // Cancel inside a recognition callback; destroy on the next turn so the recogniser is not
+        // torn down from inside its own result.
+        if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) {}
+        }
+        usingVosk = false;
+        VoskSpeech.cancel();
+        MicCaptureService.release(this);
+        main.post(this::releaseRecognizer);
         abandon(recogFocus);
         speechFocus = focus(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK, speechAttrs, "speech");
         // Rough estimate (~15 chars/second) so Auto shows a sensible progress bar.
@@ -927,6 +1023,8 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     }
 
     private void finishSpeech(String error) {
+        ttsSpeaking = false;
+        speechDoneAtMs = SystemClock.elapsedRealtime();
         if (pendingMusic != null) {
             List<AssistantReply.Action> m = pendingMusic;
             pendingMusic = null;
@@ -942,26 +1040,39 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             }
             abandon(speechFocus);
             speechFocus = null;
-            status("Say Ask Grok or Forget it", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
             main.removeCallbacks(escalationFire);
             main.postDelayed(escalationFire, 2000);
-            escalationListening = true;
-            ask(0);
+            if (SpeechGate.opensMicAfterSpeech()) {
+                escalationListening = true;
+                status("Say Ask Grok or Forget it", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+                ask(0);
+            } else {
+                escalationListening = false;
+                status("Asking Grok", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+            }
             return;
         }
         if (error == null && pendingConfirm != null) {
             abandon(speechFocus);
             speechFocus = null;
-            status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "Grok", lastReply, 0, 0);
-            listenForConfirmation();
+            if (SpeechGate.opensMicAfterSpeech()) {
+                status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "Grok", lastReply, 0, 0);
+                listenForConfirmation();
+            } else {
+                status("Tap Ask Grok, then say yes or no", PlaybackStateCompat.STATE_PAUSED, "Grok", lastReply, 0, 0);
+            }
             return;
         }
         if (error == null && SpokenConfirm.isArmed()) {
             abandon(speechFocus);
             speechFocus = null;
             confirmListening = false;
-            status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
-            ask(0);
+            if (SpeechGate.opensMicAfterSpeech()) {
+                status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+                ask(0);
+            } else {
+                status("Tap Ask Grok, then say yes or no", PlaybackStateCompat.STATE_PAUSED, "GrokLink", lastReply, 0, 0);
+            }
             return;
         }
         Log.i(TAG, "speech finished" + (error == null ? "" : " with " + error));
@@ -1020,8 +1131,25 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             if (state == PlaybackStateCompat.STATE_ERROR) {
                 b.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, text);
             }
+            addCarControls(b);
             session.setPlaybackState(b.build());
         });
+    }
+
+    /** The buttons Android Auto can show on the now-playing screen. Titles match what is spoken. */
+    private void addCarControls(PlaybackStateCompat.Builder state) {
+        state.addCustomAction(new PlaybackStateCompat.CustomAction.Builder(
+                ACTION_BUG, LABEL_BUG, com.orbit.assistant.R.drawable.ic_deck_note).build());
+        if (bugTranscript != null && !bugTranscript.isEmpty()) {
+            state.addCustomAction(new PlaybackStateCompat.CustomAction.Builder(
+                    ACTION_SEND, LABEL_SEND, com.orbit.assistant.R.drawable.ic_send).build());
+        }
+        if ((ratedUser != null && !ratedUser.isEmpty()) || (ratedAssistant != null && !ratedAssistant.isEmpty())) {
+            state.addCustomAction(new PlaybackStateCompat.CustomAction.Builder(
+                    ACTION_GOOD, LABEL_GOOD, com.orbit.assistant.R.drawable.ic_deck_heart).build());
+            state.addCustomAction(new PlaybackStateCompat.CustomAction.Builder(
+                    ACTION_BAD, LABEL_BAD, com.orbit.assistant.R.drawable.ic_close).build());
+        }
     }
 
     private AudioFocusRequest focus(int gain, AudioAttributes attrs, String what) {
