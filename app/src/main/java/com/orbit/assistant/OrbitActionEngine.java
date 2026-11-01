@@ -146,6 +146,7 @@ public final class OrbitActionEngine {
         switch (type) {
             case "MEDIA_CONTROL": return "MediaSession";
             case "SET_ALARM":
+            case "SHOW_ALARMS":
             case "SET_TIMER": return "Clock";
             case "DIAL":
             case "DIAL_CONTACT": return "Phone";

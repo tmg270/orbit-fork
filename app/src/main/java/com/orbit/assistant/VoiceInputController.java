@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.speech.RecognitionListener;
@@ -62,8 +63,10 @@ public final class VoiceInputController {
     /** Identifies the utterance currently being spoken, so an interrupted one cannot act. */
     private int utteranceGeneration;
     private String liveUtteranceId = "";
-    /** The reply Orbit last spoke, read only by the Smart follow-up decision. */
+    /** The reply Orbit last spoke, read only by the Smart follow-up decision and the echo gate. */
     private String lastSpokenReply = "";
+    /** When the speech engine last finished. Zero means the tail has already passed. */
+    private long speechDoneAtMs;
     /**
      * The user reached for the keyboard, so no pending hands-free handover may take the composer
      * back. Cleared when a voice turn starts or a new reply begins speaking, both of which are
@@ -119,6 +122,7 @@ public final class VoiceInputController {
         finalizing = false;
         active = true;
         composerClaimedForTyping = false;
+        speechDoneAtMs = 0;
         cancelFinalize();
         usingVosk = false;
         voskTried = false;
@@ -192,9 +196,29 @@ public final class VoiceInputController {
         try {
             lastSpokenReply = text;
             composerClaimedForTyping = false;
+            // Shut the microphone before the first sample of this reply. A recogniser left open
+            // from a pause-friendly turn would otherwise file the reply as the next command.
+            closeMicForSpeech();
+            speaking = true;
+            speechDoneAtMs = 0;
+            notifyState();
             liveUtteranceId = "orbit_chat_reply_" + (++utteranceGeneration);
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, liveUtteranceId);
         } catch (Exception ignored) {}
+    }
+
+    /** Drops any listen that is still running so this reply cannot be heard as input. */
+    private void closeMicForSpeech() {
+        cancelFinalize();
+        active = false;
+        listening = false;
+        finalizing = false;
+        voiceTurn.abandon();
+        if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) {}
+        }
+        usingVosk = false;
+        VoskSpeech.cancel();
     }
 
     /**
@@ -212,7 +236,7 @@ public final class VoiceInputController {
             if (generationAtSchedule != utteranceGeneration) return;
             if (!followUpDecision().reopensMicrophone()) return;
             start();
-        }, 220L);
+        }, SpeechGate.TAIL_MS);
     }
 
     /** Package-private so the wiring, not just the policy, can be driven in tests. */
@@ -240,7 +264,14 @@ public final class VoiceInputController {
         liveUtteranceId = "";
         if (tts != null) try { tts.stop(); } catch (Exception ignored) {}
         speaking = false;
+        speechDoneAtMs = SystemClock.elapsedRealtime();
         notifyState();
+    }
+
+    /** Own voice, the speaker tail, or a transcript of the line just spoken. */
+    private boolean ignoreHeard(String text) {
+        long since = speechDoneAtMs == 0 ? -1L : SystemClock.elapsedRealtime() - speechDoneAtMs;
+        return !SpeechGate.accept(speaking, since, text, lastSpokenReply);
     }
 
     public void destroy() {
@@ -320,6 +351,7 @@ public final class VoiceInputController {
                     ArrayList<String> values = results.getStringArrayList(
                             SpeechRecognizer.RESULTS_RECOGNITION);
                     String segment = values == null || values.isEmpty() ? "" : safe(values.get(0)).trim();
+                    if (ignoreHeard(segment)) return;
                     if (Prefs.voicePauseFriendly(context)) {
                         appendSegment(segment);
                         partial = "";
@@ -342,6 +374,7 @@ public final class VoiceInputController {
                             SpeechRecognizer.RESULTS_RECOGNITION);
                     if (values == null || values.isEmpty()) return;
                     partial = safe(values.get(0)).trim();
+                    if (ignoreHeard(partial)) return;
                     callback.onDraft(combinedDraft());
                     if (Prefs.voicePauseFriendly(context)) scheduleFinalize();
                     statusListening();
@@ -401,7 +434,7 @@ public final class VoiceInputController {
     }
 
     private void startSegment(boolean initial) {
-        if (!active || usingVosk) return;
+        if (!active || usingVosk || speaking) return;
         if (OfflineSpeech.preferBundledVosk(context, false)
                 && offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
         if (recognizer == null) {
@@ -606,6 +639,7 @@ public final class VoiceInputController {
                 @Override public void onPartial(String text) {
                     if (!usingVosk || !voiceTurn.hasLiveTurn()) return;
                     partial = text == null ? "" : text.trim();
+                    if (ignoreHeard(partial)) return;
                     callback.onDraft(combinedDraft());
                     if (Prefs.voicePauseFriendly(context)) scheduleFinalize();
                     statusListening();
@@ -614,6 +648,7 @@ public final class VoiceInputController {
                 @Override public void onFinal(String text) {
                     if (!usingVosk || !voiceTurn.hasLiveTurn() || !active || finalizing) return;
                     String segment = text == null ? "" : text.trim();
+                    if (ignoreHeard(segment)) return;
                     if (Prefs.voicePauseFriendly(context)) {
                         appendSegment(segment);
                         partial = "";
@@ -667,6 +702,7 @@ public final class VoiceInputController {
                     }
                     @Override public void onDone(String utteranceId) {
                         speaking = false;
+                        speechDoneAtMs = SystemClock.elapsedRealtime();
                         main.post(() -> {
                             // An utterance the user interrupted must not open the microphone.
                             if (!isLiveUtterance(utteranceId)) {

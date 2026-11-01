@@ -55,6 +55,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -219,6 +220,11 @@ public class OrbitSession extends VoiceInteractionSession {
     private String liveUtteranceId = "";
     /** The reply Orbit last spoke, read only by the Smart follow-up decision. */
     private String lastSpokenReply = "";
+    /** When the speech engine last finished. Zero means the tail has already passed. */
+    private long speechDoneAtMs;
+    /** The turn Good and Bad rate. */
+    private String ratedUser = "";
+    private String ratedAssistant = "";
     private boolean ttsReady = false;
     private boolean busy = false;
     private boolean dismissAnimating = false;
@@ -921,6 +927,8 @@ public class OrbitSession extends VoiceInteractionSession {
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
             actionsLp.setMargins(UiKit.dp(c, 6), 0, UiKit.dp(c, 4), 0);
             controls.addView(screenActions, actionsLp);
+            controls.addView(ratingRow(c), new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, button));
             controls.addView(mic, new LinearLayout.LayoutParams(button, button));
             LinearLayout.LayoutParams sendLp = new LinearLayout.LayoutParams(button, button);
             sendLp.setMargins(UiKit.dp(c, 4), 0, 0, 0);
@@ -930,6 +938,8 @@ public class OrbitSession extends VoiceInteractionSession {
         } else {
             composer.addView(attach, new LinearLayout.LayoutParams(UiKit.dp(c, 42), UiKit.dp(c, 42)));
             composer.addView(input, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            composer.addView(ratingRow(c), new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, UiKit.dp(c, 44)));
             composer.addView(mic, new LinearLayout.LayoutParams(UiKit.dp(c, 44), UiKit.dp(c, 44)));
             LinearLayout.LayoutParams sendLp = new LinearLayout.LayoutParams(UiKit.dp(c, 44), UiKit.dp(c, 44));
             sendLp.setMargins(UiKit.dp(c, 5), 0, 0, 0);
@@ -2537,6 +2547,7 @@ public class OrbitSession extends VoiceInteractionSession {
     private void submitPrompt(String q, boolean voiceRequest) {
         if (busy || q == null || q.trim().isEmpty()) return;
         q = q.trim();
+        ratedUser = q;
         SubmissionGate.Decision decision = SubmissionGate.offer(getContext(), conversationId, q,
                 voiceRequest ? SubmissionGate.SOURCE_OVERLAY_VOICE : SubmissionGate.SOURCE_OVERLAY);
         if (!decision.accepted) return;
@@ -4122,6 +4133,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         ArrayList<String> values = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         if (values != null && !values.isEmpty()) {
                             String segment = values.get(0) == null ? "" : values.get(0).trim();
+                            if (ignoreHeard(segment)) return;
                             if (Prefs.voicePauseFriendly(getContext())) {
                                 appendVoiceSegment(segment);
                                 voicePartial = "";
@@ -4150,8 +4162,10 @@ public class OrbitSession extends VoiceInteractionSession {
                         if (!voiceTurn.hasLiveTurn()) return;
                         ArrayList<String> values = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         if (values != null && !values.isEmpty() && input != null) {
+                            String partial = values.get(0) == null ? "" : values.get(0).trim();
+                            if (ignoreHeard(partial)) return;
                             if (Prefs.voicePauseFriendly(getContext())) {
-                                voicePartial = values.get(0) == null ? "" : values.get(0).trim();
+                                voicePartial = partial;
                                 updateVoiceDraftField();
                                 scheduleVoiceFinalize();
                                 voiceComposerStatusSafe(listeningHint());
@@ -4236,6 +4250,7 @@ public class OrbitSession extends VoiceInteractionSession {
     }
 
     private void startListening() {
+        speechDoneAtMs = 0;
         usingVosk = false;
         voskTried = false;
         VoskSpeech.cancel();
@@ -4286,7 +4301,7 @@ public class OrbitSession extends VoiceInteractionSession {
     }
 
     private void startRecognizerSegment(boolean initialSegment) {
-        if (busy || usingVosk) return;
+        if (busy || usingVosk || speaking) return;
         if (getContext() != null && OfflineSpeech.preferBundledVosk(getContext(), false)
                 && offerVosk(SpeechRecognizer.ERROR_CLIENT)) return;
         if (recognizer == null) {
@@ -4500,6 +4515,7 @@ public class OrbitSession extends VoiceInteractionSession {
                 @Override public void onPartial(String text) {
                     if (!usingVosk || !voiceTurn.hasLiveTurn() || input == null) return;
                     String heard = text == null ? "" : text.trim();
+                    if (ignoreHeard(heard)) return;
                     if (Prefs.voicePauseFriendly(getContext())) {
                         voicePartial = heard;
                         updateVoiceDraftField();
@@ -4514,6 +4530,7 @@ public class OrbitSession extends VoiceInteractionSession {
                 @Override public void onFinal(String text) {
                     if (!usingVosk || !voiceTurn.hasLiveTurn() || voiceFinishing) return;
                     String segment = text == null ? "" : text.trim();
+                    if (ignoreHeard(segment)) return;
                     listening = false;
                     updateMic();
                     if (Prefs.voicePauseFriendly(getContext())) {
@@ -4644,6 +4661,7 @@ public class OrbitSession extends VoiceInteractionSession {
                         }
                         public void onDone(String utteranceId) {
                             speaking = false;
+                            speechDoneAtMs = SystemClock.elapsedRealtime();
                             main.post(() -> {
                                 // An interrupted utterance must not reopen the microphone.
                                 if (!isLiveUtterance(utteranceId)) {
@@ -4671,13 +4689,71 @@ public class OrbitSession extends VoiceInteractionSession {
         } catch (Exception ignored) {}
     }
 
+    /** Bug, Good and Bad. The labels are the controls the spoken prompts name. */
+    private LinearLayout ratingRow(Context c) {
+        LinearLayout row = new LinearLayout(c);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(turnButton(c, "Bug", "Bug", v -> BugReportActivity.open(c)));
+        row.addView(turnButton(c, "Good", "Thumbs up", v -> rateTurn(c, true)));
+        row.addView(turnButton(c, "Bad", "Thumbs down", v -> rateTurn(c, false)));
+        return row;
+    }
+
+    private Button turnButton(Context c, String label, String description, View.OnClickListener click) {
+        Button button = new Button(c);
+        button.setText(label);
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setTextColor(UiKit.MUTED);
+        button.setContentDescription(description);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setPadding(UiKit.dp(c, 6), 0, UiKit.dp(c, 6), 0);
+        button.setBackground(UiKit.ripple(Color.TRANSPARENT, UiKit.TEXT, 14, c));
+        button.setOnClickListener(click);
+        return button;
+    }
+
+    private void rateTurn(Context c, boolean up) {
+        if (ratedUser.isEmpty() && ratedAssistant.isEmpty()) {
+            Toast.makeText(c, "Nothing to rate yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        InteractionRating.record(c, ratedUser, ratedAssistant, up, null);
+        Toast.makeText(c, up ? "Marked good" : "Marked bad", Toast.LENGTH_SHORT).show();
+    }
+
     private void speak(String text) {
         if (!ttsReady || tts == null || text == null || text.isEmpty()) return;
         try {
             lastSpokenReply = text;
+            ratedAssistant = text;
+            closeMicForSpeech();
+            speaking = true;
+            speechDoneAtMs = 0;
+            updateMic();
             liveUtteranceId = "orbit_reply_" + (++utteranceGeneration);
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, liveUtteranceId);
         } catch (Exception ignored) {}
+    }
+
+    /** Drops any listen still running so this reply cannot be heard as the next command. */
+    private void closeMicForSpeech() {
+        cancelVoiceFinalize();
+        voiceTurn.abandon();
+        if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) {}
+        }
+        usingVosk = false;
+        VoskSpeech.cancel();
+        listening = false;
+    }
+
+    private boolean ignoreHeard(String text) {
+        long since = speechDoneAtMs == 0 ? -1L : SystemClock.elapsedRealtime() - speechDoneAtMs;
+        return !SpeechGate.accept(speaking, since, text, lastSpokenReply);
     }
 
     /**
@@ -4697,7 +4773,7 @@ public class OrbitSession extends VoiceInteractionSession {
             if (generationAtSchedule != utteranceGeneration) return;
             if (!followUpDecision().reopensMicrophone()) return;
             startListening();
-        }, 220);
+        }, SpeechGate.TAIL_MS);
     }
 
     private VoiceFollowUpPolicy.Decision followUpDecision() {
@@ -4725,6 +4801,7 @@ public class OrbitSession extends VoiceInteractionSession {
             try { tts.stop(); } catch (Exception ignored) {}
         }
         speaking = false;
+        speechDoneAtMs = SystemClock.elapsedRealtime();
         updateMic();
         restoreComposerHintSafe();
     }

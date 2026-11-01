@@ -27,7 +27,7 @@ final class CarActions {
     static final Set<String> CONFIRM = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "DIAL", "DIAL_CONTACT", "SMS", "SMS_CONTACT")));
     static final Set<String> PHONE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "CREATE_EVENT", "OPEN_APP")));
+            "CREATE_EVENT", "OPEN_APP", "SHOW_ALARMS")));
 
     static Kind kindOf(String type) {
         String t = type == null ? "" : type.toUpperCase(Locale.US);
@@ -108,6 +108,7 @@ final class CarActions {
             + "PLAY_PLAYLIST {name,tracks:[{title,artist}]} queues those songs in Poweramp after you look a setlist up. Only songs you found. "
             + "NAVIGATE {query,app,mode} with app maps or waze and mode navigate or eta. For eta, do not invent a travel time. "
             + "For a normal play request the text should be just: Playing Kasabian on Poweramp. "
+            + "The bug control on screen is labelled Bug. Do not tell the driver to press a report button. "
             + "Never return a DIAL for an emergency number unless the driver directly asked to call it. "
             + "Never use an em dash.";
 }

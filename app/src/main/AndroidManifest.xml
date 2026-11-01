@@ -165,6 +165,9 @@
           the launcher. Building the stack is what fixes that, and ChatActivity.stackFor does it
           for every surface outside Chats. This stays because Up metadata is still true.
         -->
+        <activity android:name=".BugReportActivity" android:exported="false"
+            android:theme="@style/Theme.Orbit.Bridge"
+            android:excludeFromRecents="true" />
         <activity android:name=".ChatActivity" android:exported="false"
             android:enableOnBackInvokedCallback="true"
             android:parentActivityName=".MainActivity"
