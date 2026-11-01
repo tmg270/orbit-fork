@@ -230,6 +230,7 @@ public final class VoiceInputController {
      * begins speaking in the gap disowns this handover.
      */
     private void scheduleVoiceFollowUp() {
+        if (!SpeechGate.opensMicAfterSpeech()) return;
         if (!followUpDecision().reopensMicrophone()) return;
         final int generationAtSchedule = utteranceGeneration;
         main.postDelayed(() -> {

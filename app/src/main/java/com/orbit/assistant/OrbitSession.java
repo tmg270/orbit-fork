@@ -4767,6 +4767,7 @@ public class OrbitSession extends VoiceInteractionSession {
      * disowns this handover outright.
      */
     private void scheduleVoiceFollowUp() {
+        if (!SpeechGate.opensMicAfterSpeech()) return;
         if (!followUpDecision().reopensMicrophone()) return;
         final int generationAtSchedule = utteranceGeneration;
         main.postDelayed(() -> {

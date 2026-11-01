@@ -322,11 +322,11 @@ public final class SettingsSearchIndex {
                 S_VOICE, "voice", KEY_AUTO_LISTEN,
                 "listen", "microphone", "mic", "voice", "auto"));
         out.add(new Entry("Hands-free voice follow-ups",
-                "Keep the conversation going without tapping.",
+                "The microphone stays closed after GrokLink speaks. Tap the mic to talk.",
                 S_VOICE, "voice", KEY_FOLLOW_UPS,
                 "follow up", "hands free", "voice", "conversation"));
         out.add(new Entry("Smart follow-ups",
-                "Offer a sensible next question after an answer.",
+                "Does not open the microphone. Tap the mic when you want to speak.",
                 S_VOICE, "voice", KEY_SMART_FOLLOW_UPS,
                 "follow up", "suggestions", "smart"));
         out.add(new Entry("Keyboard-aware assistant invocation",

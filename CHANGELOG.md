@@ -3,7 +3,7 @@
 ## GrokLink 1.0 (fork of Orbit Assistant 0.8.4.1)
 
 - **v1.0.45**: GrokLink stops listening to itself, and Bug, Good and Bad are real controls.
- - The microphone stays closed while GrokLink is speaking, and for a moment after, so a reply is not typed in as your next command.
+ - The microphone stays closed while GrokLink is speaking, and it stays closed afterwards until you tap the mic or Ask Grok.
  - Voice recognition uses British English on the phone first. The small offline model is only the backup.
  - Bug on the chat list, in a chat, on the side button and in the car opens the report. A copy still saves to Downloads/GrokLink, and you can share it without a GitHub token.
  - Good and Bad sit on every reply. A Good on something that worked can run that same action on the phone next time.

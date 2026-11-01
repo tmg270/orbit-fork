@@ -231,6 +231,7 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             bugReportMode = true;
             pendingConfirm = null;
             confirmListening = false;
+            SpokenConfirm.clear();
             cancelEscalation();
             notifyChildrenChanged(ROOT);
             ask();
@@ -255,13 +256,29 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
     private int attempt;
 
     private void ask() {
-        main.post(() -> {
-            pendingConfirm = null;
-            confirmListening = false;
-            SpokenConfirm.clear();
-            cancelEscalation();
-        });
+        main.post(this::prepareExplicitListen);
         ask(0);
+    }
+
+    /**
+     * Ask Grok was pressed. A question already spoken stays armed so the answer can be "yes",
+     * and nothing here opens the microphone on its own: {@link #ask(int)} is the button path.
+     */
+    private void prepareExplicitListen() {
+        if (pendingConfirm != null) {
+            confirmListening = true;
+            cancelEscalation();
+            return;
+        }
+        if (SpokenConfirm.isArmed()) {
+            confirmListening = false;
+            cancelEscalation();
+            return;
+        }
+        pendingConfirm = null;
+        confirmListening = false;
+        SpokenConfirm.clear();
+        cancelEscalation();
     }
 
     private void cancelEscalation() {
@@ -1023,26 +1040,39 @@ public class OrbitAutoService extends MediaBrowserServiceCompat {
             }
             abandon(speechFocus);
             speechFocus = null;
-            status("Say Ask Grok or Forget it", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
             main.removeCallbacks(escalationFire);
             main.postDelayed(escalationFire, 2000);
-            escalationListening = true;
-            ask(0);
+            if (SpeechGate.opensMicAfterSpeech()) {
+                escalationListening = true;
+                status("Say Ask Grok or Forget it", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+                ask(0);
+            } else {
+                escalationListening = false;
+                status("Asking Grok", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+            }
             return;
         }
         if (error == null && pendingConfirm != null) {
             abandon(speechFocus);
             speechFocus = null;
-            status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "Grok", lastReply, 0, 0);
-            listenForConfirmation();
+            if (SpeechGate.opensMicAfterSpeech()) {
+                status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "Grok", lastReply, 0, 0);
+                listenForConfirmation();
+            } else {
+                status("Tap Ask Grok, then say yes or no", PlaybackStateCompat.STATE_PAUSED, "Grok", lastReply, 0, 0);
+            }
             return;
         }
         if (error == null && SpokenConfirm.isArmed()) {
             abandon(speechFocus);
             speechFocus = null;
             confirmListening = false;
-            status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
-            ask(0);
+            if (SpeechGate.opensMicAfterSpeech()) {
+                status("Say yes or no", PlaybackStateCompat.STATE_BUFFERING, "GrokLink", lastReply, 0, 0);
+                ask(0);
+            } else {
+                status("Tap Ask Grok, then say yes or no", PlaybackStateCompat.STATE_PAUSED, "GrokLink", lastReply, 0, 0);
+            }
             return;
         }
         Log.i(TAG, "speech finished" + (error == null ? "" : " with " + error));

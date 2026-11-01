@@ -13,6 +13,15 @@ public final class SpeechGate {
     /** How long the speaker can still be audible after the engine reports done. */
     public static final long TAIL_MS = 800L;
 
+    /**
+     * A finished reply never opens the microphone. The talk button does: the overlay mic, the
+     * chat mic, and Ask Grok in the car. Half-duplex still mutes during speech, and an echo of
+     * the line just spoken is still dropped.
+     */
+    public static boolean opensMicAfterSpeech() {
+        return false;
+    }
+
     private SpeechGate() {}
 
     /**

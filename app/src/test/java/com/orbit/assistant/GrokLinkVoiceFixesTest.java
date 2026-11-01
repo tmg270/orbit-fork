@@ -22,6 +22,10 @@ import java.util.Collections;
 @Config(sdk = 35)
 public final class GrokLinkVoiceFixesTest {
 
+    @Test public void aFinishedReplyDoesNotOpenTheMicrophone() {
+        assertFalse(SpeechGate.opensMicAfterSpeech());
+    }
+
     @Test public void theMicrophoneStaysShutWhileGrokLinkIsSpeaking() {
         assertTrue(SpeechGate.hearingOwnVoice(true, -1));
         assertTrue(SpeechGate.hearingOwnVoice(false, 100));
